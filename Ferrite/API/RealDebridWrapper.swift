@@ -7,14 +7,16 @@
 
 import Foundation
 
-public class RealDebrid {
-    let jsonDecoder = JSONDecoder()
+public class RealDebrid: PollingDebridSource {
+    
+    public let id = "RealDebrid"
+    public var authTask: Task<Void, Error>?
 
     let baseAuthUrl = "https://api.real-debrid.com/oauth/v2"
     let baseApiUrl = "https://api.real-debrid.com/rest/1.0"
     let openSourceClientId = "X245A4XAIBGVM"
 
-    var authTask: Task<Void, Error>?
+    let jsonDecoder = JSONDecoder()
 
     @MainActor
     func setUserDefaultsValue(_ value: Any, forKey: String) {
@@ -27,7 +29,7 @@ public class RealDebrid {
     }
 
     // Fetches the device code from RD
-    public func getVerificationInfo() async throws -> DeviceCodeResponse {
+    public func getAuthUrl() async throws -> URL {
         var urlComponents = URLComponents(string: "\(baseAuthUrl)/device/code")!
         urlComponents.queryItems = [
             URLQueryItem(name: "client_id", value: openSourceClientId),
@@ -42,8 +44,18 @@ public class RealDebrid {
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
 
+            // Validate the URL before doing anything else
             let rawResponse = try jsonDecoder.decode(DeviceCodeResponse.self, from: data)
-            return rawResponse
+            guard let directVerificationUrl = URL(string: rawResponse.directVerificationURL) else {
+                throw RDError.AuthQuery(description: "The verification URL is invalid")
+            }
+
+            // Spawn the polling task separately
+            authTask = Task {
+                try await getDeviceCredentials(deviceCode: rawResponse.deviceCode)
+            }
+
+            return directVerificationUrl
         } catch {
             print("Couldn't get the new client creds!")
             throw RDError.AuthQuery(description: error.localizedDescription)
@@ -65,39 +77,33 @@ public class RealDebrid {
         let request = URLRequest(url: url)
 
         // Timer to poll RD API for credentials
-        authTask = Task {
-            var count = 0
+        var count = 0
 
-            while count < 12 {
-                if Task.isCancelled {
-                    throw RDError.AuthQuery(description: "Token request cancelled.")
-                }
-
-                let (data, _) = try await URLSession.shared.data(for: request)
-
-                // We don't care if this fails
-                let rawResponse = try? self.jsonDecoder.decode(DeviceCredentialsResponse.self, from: data)
-
-                // If there's a client ID from the response, end the task successfully
-                if let clientId = rawResponse?.clientID, let clientSecret = rawResponse?.clientSecret {
-                    await setUserDefaultsValue(clientId, forKey: "RealDebrid.ClientId")
-                    FerriteKeychain.shared.set(clientSecret, forKey: "RealDebrid.ClientSecret")
-
-                    try await getTokens(deviceCode: deviceCode)
-
-                    return
-                } else {
-                    try await Task.sleep(seconds: 5)
-                    count += 1
-                }
+        while count < 12 {
+            if Task.isCancelled {
+                throw RDError.AuthQuery(description: "Token request cancelled.")
             }
 
-            throw RDError.AuthQuery(description: "Could not fetch the client ID and secret in time. Try logging in again.")
+            let (data, _) = try await URLSession.shared.data(for: request)
+
+            // We don't care if this fails
+            let rawResponse = try? self.jsonDecoder.decode(DeviceCredentialsResponse.self, from: data)
+
+            // If there's a client ID from the response, end the task successfully
+            if let clientId = rawResponse?.clientID, let clientSecret = rawResponse?.clientSecret {
+                await setUserDefaultsValue(clientId, forKey: "RealDebrid.ClientId")
+                FerriteKeychain.shared.set(clientSecret, forKey: "RealDebrid.ClientSecret")
+
+                try await getTokens(deviceCode: deviceCode)
+
+                return
+            } else {
+                try await Task.sleep(seconds: 5)
+                count += 1
+            }
         }
 
-        if case let .failure(error) = await authTask?.result {
-            throw error
-        }
+        throw RDError.AuthQuery(description: "Could not fetch the client ID and secret in time. Try logging in again.")
     }
 
     // Fetch all tokens for the user and store in FerriteKeychain.shared
@@ -163,8 +169,9 @@ public class RealDebrid {
 
         return FerriteKeychain.shared.get("RealDebrid.AccessToken") == key
     }
-
-    public func deleteTokens() async throws {
+    
+    // Deletes tokens from device and RD's servers
+    public func logout() async {
         FerriteKeychain.shared.delete("RealDebrid.RefreshToken")
         FerriteKeychain.shared.delete("RealDebrid.ClientSecret")
         await removeUserDefaultsValue(forKey: "RealDebrid.ClientId")
@@ -198,7 +205,7 @@ public class RealDebrid {
         if response.statusCode >= 200, response.statusCode <= 299 {
             return data
         } else if response.statusCode == 401 {
-            try await deleteTokens()
+            await logout()
             throw RDError.FailedRequest(description: "The request \(requestName) failed because you were unauthorized. Please relogin to RealDebrid in Settings.")
         } else {
             throw RDError.FailedRequest(description: "The request \(requestName) failed with status code \(response.statusCode).")

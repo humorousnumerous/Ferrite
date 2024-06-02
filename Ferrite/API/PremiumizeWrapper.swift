@@ -7,14 +7,17 @@
 
 import Foundation
 
-public class Premiumize {
-    let jsonDecoder = JSONDecoder()
+public class Premiumize: OAuthDebridSource {
+
+    public let id = "Premiumize"
 
     let baseAuthUrl = "https://www.premiumize.me/authorize"
     let baseApiUrl = "https://www.premiumize.me/api"
     let clientId = "791565696"
 
-    public func buildAuthUrl() throws -> URL {
+    let jsonDecoder = JSONDecoder()
+
+    public func getAuthUrl() throws -> URL {
         var urlComponents = URLComponents(string: baseAuthUrl)!
         urlComponents.queryItems = [
             URLQueryItem(name: "client_id", value: clientId),
@@ -59,7 +62,7 @@ public class Premiumize {
     }
 
     // Clears tokens. No endpoint to deregister a device
-    public func deleteTokens() {
+    public func logout() {
         FerriteKeychain.shared.delete("Premiumize.AccessToken")
         UserDefaults.standard.removeObject(forKey: "Premiumize.UseManualKey")
     }
@@ -101,7 +104,7 @@ public class Premiumize {
         if response.statusCode >= 200, response.statusCode <= 299 {
             return data
         } else if response.statusCode == 401 {
-            deleteTokens()
+            logout()
             throw PMError.FailedRequest(description: "The request \(requestName) failed because you were unauthorized. Please relogin to Premiumize in Settings.")
         } else {
             throw PMError.FailedRequest(description: "The request \(requestName) failed with status code \(response.statusCode).")

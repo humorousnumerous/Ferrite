@@ -450,10 +450,10 @@ public class DebridManager: ObservableObject {
     private func authenticateRd() async -> Bool {
         do {
             realDebridAuthProcessing = true
-            let verificationResponse = try await realDebrid.getVerificationInfo()
+            let authUrl = try await realDebrid.getAuthUrl()
 
-            if validateAuthUrl(URL(string: verificationResponse.directVerificationURL)) {
-                try await realDebrid.getDeviceCredentials(deviceCode: verificationResponse.deviceCode)
+            if validateAuthUrl(authUrl) {
+                try await realDebrid.authTask?.value
                 return true
             } else {
                 throw RealDebrid.RDError.AuthQuery(description: "The verification URL was invalid")
@@ -469,10 +469,10 @@ public class DebridManager: ObservableObject {
     private func authenticateAd() async -> Bool {
         do {
             allDebridAuthProcessing = true
-            let pinResponse = try await allDebrid.getPinInfo()
+            let authUrl = try await allDebrid.getAuthUrl()
 
-            if validateAuthUrl(URL(string: pinResponse.userURL)) {
-                try await allDebrid.getApiKey(checkID: pinResponse.check, pin: pinResponse.pin)
+            if validateAuthUrl(authUrl) {
+                try await allDebrid.authTask?.value
                 return true
             } else {
                 throw AllDebrid.ADError.AuthQuery(description: "The PIN URL was invalid")
@@ -488,7 +488,7 @@ public class DebridManager: ObservableObject {
     private func authenticatePm() async {
         do {
             premiumizeAuthProcessing = true
-            let tempAuthUrl = try premiumize.buildAuthUrl()
+            let tempAuthUrl = try premiumize.getAuthUrl()
 
             validateAuthUrl(tempAuthUrl, useAuthSession: true)
         } catch {
@@ -538,16 +538,12 @@ public class DebridManager: ObservableObject {
     }
 
     private func logoutRd() async {
-        do {
-            try await realDebrid.deleteTokens()
-            enabledDebrids.remove(.realDebrid)
-        } catch {
-            await sendDebridError(error, prefix: "RealDebrid logout error")
-        }
+        await realDebrid.logout()
+        enabledDebrids.remove(.realDebrid)
     }
 
     private func logoutAd() {
-        allDebrid.deleteTokens()
+        allDebrid.logout()
         enabledDebrids.remove(.allDebrid)
 
         logManager?.info(
@@ -557,7 +553,7 @@ public class DebridManager: ObservableObject {
     }
 
     private func logoutPm() {
-        premiumize.deleteTokens()
+        premiumize.logout()
         enabledDebrids.remove(.premiumize)
     }
 

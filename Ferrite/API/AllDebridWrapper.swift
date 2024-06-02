@@ -8,24 +8,36 @@
 import Foundation
 
 // TODO: Fix errors
-public class AllDebrid {
-    let jsonDecoder = JSONDecoder()
+public class AllDebrid: PollingDebridSource {
+
+    public let id = "AllDebrid"
+    public var authTask: Task<Void, Error>?
 
     let baseApiUrl = "https://api.alldebrid.com/v4"
     let appName = "Ferrite"
 
-    var authTask: Task<Void, Error>?
+    let jsonDecoder = JSONDecoder()
 
     // Fetches information for PIN auth
-    public func getPinInfo() async throws -> PinResponse {
+    public func getAuthUrl() async throws -> URL {
         let url = try buildRequestURL(urlString: "\(baseApiUrl)/pin/get")
         let request = URLRequest(url: url)
 
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
-            let rawResponse = try jsonDecoder.decode(ADResponse<PinResponse>.self, from: data).data
 
-            return rawResponse
+            // Validate the URL before doing anything else
+            let rawResponse = try jsonDecoder.decode(ADResponse<PinResponse>.self, from: data).data
+            guard let userUrl = URL(string: rawResponse.userURL) else {
+                throw ADError.AuthQuery(description: "The login URL is invalid")
+            }
+
+            // Spawn the polling task separately
+            authTask = Task {
+                try await getApiKey(checkID: rawResponse.check, pin: rawResponse.pin)
+            }
+
+            return userUrl
         } catch {
             print("Couldn't get pin information!")
             throw ADError.AuthQuery(description: error.localizedDescription)
@@ -88,7 +100,7 @@ public class AllDebrid {
     }
 
     // Clears tokens. No endpoint to deregister a device
-    public func deleteTokens() {
+    public func logout() {
         FerriteKeychain.shared.delete("AllDebrid.ApiKey")
         UserDefaults.standard.removeObject(forKey: "AllDebrid.UseManualKey")
     }
@@ -110,7 +122,7 @@ public class AllDebrid {
         if response.statusCode >= 200, response.statusCode <= 299 {
             return data
         } else if response.statusCode == 401 {
-            deleteTokens()
+            logout()
             throw ADError.FailedRequest(description: "The request \(requestName) failed because you were unauthorized. Please relogin to AllDebrid in Settings.")
         } else {
             throw ADError.FailedRequest(description: "The request \(requestName) failed with status code \(response.statusCode).")

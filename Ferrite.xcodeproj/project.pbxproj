@@ -154,6 +154,8 @@
 		0CE1C4182981E8D700418F20 /* Plugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CE1C4172981E8D700418F20 /* Plugin.swift */; };
 		0CEC8AAE299B31B6007BFE8F /* SearchFilterHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CEC8AAD299B31B6007BFE8F /* SearchFilterHeaderView.swift */; };
 		0CEC8AB2299B3B57007BFE8F /* LibraryPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CEC8AB1299B3B57007BFE8F /* LibraryPickerView.swift */; };
+		0CF1ABDC2C0C04B2009F6C26 /* Debrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF1ABDB2C0C04B2009F6C26 /* Debrid.swift */; };
+		0CF1ABE22C0C3D2F009F6C26 /* DebridModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF1ABE12C0C3D2F009F6C26 /* DebridModels.swift */; };
 		0CF2C0A529D1EBD400E716DD /* UIApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF2C0A429D1EBD400E716DD /* UIApplication.swift */; };
 /* End PBXBuildFile section */
 
@@ -300,6 +302,8 @@
 		0CE1C4172981E8D700418F20 /* Plugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plugin.swift; sourceTree = "<group>"; };
 		0CEC8AAD299B31B6007BFE8F /* SearchFilterHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFilterHeaderView.swift; sourceTree = "<group>"; };
 		0CEC8AB1299B3B57007BFE8F /* LibraryPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryPickerView.swift; sourceTree = "<group>"; };
+		0CF1ABDB2C0C04B2009F6C26 /* Debrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Debrid.swift; sourceTree = "<group>"; };
+		0CF1ABE12C0C3D2F009F6C26 /* DebridModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebridModels.swift; sourceTree = "<group>"; };
 		0CF2C0A429D1EBD400E716DD /* UIApplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIApplication.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -399,6 +403,7 @@
 				0C3E00D7296F5B9A00ECECB2 /* PluginModels.swift */,
 				0C6771F929B3D1AE005D38D2 /* KodiModels.swift */,
 				0C1A3E5129C8A7F500DA9730 /* SettingsModels.swift */,
+				0CF1ABE12C0C3D2F009F6C26 /* DebridModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -492,6 +497,7 @@
 			isa = PBXGroup;
 			children = (
 				0CE1C4172981E8D700418F20 /* Plugin.swift */,
+				0CF1ABDB2C0C04B2009F6C26 /* Debrid.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -923,6 +929,7 @@
 				0C7075E629D3845D0093DB2D /* ShareSheet.swift in Sources */,
 				0C871BDF29994D9D005279AC /* FilterLabelView.swift in Sources */,
 				0CC2CA7429E24F63000A8585 /* ExpandedSearchable.swift in Sources */,
+				0CF1ABE22C0C3D2F009F6C26 /* DebridModels.swift in Sources */,
 				0C6771F429B3B4FD005D38D2 /* KodiWrapper.swift in Sources */,
 				0C3E00D0296F4DB200ECECB2 /* ActionModels.swift in Sources */,
 				0C44E2AD28D51C63007711AE /* BackupManager.swift in Sources */,
@@ -942,6 +949,7 @@
 				0CE1C4182981E8D700418F20 /* Plugin.swift in Sources */,
 				0CEC8AB2299B3B57007BFE8F /* LibraryPickerView.swift in Sources */,
 				0C6771F629B3B602005D38D2 /* SettingsKodiView.swift in Sources */,
+				0CF1ABDC2C0C04B2009F6C26 /* Debrid.swift in Sources */,
 				0C84F4842895BFED0074B7C9 /* SourceHtmlParser+CoreDataClass.swift in Sources */,
 				0C32FB572890D1F2002BD219 /* ListRowViews.swift in Sources */,
 				0CEC8AAE299B31B6007BFE8F /* SearchFilterHeaderView.swift in Sources */,
