@@ -279,7 +279,7 @@ public class AllDebrid: PollingDebridSource {
                 fileName: magnetResponse.filename,
                 status: magnetResponse.status,
                 hash: magnetResponse.hash,
-                links: magnetResponse.links.map { $0.link }
+                links: magnetResponse.links.map(\.link)
             )
         }
 

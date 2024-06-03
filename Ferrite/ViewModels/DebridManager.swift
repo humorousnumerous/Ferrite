@@ -572,26 +572,26 @@ public class DebridManager: ObservableObject {
     func fetchRdDownload(magnet: Magnet?, existingLink: String?) async {
         // If an existing link is passed in args, set it to that. Otherwise, find one from RD cloud.
         /*
-        let torrentLink: String?
-        if let existingLink {
-            torrentLink = existingLink
-        } else {
-            // Bypass the TTL for up to date information
-            await fetchRdCloud(bypassTTL: true)
+         let torrentLink: String?
+         if let existingLink {
+             torrentLink = existingLink
+         } else {
+             // Bypass the TTL for up to date information
+             await fetchRdCloud(bypassTTL: true)
 
-            let existingTorrent = realDebridCloudTorrents.first { $0.hash == selectedRealDebridItem?.magnet.hash && $0.status == "downloaded" }
-            torrentLink = existingTorrent?.links[safe: selectedRealDebridFile?.batchFileIndex ?? 0]
-        }
-        */
+             let existingTorrent = realDebridCloudTorrents.first { $0.hash == selectedRealDebridItem?.magnet.hash && $0.status == "downloaded" }
+             torrentLink = existingTorrent?.links[safe: selectedRealDebridFile?.batchFileIndex ?? 0]
+         }
+         */
 
         do {
             // If the links match from a user's downloads, no need to re-run a download
             /*
-            if let torrentLink,
-               let downloadLink = await checkRdUserDownloads(userTorrentLink: torrentLink)
-            {
-                downloadUrl = downloadLink
-            } else */
+             if let torrentLink,
+                let downloadLink = await checkRdUserDownloads(userTorrentLink: torrentLink)
+             {
+                 downloadUrl = downloadLink
+             } else */
             if let magnet {
                 let downloadLink = try await realDebrid.getDownloadLink(
                     magnet: magnet, ia: selectedRealDebridItem, iaFile: selectedRealDebridFile

@@ -272,7 +272,7 @@ public class RealDebrid: PollingDebridSource {
                 availableHashes.append(
                     DebridIA(
                         magnet: Magnet(hash: hash, link: nil),
-                        source: self.id,
+                        source: id,
                         expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                         files: files
                     )
@@ -281,7 +281,7 @@ public class RealDebrid: PollingDebridSource {
                 availableHashes.append(
                     DebridIA(
                         magnet: Magnet(hash: hash, link: nil),
-                        source: self.id,
+                        source: id,
                         expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                         files: []
                     )

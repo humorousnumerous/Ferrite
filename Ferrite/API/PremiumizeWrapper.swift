@@ -190,7 +190,7 @@ public class Premiumize: OAuthDebridSource {
 
             return DebridIA(
                 magnet: magnet,
-                source: self.id,
+                source: id,
                 expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                 files: files
             )
@@ -331,10 +331,8 @@ public class Premiumize: OAuthDebridSource {
 
     // No user torrents for Premiumize
     public func getUserTorrents() async throws -> [DebridCloudTorrent] {
-        return []
+        []
     }
 
-    public func deleteTorrent(torrentId: String) async throws {
-        return
-    }
+    public func deleteTorrent(torrentId: String) async throws {}
 }

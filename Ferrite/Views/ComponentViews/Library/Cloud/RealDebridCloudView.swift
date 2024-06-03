@@ -18,7 +18,7 @@ struct RealDebridCloudView: View {
         Group {
             DisclosureGroup("Downloads") {
                 ForEach(debridManager.realDebridCloudDownloads.filter {
-                    searchText.isEmpty ? true : $0.fileName .lowercased().contains(searchText.lowercased())
+                    searchText.isEmpty ? true : $0.fileName.lowercased().contains(searchText.lowercased())
                 }, id: \.self) { cloudDownload in
                     Button(cloudDownload.fileName) {
                         navModel.resultFromCloud = true
