@@ -246,23 +246,8 @@ public class DebridManager: ObservableObject {
 
             if enabledDebrids.contains(.premiumize) {
                 do {
-                    // Only strip magnets that don't have an associated link for PM
-                    let strippedResultMagnets: [Magnet] = resultMagnets.compactMap {
-                        if let magnetLink = $0.link {
-                            return Magnet(hash: $0.hash, link: magnetLink)
-                        } else {
-                            return nil
-                        }
-                    }
-
-                    let availableMagnets = try await premiumize.divideCacheRequests(magnets: strippedResultMagnets)
-
-                    // Split DDL requests into chunks of 10
-                    for chunk in availableMagnets.chunked(into: 10) {
-                        let tempIA = try await premiumize.divideDDLRequests(magnetChunk: chunk)
-
-                        premiumizeIAValues += tempIA
-                    }
+                    let fetchedPremiumizeIA = try await premiumize.instantAvailability(magnets: sendMagnets)
+                    premiumizeIAValues += fetchedPremiumizeIA
                 } catch {
                     await sendDebridError(error, prefix: "Premiumize IA fetch error")
                 }

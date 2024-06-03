@@ -17,6 +17,8 @@ public protocol DebridSource {
     func setApiKey(_ key: String) -> Bool
     func logout() async
 
+    func instantAvailability(magnets: [Magnet]) async throws -> [DebridIA]
+
     // Fetches a download link from a source
     // Include the instant availability information with the args
     func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String

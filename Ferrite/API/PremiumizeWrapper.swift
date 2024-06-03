@@ -118,6 +118,29 @@ public class Premiumize: OAuthDebridSource {
 
     // MARK: - Instant availability
 
+    public func instantAvailability(magnets: [Magnet]) async throws -> [DebridIA] {
+        var collectedIA: [DebridIA] = []
+
+        // Only strip magnets that don't have an associated link for PM
+        let strippedMagnets: [Magnet] = magnets.compactMap {
+            if let magnetLink = $0.link {
+                return Magnet(hash: $0.hash, link: magnetLink)
+            } else {
+                return nil
+            }
+        }
+
+        let availableMagnets = try await divideCacheRequests(magnets: strippedMagnets)
+
+        // Split DDL requests into chunks of 10
+        for chunk in availableMagnets.chunked(into: 10) {
+            let tempIA = try await divideDDLRequests(magnetChunk: chunk)
+            collectedIA += tempIA
+        }
+
+        return collectedIA
+    }
+
     // Function to divide and execute DDL endpoint requests in parallel
     // Calls this for 10 requests at a time to not overwhelm API servers
     public func divideDDLRequests(magnetChunk: [Magnet]) async throws -> [DebridIA] {
