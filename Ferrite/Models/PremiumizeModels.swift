@@ -51,19 +51,6 @@ public extension Premiumize {
         }
     }
 
-    // MARK: - InstantAvailability client side structures
-
-    struct IA: Codable, Hashable {
-        let magnet: Magnet
-        let expiryTimeStamp: Double
-        let files: [IAFile]
-    }
-
-    struct IAFile: Codable, Hashable {
-        let name: String
-        let streamUrlString: String
-    }
-
     // MARK: - AllItemsResponse (listall endpoint)
 
     struct AllItemsResponse: Codable {

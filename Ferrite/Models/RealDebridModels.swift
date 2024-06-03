@@ -90,7 +90,7 @@ public extension RealDebrid {
         var filesize: Int
     }
 
-    // MARK: - Instant Availability client side structures
+    // MARK: - Instant Availability batch structures (used for client-side conversion)
 
     struct IABatch: Codable, Hashable, Sendable {
         let files: [IABatchFile]

@@ -166,17 +166,4 @@ public extension AllDebrid {
             case name = "n"
         }
     }
-
-    // MARK: - InstantAvailablity client side structures
-
-    struct IA: Codable, Hashable {
-        let magnet: Magnet
-        let expiryTimeStamp: Double
-        var files: [IAFile]
-    }
-
-    struct IAFile: Codable, Hashable {
-        let id: Int
-        let fileName: String
-    }
 }
