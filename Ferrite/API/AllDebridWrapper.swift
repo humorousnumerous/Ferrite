@@ -169,6 +169,7 @@ public class AllDebrid: PollingDebridSource {
 
             return DebridIA(
                 magnet: Magnet(hash: magnetResp.hash, link: magnetResp.magnet),
+                source: self.id,
                 expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                 files: files
             )
@@ -274,6 +275,7 @@ public class AllDebrid: PollingDebridSource {
         let torrents = rawResponse.magnets.map { magnetResponse in
             DebridCloudTorrent(
                 torrentId: String(magnetResponse.id),
+                source: self.id,
                 fileName: magnetResponse.filename,
                 status: magnetResponse.status,
                 hash: magnetResponse.hash,
@@ -306,7 +308,7 @@ public class AllDebrid: PollingDebridSource {
         // The link is also the ID
         let downloads = rawResponse.links.map { link in
             DebridCloudDownload(
-                downloadId: link.link, fileName: link.filename, link: link.link
+                downloadId: link.link, source: self.id, fileName: link.filename, link: link.link
             )
         }
 

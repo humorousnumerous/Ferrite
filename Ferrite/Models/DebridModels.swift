@@ -9,6 +9,7 @@ import Foundation
 
 public struct DebridIA: Hashable, Sendable {
     let magnet: Magnet
+    let source: String
     let expiryTimeStamp: Double
     var files: [DebridIAFile]
 }
@@ -29,12 +30,14 @@ public struct DebridIAFile: Hashable, Sendable {
 
 public struct DebridCloudDownload: Hashable, Sendable {
     let downloadId: String
+    let source: String
     let fileName: String
     let link: String
 }
 
 public struct DebridCloudTorrent: Hashable, Sendable {
     let torrentId: String
+    let source: String
     let fileName: String
     let status: String
     let hash: String

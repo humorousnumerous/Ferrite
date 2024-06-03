@@ -272,6 +272,7 @@ public class RealDebrid: PollingDebridSource {
                 availableHashes.append(
                     DebridIA(
                         magnet: Magnet(hash: hash, link: nil),
+                        source: self.id,
                         expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                         files: files
                     )
@@ -280,6 +281,7 @@ public class RealDebrid: PollingDebridSource {
                 availableHashes.append(
                     DebridIA(
                         magnet: Magnet(hash: hash, link: nil),
+                        source: self.id,
                         expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                         files: []
                     )
@@ -395,6 +397,7 @@ public class RealDebrid: PollingDebridSource {
         let torrents = rawResponse.map { response in
             DebridCloudTorrent(
                 torrentId: response.id,
+                source: self.id,
                 fileName: response.filename,
                 status: response.status,
                 hash: response.hash,
@@ -420,7 +423,7 @@ public class RealDebrid: PollingDebridSource {
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode([UserDownloadsResponse].self, from: data)
         let downloads = rawResponse.map { response in
-            DebridCloudDownload(downloadId: response.id, fileName: response.filename, link: response.download)
+            DebridCloudDownload(downloadId: response.id, source: self.id, fileName: response.filename, link: response.download)
         }
 
         return downloads

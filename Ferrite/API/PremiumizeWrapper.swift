@@ -190,6 +190,7 @@ public class Premiumize: OAuthDebridSource {
 
             return DebridIA(
                 magnet: magnet,
+                source: self.id,
                 expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                 files: files
             )
@@ -294,7 +295,7 @@ public class Premiumize: OAuthDebridSource {
 
         // The "link" is the ID for Premiumize
         let downloads = rawResponse.files.map { file in
-            DebridCloudDownload(downloadId: file.id, fileName: file.name, link: file.id)
+            DebridCloudDownload(downloadId: file.id, source: self.id, fileName: file.name, link: file.id)
         }
 
         return downloads
