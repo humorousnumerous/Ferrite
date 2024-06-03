@@ -17,17 +17,17 @@ struct AllDebridCloudView: View {
     var body: some View {
         DisclosureGroup("Links") {
             ForEach(debridManager.allDebridCloudLinks.filter {
-                searchText.isEmpty ? true : $0.filename.lowercased().contains(searchText.lowercased())
-            }, id: \.self) { downloadResponse in
-                Button(downloadResponse.filename) {
+                searchText.isEmpty ? true : $0.fileName.lowercased().contains(searchText.lowercased())
+            }, id: \.self) { cloudDownload in
+                Button(cloudDownload.fileName) {
                     navModel.resultFromCloud = true
-                    navModel.selectedTitle = downloadResponse.filename
-                    debridManager.downloadUrl = downloadResponse.link
+                    navModel.selectedTitle = cloudDownload.fileName
+                    debridManager.downloadUrl = cloudDownload.link
 
                     PersistenceController.shared.createHistory(
                         HistoryEntryJson(
-                            name: downloadResponse.filename,
-                            url: downloadResponse.link,
+                            name: cloudDownload.fileName,
+                            url: cloudDownload.link,
                             source: DebridType.allDebrid.toString()
                         ),
                         performSave: true
@@ -43,9 +43,9 @@ struct AllDebridCloudView: View {
             }
             .onDelete { offsets in
                 for index in offsets {
-                    if let savedLink = debridManager.allDebridCloudLinks[safe: index] {
+                    if let cloudDownload = debridManager.allDebridCloudLinks[safe: index] {
                         Task {
-                            await debridManager.deleteAdLink(link: savedLink.link)
+                            await debridManager.deleteAdLink(link: cloudDownload.downloadId)
                         }
                     }
                 }
@@ -54,26 +54,26 @@ struct AllDebridCloudView: View {
 
         DisclosureGroup("Magnets") {
             ForEach(debridManager.allDebridCloudMagnets.filter {
-                searchText.isEmpty ? true : $0.filename.lowercased().contains(searchText.lowercased())
-            }, id: \.id) { magnet in
+                searchText.isEmpty ? true : $0.fileName.lowercased().contains(searchText.lowercased())
+            }, id: \.self) { cloudTorrent in
                 Button {
-                    if magnet.status == "Ready", !magnet.links.isEmpty {
+                    if cloudTorrent.status == "Ready", !cloudTorrent.links.isEmpty {
                         navModel.resultFromCloud = true
-                        navModel.selectedTitle = magnet.filename
+                        navModel.selectedTitle = cloudTorrent.fileName
 
                         var historyInfo = HistoryEntryJson(
-                            name: magnet.filename,
+                            name: cloudTorrent.fileName,
                             source: DebridType.allDebrid.toString()
                         )
 
                         Task {
-                            if magnet.links.count == 1 {
-                                if let lockedLink = magnet.links[safe: 0]?.link {
-                                    await debridManager.fetchDebridDownload(magnet: nil, cloudInfo: lockedLink)
-
+                            if cloudTorrent.links.count == 1 {
+                                if let torrentLink = cloudTorrent.links[safe: 0] {
+                                    await debridManager.fetchDebridDownload(magnet: nil, cloudInfo: torrentLink)
                                     if !debridManager.downloadUrl.isEmpty {
                                         historyInfo.url = debridManager.downloadUrl
                                         PersistenceController.shared.createHistory(historyInfo, performSave: true)
+
                                         pluginManager.runDefaultAction(
                                             urlString: debridManager.downloadUrl,
                                             navModel: navModel
@@ -81,7 +81,7 @@ struct AllDebridCloudView: View {
                                     }
                                 }
                             } else {
-                                let magnet = Magnet(hash: magnet.hash, link: nil)
+                                let magnet = Magnet(hash: cloudTorrent.hash, link: nil)
 
                                 // Do not clear old IA values
                                 await debridManager.populateDebridIA([magnet])
@@ -93,27 +93,29 @@ struct AllDebridCloudView: View {
                             }
                         }
                     }
-
                 } label: {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text(magnet.filename)
+                        Text(cloudTorrent.fileName)
+                            .font(.callout)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(4)
 
                         HStack {
-                            Text(magnet.status)
+                            Text(cloudTorrent.status.capitalizingFirstLetter())
                             Spacer()
-                            DebridLabelView(cloudLinks: magnet.links.map(\.link))
+                            DebridLabelView(cloudLinks: cloudTorrent.links)
                         }
                         .font(.caption)
                     }
                 }
-                .disabledAppearance(navModel.currentChoiceSheet != nil, dimmedOpacity: 0.9, animation: .easeOut(duration: 0.2))
+                .disabledAppearance(navModel.currentChoiceSheet != nil, dimmedOpacity: 0.7, animation: .easeOut(duration: 0.2))
                 .tint(.primary)
             }
             .onDelete { offsets in
                 for index in offsets {
-                    if let magnet = debridManager.allDebridCloudMagnets[safe: index] {
+                    if let cloudTorrent = debridManager.allDebridCloudMagnets[safe: index] {
                         Task {
-                            await debridManager.deleteAdMagnet(magnetId: magnet.id)
+                            await debridManager.deleteAdMagnet(magnetId: cloudTorrent.torrentId)
                         }
                     }
                 }

@@ -9,6 +9,8 @@ import Foundation
 
 public class RealDebrid: PollingDebridSource {
     public let id = "RealDebrid"
+    public let abbreviation = "RD"
+    public let website = "https://real-debrid.com"
     public var authTask: Task<Void, Error>?
 
     let baseAuthUrl = "https://api.real-debrid.com/oauth/v2"
@@ -357,24 +359,6 @@ public class RealDebrid: PollingDebridSource {
         }
     }
 
-    // Gets the user's torrent library
-    public func userTorrents() async throws -> [UserTorrentsResponse] {
-        var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents")!)
-
-        let data = try await performRequest(request: &request, requestName: #function)
-        let rawResponse = try jsonDecoder.decode([UserTorrentsResponse].self, from: data)
-
-        return rawResponse
-    }
-
-    // Deletes a torrent download from RD
-    public func deleteTorrent(debridID: String) async throws {
-        var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents/delete/\(debridID)")!)
-        request.httpMethod = "DELETE"
-
-        try await performRequest(request: &request, requestName: #function)
-    }
-
     // Downloads link from selectFiles for playback
     public func unrestrictLink(debridDownloadLink: String) async throws -> String {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/unrestrict/link")!)
@@ -392,18 +376,48 @@ public class RealDebrid: PollingDebridSource {
         return rawResponse.download
     }
 
+    // Gets the user's torrent library
+    public func getUserTorrents() async throws -> [DebridCloudTorrent] {
+        var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents")!)
+
+        let data = try await performRequest(request: &request, requestName: #function)
+        let rawResponse = try jsonDecoder.decode([UserTorrentsResponse].self, from: data)
+        let torrents = rawResponse.map { response in
+            DebridCloudTorrent(
+                torrentId: response.id,
+                fileName: response.filename,
+                status: response.status,
+                hash: response.hash,
+                links: response.links
+            )
+        }
+
+        return torrents
+    }
+
+    // Deletes a torrent download from RD
+    public func deleteTorrent(torrentId: String) async throws {
+        var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents/delete/\(torrentId)")!)
+        request.httpMethod = "DELETE"
+
+        try await performRequest(request: &request, requestName: #function)
+    }
+
     // Gets the user's downloads
-    public func userDownloads() async throws -> [UserDownloadsResponse] {
+    public func getUserDownloads() async throws -> [DebridCloudDownload] {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/downloads")!)
 
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode([UserDownloadsResponse].self, from: data)
+        let downloads = rawResponse.map { response in
+            DebridCloudDownload(downloadId: response.id, fileName: response.filename, link: response.download)
+        }
 
-        return rawResponse
+        return downloads
     }
 
-    public func deleteDownload(debridID: String) async throws {
-        var request = URLRequest(url: URL(string: "\(baseApiUrl)/downloads/delete/\(debridID)")!)
+    public func deleteDownload(downloadId: String) async throws {
+        var request = URLRequest(url: URL(string: "\(baseApiUrl)/downloads/delete/\(downloadId)")!)
         request.httpMethod = "DELETE"
 
         try await performRequest(request: &request, requestName: #function)

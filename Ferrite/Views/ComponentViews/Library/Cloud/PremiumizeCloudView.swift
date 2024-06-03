@@ -17,20 +17,20 @@ struct PremiumizeCloudView: View {
     var body: some View {
         DisclosureGroup("Items") {
             ForEach(debridManager.premiumizeCloudItems.filter {
-                searchText.isEmpty ? true : $0.name.lowercased().contains(searchText.lowercased())
-            }, id: \.id) { item in
-                Button(item.name) {
+                searchText.isEmpty ? true : $0.fileName.lowercased().contains(searchText.lowercased())
+            }, id: \.self) { cloudDownload in
+                Button(cloudDownload.fileName) {
                     Task {
                         navModel.resultFromCloud = true
-                        navModel.selectedTitle = item.name
+                        navModel.selectedTitle = cloudDownload.fileName
 
-                        await debridManager.fetchDebridDownload(magnet: nil, cloudInfo: item.id)
+                        await debridManager.fetchDebridDownload(magnet: nil, cloudInfo: cloudDownload.downloadId)
 
                         if !debridManager.downloadUrl.isEmpty {
                             PersistenceController.shared.createHistory(
                                 HistoryEntryJson(
-                                    name: item.name,
-                                    url: debridManager.downloadUrl,
+                                    name: cloudDownload.fileName,
+                                    url: cloudDownload.link,
                                     source: DebridType.premiumize.toString()
                                 ),
                                 performSave: true
@@ -48,9 +48,9 @@ struct PremiumizeCloudView: View {
             }
             .onDelete { offsets in
                 for index in offsets {
-                    if let item = debridManager.premiumizeCloudItems[safe: index] {
+                    if let cloudDownload = debridManager.premiumizeCloudItems[safe: index] {
                         Task {
-                            await debridManager.deletePmItem(id: item.id)
+                            await debridManager.deletePmItem(id: cloudDownload.downloadId)
                         }
                     }
                 }

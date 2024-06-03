@@ -69,8 +69,8 @@ public class DebridManager: ObservableObject {
 
     // TODO: Maybe make these generic?
     // RealDebrid cloud variables
-    @Published var realDebridCloudTorrents: [RealDebrid.UserTorrentsResponse] = []
-    @Published var realDebridCloudDownloads: [RealDebrid.UserDownloadsResponse] = []
+    @Published var realDebridCloudTorrents: [DebridCloudTorrent] = []
+    @Published var realDebridCloudDownloads: [DebridCloudDownload] = []
     var realDebridCloudTTL: Double = 0.0
 
     // AllDebrid auth variables
@@ -83,8 +83,8 @@ public class DebridManager: ObservableObject {
     var selectedAllDebridFile: DebridIAFile?
 
     // AllDebrid cloud variables
-    @Published var allDebridCloudMagnets: [AllDebrid.MagnetStatusData] = []
-    @Published var allDebridCloudLinks: [AllDebrid.SavedLink] = []
+    @Published var allDebridCloudMagnets: [DebridCloudTorrent] = []
+    @Published var allDebridCloudLinks: [DebridCloudDownload] = []
     var allDebridCloudTTL: Double = 0.0
 
     // Premiumize auth variables
@@ -97,7 +97,7 @@ public class DebridManager: ObservableObject {
     var selectedPremiumizeFile: DebridIAFile?
 
     // Premiumize cloud variables
-    @Published var premiumizeCloudItems: [Premiumize.UserItem] = []
+    @Published var premiumizeCloudItems: [DebridCloudDownload] = []
     var premiumizeCloudTTL: Double = 0.0
 
     init() {
@@ -651,8 +651,8 @@ public class DebridManager: ObservableObject {
     public func fetchRdCloud(bypassTTL: Bool = false) async {
         if bypassTTL || Date().timeIntervalSince1970 > realDebridCloudTTL {
             do {
-                realDebridCloudTorrents = try await realDebrid.userTorrents()
-                realDebridCloudDownloads = try await realDebrid.userDownloads()
+                realDebridCloudTorrents = try await realDebrid.getUserTorrents()
+                realDebridCloudDownloads = try await realDebrid.getUserDownloads()
 
                 // 5 minutes
                 realDebridCloudTTL = Date().timeIntervalSince1970 + 300
@@ -664,7 +664,7 @@ public class DebridManager: ObservableObject {
 
     func deleteRdDownload(downloadID: String) async {
         do {
-            try await realDebrid.deleteDownload(debridID: downloadID)
+            try await realDebrid.deleteDownload(downloadId: downloadID)
 
             // Bypass TTL to get current RD values
             await fetchRdCloud(bypassTTL: true)
@@ -676,7 +676,7 @@ public class DebridManager: ObservableObject {
     func deleteRdTorrent(torrentID: String? = nil, presentError: Bool = true) async {
         do {
             if let torrentID {
-                try await realDebrid.deleteTorrent(debridID: torrentID)
+                try await realDebrid.deleteTorrent(torrentId: torrentID)
             } else {
                 throw RealDebrid.RDError.FailedRequest(description: "No torrent ID was provided")
             }
@@ -688,7 +688,7 @@ public class DebridManager: ObservableObject {
     func checkRdUserDownloads(userTorrentLink: String) async -> String? {
         do {
             let existingLinks = realDebridCloudDownloads.first { $0.link == userTorrentLink }
-            if let existingLink = existingLinks?.download {
+            if let existingLink = existingLinks?.fileName {
                 return existingLink
             } else {
                 return try await realDebrid.unrestrictLink(debridDownloadLink: userTorrentLink)
@@ -761,8 +761,8 @@ public class DebridManager: ObservableObject {
     public func fetchAdCloud(bypassTTL: Bool = false) async {
         if bypassTTL || Date().timeIntervalSince1970 > allDebridCloudTTL {
             do {
-                allDebridCloudMagnets = try await allDebrid.userMagnets()
-                allDebridCloudLinks = try await allDebrid.savedLinks()
+                allDebridCloudMagnets = try await allDebrid.getUserTorrents()
+                allDebridCloudLinks = try await allDebrid.getUserDownloads()
 
                 // 5 minutes
                 allDebridCloudTTL = Date().timeIntervalSince1970 + 300
@@ -774,7 +774,7 @@ public class DebridManager: ObservableObject {
 
     func deleteAdLink(link: String) async {
         do {
-            try await allDebrid.deleteLink(link: link)
+            try await allDebrid.deleteDownload(downloadId: link)
 
             await fetchAdCloud(bypassTTL: true)
         } catch {
@@ -782,9 +782,9 @@ public class DebridManager: ObservableObject {
         }
     }
 
-    func deleteAdMagnet(magnetId: Int) async {
+    func deleteAdMagnet(magnetId: String) async {
         do {
-            try await allDebrid.deleteMagnet(magnetId: magnetId)
+            try await allDebrid.deleteTorrent(torrentId: magnetId)
 
             await fetchAdCloud(bypassTTL: true)
         } catch {
@@ -817,7 +817,7 @@ public class DebridManager: ObservableObject {
     public func fetchPmCloud(bypassTTL: Bool = false) async {
         if bypassTTL || Date().timeIntervalSince1970 > premiumizeCloudTTL {
             do {
-                let userItems = try await premiumize.userItems()
+                let userItems = try await premiumize.getUserDownloads()
                 withAnimation {
                     premiumizeCloudItems = userItems
                 }
@@ -835,7 +835,7 @@ public class DebridManager: ObservableObject {
 
     public func deletePmItem(id: String) async {
         do {
-            try await premiumize.deleteItem(itemID: id)
+            try await premiumize.deleteDownload(downloadId: id)
 
             // Bypass TTL to get current RD values
             await fetchPmCloud(bypassTTL: true)

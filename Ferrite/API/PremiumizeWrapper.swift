@@ -9,6 +9,8 @@ import Foundation
 
 public class Premiumize: OAuthDebridSource {
     public let id = "Premiumize"
+    public let abbreviation = "PM"
+    public let website = "https://premiumize.me"
 
     let baseAuthUrl = "https://www.premiumize.me/authorize"
     let baseApiUrl = "https://www.premiumize.me/api"
@@ -247,7 +249,7 @@ public class Premiumize: OAuthDebridSource {
         try await performRequest(request: &request, requestName: #function)
     }
 
-    func userItems() async throws -> [UserItem] {
+    public func getUserDownloads() async throws -> [DebridCloudDownload] {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/item/listall")!)
 
         let data = try await performRequest(request: &request, requestName: #function)
@@ -257,7 +259,12 @@ public class Premiumize: OAuthDebridSource {
             throw PMError.EmptyData
         }
 
-        return rawResponse.files
+        // The "link" is the ID for Premiumize
+        let downloads = rawResponse.files.map { file in
+            DebridCloudDownload(downloadId: file.id, fileName: file.name, link: file.id)
+        }
+
+        return downloads
     }
 
     func itemDetails(itemID: String) async throws -> ItemDetailsResponse {
@@ -275,16 +282,25 @@ public class Premiumize: OAuthDebridSource {
         return rawResponse
     }
 
-    func deleteItem(itemID: String) async throws {
+    public func deleteDownload(downloadId: String) async throws {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/item/delete")!)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
 
         var bodyComponents = URLComponents()
-        bodyComponents.queryItems = [URLQueryItem(name: "id", value: itemID)]
+        bodyComponents.queryItems = [URLQueryItem(name: "id", value: downloadId)]
 
         request.httpBody = bodyComponents.query?.data(using: .utf8)
 
         try await performRequest(request: &request, requestName: #function)
+    }
+
+    // No user torrents for Premiumize
+    public func getUserTorrents() async throws -> [DebridCloudTorrent] {
+        return []
+    }
+
+    public func deleteTorrent(torrentId: String) async throws {
+        return
     }
 }

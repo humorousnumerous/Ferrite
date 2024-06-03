@@ -10,6 +10,8 @@ import Foundation
 // TODO: Fix errors
 public class AllDebrid: PollingDebridSource {
     public let id = "AllDebrid"
+    public let abbreviation = "AD"
+    public let website = "https://alldebrid.com"
     public var authTask: Task<Void, Error>?
 
     let baseApiUrl = "https://api.alldebrid.com/v4"
@@ -203,28 +205,6 @@ public class AllDebrid: PollingDebridSource {
         }
     }
 
-    public func userMagnets() async throws -> [MagnetStatusData] {
-        var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/status"))
-
-        let data = try await performRequest(request: &request, requestName: #function)
-        let rawResponse = try jsonDecoder.decode(ADResponse<MagnetStatusResponse>.self, from: data).data
-
-        if rawResponse.magnets.isEmpty {
-            throw ADError.EmptyData
-        } else {
-            return rawResponse.magnets
-        }
-    }
-
-    public func deleteMagnet(magnetId: Int) async throws {
-        let queryItems = [
-            URLQueryItem(name: "id", value: String(magnetId))
-        ]
-        var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/delete", queryItems: queryItems))
-
-        try await performRequest(request: &request, requestName: #function)
-    }
-
     public func unlockLink(lockedLink: String) async throws -> String {
         let queryItems = [
             URLQueryItem(name: "link", value: lockedLink)
@@ -246,7 +226,40 @@ public class AllDebrid: PollingDebridSource {
         try await performRequest(request: &request, requestName: #function)
     }
 
-    public func savedLinks() async throws -> [SavedLink] {
+    // Referred to as "User magnets" in AllDebrid's API
+    public func getUserTorrents() async throws -> [DebridCloudTorrent] {
+        var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/status"))
+
+        let data = try await performRequest(request: &request, requestName: #function)
+        let rawResponse = try jsonDecoder.decode(ADResponse<MagnetStatusResponse>.self, from: data).data
+
+        if rawResponse.magnets.isEmpty {
+            throw ADError.EmptyData
+        }
+
+        let torrents = rawResponse.magnets.map { magnetResponse in
+            DebridCloudTorrent(
+                torrentId: String(magnetResponse.id),
+                fileName: magnetResponse.filename,
+                status: magnetResponse.status,
+                hash: magnetResponse.hash,
+                links: magnetResponse.links.map { $0.link }
+            )
+        }
+
+        return torrents
+    }
+
+    public func deleteTorrent(torrentId: String) async throws {
+        let queryItems = [
+            URLQueryItem(name: "id", value: torrentId)
+        ]
+        var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/delete", queryItems: queryItems))
+
+        try await performRequest(request: &request, requestName: #function)
+    }
+
+    public func getUserDownloads() async throws -> [DebridCloudDownload] {
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/user/links"))
 
         let data = try await performRequest(request: &request, requestName: #function)
@@ -254,14 +267,22 @@ public class AllDebrid: PollingDebridSource {
 
         if rawResponse.links.isEmpty {
             throw ADError.EmptyData
-        } else {
-            return rawResponse.links
         }
+
+        // The link is also the ID
+        let downloads = rawResponse.links.map { link in
+            DebridCloudDownload(
+                downloadId: link.link, fileName: link.filename, link: link.link
+            )
+        }
+
+        return downloads
     }
 
-    public func deleteLink(link: String) async throws {
+    // The downloadId is actually the download link
+    public func deleteDownload(downloadId: String) async throws {
         let queryItems = [
-            URLQueryItem(name: "link", value: link)
+            URLQueryItem(name: "link", value: downloadId)
         ]
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/user/links/delete", queryItems: queryItems))
 

@@ -18,17 +18,17 @@ struct RealDebridCloudView: View {
         Group {
             DisclosureGroup("Downloads") {
                 ForEach(debridManager.realDebridCloudDownloads.filter {
-                    searchText.isEmpty ? true : $0.filename.lowercased().contains(searchText.lowercased())
-                }, id: \.self) { downloadResponse in
-                    Button(downloadResponse.filename) {
+                    searchText.isEmpty ? true : $0.fileName .lowercased().contains(searchText.lowercased())
+                }, id: \.self) { cloudDownload in
+                    Button(cloudDownload.fileName) {
                         navModel.resultFromCloud = true
-                        navModel.selectedTitle = downloadResponse.filename
-                        debridManager.downloadUrl = downloadResponse.download
+                        navModel.selectedTitle = cloudDownload.fileName
+                        debridManager.downloadUrl = cloudDownload.link
 
                         PersistenceController.shared.createHistory(
                             HistoryEntryJson(
-                                name: downloadResponse.filename,
-                                url: downloadResponse.download,
+                                name: cloudDownload.fileName,
+                                url: cloudDownload.link,
                                 source: DebridType.realDebrid.toString()
                             ),
                             performSave: true
@@ -44,9 +44,9 @@ struct RealDebridCloudView: View {
                 }
                 .onDelete { offsets in
                     for index in offsets {
-                        if let downloadResponse = debridManager.realDebridCloudDownloads[safe: index] {
+                        if let cloudDownload = debridManager.realDebridCloudDownloads[safe: index] {
                             Task {
-                                await debridManager.deleteRdDownload(downloadID: downloadResponse.id)
+                                await debridManager.deleteRdDownload(downloadID: cloudDownload.downloadId)
                             }
                         }
                     }
@@ -55,21 +55,21 @@ struct RealDebridCloudView: View {
 
             DisclosureGroup("Torrents") {
                 ForEach(debridManager.realDebridCloudTorrents.filter {
-                    searchText.isEmpty ? true : $0.filename.lowercased().contains(searchText.lowercased())
-                }, id: \.self) { torrentResponse in
+                    searchText.isEmpty ? true : $0.fileName.lowercased().contains(searchText.lowercased())
+                }, id: \.self) { cloudTorrent in
                     Button {
-                        if torrentResponse.status == "downloaded", !torrentResponse.links.isEmpty {
+                        if cloudTorrent.status == "downloaded", !cloudTorrent.links.isEmpty {
                             navModel.resultFromCloud = true
-                            navModel.selectedTitle = torrentResponse.filename
+                            navModel.selectedTitle = cloudTorrent.fileName
 
                             var historyInfo = HistoryEntryJson(
-                                name: torrentResponse.filename,
+                                name: cloudTorrent.fileName,
                                 source: DebridType.realDebrid.toString()
                             )
 
                             Task {
-                                if torrentResponse.links.count == 1 {
-                                    if let torrentLink = torrentResponse.links[safe: 0] {
+                                if cloudTorrent.links.count == 1 {
+                                    if let torrentLink = cloudTorrent.links[safe: 0] {
                                         await debridManager.fetchDebridDownload(magnet: nil, cloudInfo: torrentLink)
                                         if !debridManager.downloadUrl.isEmpty {
                                             historyInfo.url = debridManager.downloadUrl
@@ -82,7 +82,7 @@ struct RealDebridCloudView: View {
                                         }
                                     }
                                 } else {
-                                    let magnet = Magnet(hash: torrentResponse.hash, link: nil)
+                                    let magnet = Magnet(hash: cloudTorrent.hash, link: nil)
 
                                     // Do not clear old IA values
                                     await debridManager.populateDebridIA([magnet])
@@ -96,15 +96,15 @@ struct RealDebridCloudView: View {
                         }
                     } label: {
                         VStack(alignment: .leading, spacing: 10) {
-                            Text(torrentResponse.filename)
+                            Text(cloudTorrent.fileName)
                                 .font(.callout)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .lineLimit(4)
 
                             HStack {
-                                Text(torrentResponse.status.capitalizingFirstLetter())
+                                Text(cloudTorrent.status.capitalizingFirstLetter())
                                 Spacer()
-                                DebridLabelView(cloudLinks: torrentResponse.links)
+                                DebridLabelView(cloudLinks: cloudTorrent.links)
                             }
                             .font(.caption)
                         }
@@ -114,9 +114,9 @@ struct RealDebridCloudView: View {
                 }
                 .onDelete { offsets in
                     for index in offsets {
-                        if let torrentResponse = debridManager.realDebridCloudTorrents[safe: index] {
+                        if let cloudTorrent = debridManager.realDebridCloudTorrents[safe: index] {
                             Task {
-                                await debridManager.deleteRdTorrent(torrentID: torrentResponse.id)
+                                await debridManager.deleteRdTorrent(torrentID: cloudTorrent.torrentId)
                             }
                         }
                     }
