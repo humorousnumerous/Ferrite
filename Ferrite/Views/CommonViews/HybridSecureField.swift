@@ -21,7 +21,7 @@ struct HybridSecureField: View {
     private var isFieldDisabled: Bool = false
 
     init(text: Binding<String>, onCommit: (() -> Void)? = nil, showPassword: Bool = false) {
-        self._text = text
+        _text = text
         if let onCommit {
             self.onCommit = onCommit
         }
@@ -57,6 +57,6 @@ struct HybridSecureField: View {
 
 extension HybridSecureField {
     public func fieldDisabled(_ isFieldDisabled: Bool) -> Self {
-        modifyViewProp({ $0.isFieldDisabled = isFieldDisabled })
+        modifyViewProp { $0.isFieldDisabled = isFieldDisabled }
     }
 }

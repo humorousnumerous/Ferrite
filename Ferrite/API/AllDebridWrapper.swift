@@ -9,7 +9,6 @@ import Foundation
 
 // TODO: Fix errors
 public class AllDebrid: PollingDebridSource {
-
     public let id = "AllDebrid"
     public var authTask: Task<Void, Error>?
 
@@ -96,7 +95,7 @@ public class AllDebrid: PollingDebridSource {
     }
 
     public func getToken() -> String? {
-        return FerriteKeychain.shared.get("AllDebrid.ApiKey")
+        FerriteKeychain.shared.get("AllDebrid.ApiKey")
     }
 
     // Clears tokens. No endpoint to deregister a device
@@ -144,6 +143,20 @@ public class AllDebrid: PollingDebridSource {
         } else {
             throw ADError.InvalidUrl
         }
+    }
+
+    // Wrapper function to fetch a download link from the API
+    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
+        let magnetID = try await addMagnet(magnet: magnet)
+        let lockedLink = try await fetchMagnetStatus(
+            magnetId: magnetID,
+            selectedIndex: iaFile?.fileId ?? 0
+        )
+
+        try await saveLink(link: lockedLink)
+        let downloadUrl = try await unlockLink(lockedLink: lockedLink)
+
+        return downloadUrl
     }
 
     // Adds a magnet link to the user's AD account
@@ -255,7 +268,7 @@ public class AllDebrid: PollingDebridSource {
         try await performRequest(request: &request, requestName: #function)
     }
 
-    public func instantAvailability(magnets: [Magnet]) async throws -> [IA] {
+    public func instantAvailability(magnets: [Magnet]) async throws -> [DebridIA] {
         let queryItems = magnets.map { URLQueryItem(name: "magnets[]", value: $0.hash) }
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/instant", queryItems: queryItems))
 
@@ -266,10 +279,10 @@ public class AllDebrid: PollingDebridSource {
         let availableHashes = filteredMagnets.map { magnetResp in
             // Force unwrap is OK here since the filter caught any nil values
             let files = magnetResp.files!.enumerated().map { index, magnetFile in
-                IAFile(id: index, fileName: magnetFile.name)
+                DebridIAFile(fileId: index, name: magnetFile.name)
             }
 
-            return IA(
+            return DebridIA(
                 magnet: Magnet(hash: magnetResp.hash, link: magnetResp.magnet),
                 expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                 files: files

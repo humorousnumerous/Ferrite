@@ -8,7 +8,6 @@
 import Foundation
 
 public class RealDebrid: PollingDebridSource {
-    
     public let id = "RealDebrid"
     public var authTask: Task<Void, Error>?
 
@@ -87,7 +86,7 @@ public class RealDebrid: PollingDebridSource {
             let (data, _) = try await URLSession.shared.data(for: request)
 
             // We don't care if this fails
-            let rawResponse = try? self.jsonDecoder.decode(DeviceCredentialsResponse.self, from: data)
+            let rawResponse = try? jsonDecoder.decode(DeviceCredentialsResponse.self, from: data)
 
             // If there's a client ID from the response, end the task successfully
             if let clientId = rawResponse?.clientID, let clientSecret = rawResponse?.clientSecret {
@@ -169,7 +168,7 @@ public class RealDebrid: PollingDebridSource {
 
         return FerriteKeychain.shared.get("RealDebrid.AccessToken") == key
     }
-    
+
     // Deletes tokens from device and RD's servers
     public func logout() async {
         FerriteKeychain.shared.delete("RealDebrid.RefreshToken")
@@ -213,9 +212,8 @@ public class RealDebrid: PollingDebridSource {
     }
 
     // Checks if the magnet is streamable on RD
-    // Currently does not work for batch links
-    public func instantAvailability(magnets: [Magnet]) async throws -> [IA] {
-        var availableHashes: [RealDebrid.IA] = []
+    public func instantAvailability(magnets: [Magnet]) async throws -> [DebridIA] {
+        var availableHashes: [DebridIA] = []
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents/instantAvailability/\(magnets.compactMap(\.hash).joined(separator: "/"))")!)
 
         let data = try await performRequest(request: &request, requestName: #function)
@@ -232,7 +230,7 @@ public class RealDebrid: PollingDebridSource {
                 continue
             }
 
-            // Is this a batch
+            // Is this a batch?
             if data.rd.count > 1 || data.rd[0].count > 1 {
                 // Batch array
                 let batches = data.rd.map { fileDict in
@@ -244,22 +242,18 @@ public class RealDebrid: PollingDebridSource {
                     return RealDebrid.IABatch(files: batchFiles)
                 }
 
-                // RD files array
-                // Possibly sort this in the future, but not sure how at the moment
-                var files: [RealDebrid.IAFile] = []
+                var files: [DebridIAFile] = []
 
-                for index in batches.indices {
-                    let batchFiles = batches[index].files
+                for batch in batches {
+                    let batchFileIds = batch.files.map(\.id)
 
-                    for batchFileIndex in batchFiles.indices {
-                        let batchFile = batchFiles[batchFileIndex]
-
-                        if !files.contains(where: { $0.name == batchFile.fileName }) {
+                    for batchFile in batch.files {
+                        if !files.contains(where: { $0.fileId == batchFile.id }) {
                             files.append(
-                                RealDebrid.IAFile(
+                                DebridIAFile(
+                                    fileId: batchFile.id,
                                     name: batchFile.fileName,
-                                    batchIndex: index,
-                                    batchFileIndex: batchFileIndex
+                                    batchIds: batchFileIds
                                 )
                             )
                         }
@@ -268,24 +262,39 @@ public class RealDebrid: PollingDebridSource {
 
                 // TTL: 5 minutes
                 availableHashes.append(
-                    RealDebrid.IA(
+                    DebridIA(
                         magnet: Magnet(hash: hash, link: nil),
                         expiryTimeStamp: Date().timeIntervalSince1970 + 300,
-                        files: files,
-                        batches: batches
+                        files: files
                     )
                 )
             } else {
                 availableHashes.append(
-                    RealDebrid.IA(
+                    DebridIA(
                         magnet: Magnet(hash: hash, link: nil),
-                        expiryTimeStamp: Date().timeIntervalSince1970 + 300
+                        expiryTimeStamp: Date().timeIntervalSince1970 + 300,
+                        files: []
                     )
                 )
             }
         }
 
         return availableHashes
+    }
+
+    // Wrapper function to fetch a download link from the API
+    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
+        let selectedMagnetId = try await addMagnet(magnet: magnet)
+
+        try await selectFiles(debridID: selectedMagnetId, fileIds: iaFile?.batchIds ?? [])
+
+        let torrentLink = try await torrentInfo(
+            debridID: selectedMagnetId,
+            selectedIndex: iaFile?.fileId ?? 0
+        )
+        let downloadLink = try await unrestrictLink(debridDownloadLink: torrentLink)
+
+        return downloadLink
     }
 
     // Adds a magnet link to the user's RD account
@@ -335,9 +344,11 @@ public class RealDebrid: PollingDebridSource {
 
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode(TorrentInfoResponse.self, from: data)
+        let filteredFiles = rawResponse.files.filter { $0.selected == 1 }
+        let linkIndex = filteredFiles.firstIndex(where: { $0.id == selectedIndex })
 
         // Let the user know if a torrent is downloading
-        if let torrentLink = rawResponse.links[safe: selectedIndex ?? -1], rawResponse.status == "downloaded" {
+        if let torrentLink = rawResponse.links[safe: linkIndex ?? -1], rawResponse.status == "downloaded" {
             return torrentLink
         } else if rawResponse.status == "downloading" || rawResponse.status == "queued" {
             throw RDError.EmptyTorrents

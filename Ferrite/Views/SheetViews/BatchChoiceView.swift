@@ -36,11 +36,11 @@ struct BatchChoiceView: View {
                     }
                 case .allDebrid:
                     ForEach(debridManager.selectedAllDebridItem?.files ?? [], id: \.self) { file in
-                        if file.fileName.lowercased().contains(searchText.lowercased()) || searchText.isEmpty {
-                            Button(file.fileName) {
+                        if file.name.lowercased().contains(searchText.lowercased()) || searchText.isEmpty {
+                            Button(file.name) {
                                 debridManager.selectedAllDebridFile = file
 
-                                queueCommonDownload(fileName: file.fileName)
+                                queueCommonDownload(fileName: file.name)
                             }
                         }
                     }

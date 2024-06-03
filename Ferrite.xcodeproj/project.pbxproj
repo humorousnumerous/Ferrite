@@ -394,6 +394,7 @@
 				0C6C7C9C29315292002DF910 /* AllDebridModels.swift */,
 				0C7ED14028D61BBA009E29AD /* BackupModels.swift */,
 				0C0755C7293425B500ECA142 /* DebridManagerModels.swift */,
+				0CF1ABE12C0C3D2F009F6C26 /* DebridModels.swift */,
 				0C84FCE629E4B61A00B0DFE4 /* FilterModels.swift */,
 				0C68135128BC1A7C00FAD890 /* GithubModels.swift */,
 				0C422E7F293542F300486D65 /* PremiumizeModels.swift */,
@@ -403,7 +404,6 @@
 				0C3E00D7296F5B9A00ECECB2 /* PluginModels.swift */,
 				0C6771F929B3D1AE005D38D2 /* KodiModels.swift */,
 				0C1A3E5129C8A7F500DA9730 /* SettingsModels.swift */,
-				0CF1ABE12C0C3D2F009F6C26 /* DebridModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";

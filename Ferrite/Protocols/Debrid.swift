@@ -14,6 +14,10 @@ public protocol DebridSource {
     // Common authentication functions
     func setApiKey(_ key: String) -> Bool
     func logout() async
+
+    // Fetches a download link from a source
+    // Include the instant availability information with the args
+    func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String
 }
 
 public protocol PollingDebridSource: DebridSource {
@@ -25,7 +29,6 @@ public protocol PollingDebridSource: DebridSource {
 }
 
 public protocol OAuthDebridSource: DebridSource {
-
     // Fetches the auth URL
     func getAuthUrl() throws -> URL
 

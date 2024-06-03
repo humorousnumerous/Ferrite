@@ -8,7 +8,6 @@
 import Foundation
 
 public class Premiumize: OAuthDebridSource {
-
     public let id = "Premiumize"
 
     let baseAuthUrl = "https://www.premiumize.me/authorize"
@@ -58,7 +57,7 @@ public class Premiumize: OAuthDebridSource {
     }
 
     public func getToken() -> String? {
-        return FerriteKeychain.shared.get("Premiumize.AccessToken")
+        FerriteKeychain.shared.get("Premiumize.AccessToken")
     }
 
     // Clears tokens. No endpoint to deregister a device
@@ -162,15 +161,15 @@ public class Premiumize: OAuthDebridSource {
 
     // Function to divide and execute DDL endpoint requests in parallel
     // Calls this for 10 requests at a time to not overwhelm API servers
-    public func divideDDLRequests(magnetChunk: [Magnet]) async throws -> [IA] {
-        let tempIA = try await withThrowingTaskGroup(of: Premiumize.IA.self) { group in
+    public func divideDDLRequests(magnetChunk: [Magnet]) async throws -> [DebridIA] {
+        let tempIA = try await withThrowingTaskGroup(of: DebridIA.self) { group in
             for magnet in magnetChunk {
                 group.addTask {
                     try await self.fetchDDL(magnet: magnet)
                 }
             }
 
-            var chunkedIA: [Premiumize.IA] = []
+            var chunkedIA: [DebridIA] = []
             for try await ia in group {
                 chunkedIA.append(ia)
             }
@@ -181,7 +180,7 @@ public class Premiumize: OAuthDebridSource {
     }
 
     // Grabs DDL links
-    func fetchDDL(magnet: Magnet) async throws -> IA {
+    func fetchDDL(magnet: Magnet) async throws -> DebridIA {
         if magnet.hash == nil {
             throw PMError.EmptyData
         }
@@ -200,19 +199,34 @@ public class Premiumize: OAuthDebridSource {
 
         if !rawResponse.content.isEmpty {
             let files = rawResponse.content.map { file in
-                IAFile(
+                DebridIAFile(
+                    fileId: 0,
                     name: file.path.split(separator: "/").last.flatMap { String($0) } ?? file.path,
                     streamUrlString: file.link
                 )
             }
 
-            return IA(
+            return DebridIA(
                 magnet: magnet,
                 expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                 files: files
             )
         } else {
             throw PMError.EmptyData
+        }
+    }
+
+    // Wrapper function to fetch a DDL link from the API
+    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
+        // Store the item in PM cloud for later use
+        try await createTransfer(magnet: magnet)
+
+        if let iaFile, let streamUrlString = iaFile.streamUrlString {
+            return streamUrlString
+        } else if let premiumizeItem = ia, let firstFile = premiumizeItem.files[safe: 0], let streamUrlString = firstFile.streamUrlString {
+            return streamUrlString
+        } else {
+            throw PMError.FailedRequest(description: "Could not fetch your file from the Premiumize API")
         }
     }
 

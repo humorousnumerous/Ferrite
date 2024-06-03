@@ -92,13 +92,6 @@ public extension RealDebrid {
 
     // MARK: - Instant Availability client side structures
 
-    struct IA: Codable, Hashable, Sendable {
-        let magnet: Magnet
-        let expiryTimeStamp: Double
-        var files: [IAFile] = []
-        var batches: [IABatch] = []
-    }
-
     struct IABatch: Codable, Hashable, Sendable {
         let files: [IABatchFile]
     }
@@ -106,12 +99,6 @@ public extension RealDebrid {
     struct IABatchFile: Codable, Hashable, Sendable {
         let id: Int
         let fileName: String
-    }
-
-    struct IAFile: Codable, Hashable, Sendable {
-        let name: String
-        let batchIndex: Int
-        let batchFileIndex: Int
     }
 
     // MARK: - addMagnet endpoint

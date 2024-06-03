@@ -96,7 +96,7 @@ struct SettingsView: View {
                         if changed {
                             Task {
                                 let dataRecords = await WKWebsiteDataStore.default().dataRecords(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes())
-                                        
+
                                 await WKWebsiteDataStore.default().removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), for: dataRecords)
                             }
                         }
