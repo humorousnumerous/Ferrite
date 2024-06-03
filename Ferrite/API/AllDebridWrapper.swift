@@ -19,6 +19,8 @@ public class AllDebrid: PollingDebridSource {
 
     let jsonDecoder = JSONDecoder()
 
+    // MARK: - Auth
+
     // Fetches information for PIN auth
     public func getAuthUrl() async throws -> URL {
         let url = try buildRequestURL(urlString: "\(baseApiUrl)/pin/get")
@@ -106,6 +108,8 @@ public class AllDebrid: PollingDebridSource {
         UserDefaults.standard.removeObject(forKey: "AllDebrid.UseManualKey")
     }
 
+    // MARK: - Common request
+
     // Wrapper request function which matches the responses and returns data
     @discardableResult private func performRequest(request: inout URLRequest, requestName: String) async throws -> Data {
         guard let token = getToken() else {
@@ -146,6 +150,34 @@ public class AllDebrid: PollingDebridSource {
             throw ADError.InvalidUrl
         }
     }
+
+    // MARK: - Instant availability
+
+    public func instantAvailability(magnets: [Magnet]) async throws -> [DebridIA] {
+        let queryItems = magnets.map { URLQueryItem(name: "magnets[]", value: $0.hash) }
+        var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/instant", queryItems: queryItems))
+
+        let data = try await performRequest(request: &request, requestName: #function)
+        let rawResponse = try jsonDecoder.decode(ADResponse<InstantAvailabilityResponse>.self, from: data).data
+
+        let filteredMagnets = rawResponse.magnets.filter { $0.instant == true && $0.files != nil }
+        let availableHashes = filteredMagnets.map { magnetResp in
+            // Force unwrap is OK here since the filter caught any nil values
+            let files = magnetResp.files!.enumerated().map { index, magnetFile in
+                DebridIAFile(fileId: index, name: magnetFile.name)
+            }
+
+            return DebridIA(
+                magnet: Magnet(hash: magnetResp.hash, link: magnetResp.magnet),
+                expiryTimeStamp: Date().timeIntervalSince1970 + 300,
+                files: files
+            )
+        }
+
+        return availableHashes
+    }
+
+    // MARK: - Downloading
 
     // Wrapper function to fetch a download link from the API
     public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
@@ -226,6 +258,8 @@ public class AllDebrid: PollingDebridSource {
         try await performRequest(request: &request, requestName: #function)
     }
 
+    // MARK: - Cloud methods
+
     // Referred to as "User magnets" in AllDebrid's API
     public func getUserTorrents() async throws -> [DebridCloudTorrent] {
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/status"))
@@ -287,29 +321,5 @@ public class AllDebrid: PollingDebridSource {
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/user/links/delete", queryItems: queryItems))
 
         try await performRequest(request: &request, requestName: #function)
-    }
-
-    public func instantAvailability(magnets: [Magnet]) async throws -> [DebridIA] {
-        let queryItems = magnets.map { URLQueryItem(name: "magnets[]", value: $0.hash) }
-        var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/instant", queryItems: queryItems))
-
-        let data = try await performRequest(request: &request, requestName: #function)
-        let rawResponse = try jsonDecoder.decode(ADResponse<InstantAvailabilityResponse>.self, from: data).data
-
-        let filteredMagnets = rawResponse.magnets.filter { $0.instant == true && $0.files != nil }
-        let availableHashes = filteredMagnets.map { magnetResp in
-            // Force unwrap is OK here since the filter caught any nil values
-            let files = magnetResp.files!.enumerated().map { index, magnetFile in
-                DebridIAFile(fileId: index, name: magnetFile.name)
-            }
-
-            return DebridIA(
-                magnet: Magnet(hash: magnetResp.hash, link: magnetResp.magnet),
-                expiryTimeStamp: Date().timeIntervalSince1970 + 300,
-                files: files
-            )
-        }
-
-        return availableHashes
     }
 }

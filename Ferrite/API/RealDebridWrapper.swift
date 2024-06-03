@@ -29,6 +29,8 @@ public class RealDebrid: PollingDebridSource {
         UserDefaults.standard.removeObject(forKey: forKey)
     }
 
+    // MARK: - Auth
+
     // Fetches the device code from RD
     public func getAuthUrl() async throws -> URL {
         var urlComponents = URLComponents(string: "\(baseAuthUrl)/device/code")!
@@ -189,6 +191,8 @@ public class RealDebrid: PollingDebridSource {
         }
     }
 
+    // MARK: - Common request
+
     // Wrapper request function which matches the responses and returns data
     @discardableResult private func performRequest(request: inout URLRequest, requestName: String) async throws -> Data {
         guard let token = await fetchToken() else {
@@ -212,6 +216,8 @@ public class RealDebrid: PollingDebridSource {
             throw RDError.FailedRequest(description: "The request \(requestName) failed with status code \(response.statusCode).")
         }
     }
+
+    // MARK: - Instant availability
 
     // Checks if the magnet is streamable on RD
     public func instantAvailability(magnets: [Magnet]) async throws -> [DebridIA] {
@@ -283,6 +289,8 @@ public class RealDebrid: PollingDebridSource {
 
         return availableHashes
     }
+
+    // MARK: - Downloading
 
     // Wrapper function to fetch a download link from the API
     public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
@@ -375,6 +383,8 @@ public class RealDebrid: PollingDebridSource {
 
         return rawResponse.download
     }
+
+    // MARK: - Cloud methods
 
     // Gets the user's torrent library
     public func getUserTorrents() async throws -> [DebridCloudTorrent] {

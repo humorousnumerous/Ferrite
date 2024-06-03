@@ -18,6 +18,8 @@ public class Premiumize: OAuthDebridSource {
 
     let jsonDecoder = JSONDecoder()
 
+    // MARK: - Auth
+
     public func getAuthUrl() throws -> URL {
         var urlComponents = URLComponents(string: baseAuthUrl)!
         urlComponents.queryItems = [
@@ -68,6 +70,8 @@ public class Premiumize: OAuthDebridSource {
         UserDefaults.standard.removeObject(forKey: "Premiumize.UseManualKey")
     }
 
+    // MARK: - Common request
+
     // Wrapper request function which matches the responses and returns data
     @discardableResult private func performRequest(request: inout URLRequest, requestName: String) async throws -> Data {
         guard let token = getToken() else {
@@ -112,54 +116,7 @@ public class Premiumize: OAuthDebridSource {
         }
     }
 
-    // Function to divide and execute cache endpoint requests in parallel
-    // Calls this for 100 hashes at a time due to API limits
-    public func divideCacheRequests(magnets: [Magnet]) async throws -> [Magnet] {
-        let availableMagnets = try await withThrowingTaskGroup(of: [Magnet].self) { group in
-            for chunk in magnets.chunked(into: 100) {
-                group.addTask {
-                    try await self.checkCache(magnets: chunk)
-                }
-            }
-
-            var chunkedMagnets: [Magnet] = []
-            for try await magnetArray in group {
-                chunkedMagnets += magnetArray
-            }
-
-            return chunkedMagnets
-        }
-
-        return availableMagnets
-    }
-
-    // Parent function for initial checking of the cache
-    func checkCache(magnets: [Magnet]) async throws -> [Magnet] {
-        var urlComponents = URLComponents(string: "\(baseApiUrl)/cache/check")!
-        urlComponents.queryItems = magnets.map { URLQueryItem(name: "items[]", value: $0.hash) }
-        guard let url = urlComponents.url else {
-            throw PMError.InvalidUrl
-        }
-
-        var request = URLRequest(url: url)
-
-        let data = try await performRequest(request: &request, requestName: #function)
-        let rawResponse = try jsonDecoder.decode(CacheCheckResponse.self, from: data)
-
-        if rawResponse.response.isEmpty {
-            throw PMError.EmptyData
-        } else {
-            let availableMagnets = magnets.enumerated().compactMap { index, magnet in
-                if rawResponse.response[safe: index] == true {
-                    return magnet
-                } else {
-                    return nil
-                }
-            }
-
-            return availableMagnets
-        }
-    }
+    // MARK: - Instant availability
 
     // Function to divide and execute DDL endpoint requests in parallel
     // Calls this for 10 requests at a time to not overwhelm API servers
@@ -218,6 +175,57 @@ public class Premiumize: OAuthDebridSource {
         }
     }
 
+    // Function to divide and execute cache endpoint requests in parallel
+    // Calls this for 100 hashes at a time due to API limits
+    public func divideCacheRequests(magnets: [Magnet]) async throws -> [Magnet] {
+        let availableMagnets = try await withThrowingTaskGroup(of: [Magnet].self) { group in
+            for chunk in magnets.chunked(into: 100) {
+                group.addTask {
+                    try await self.checkCache(magnets: chunk)
+                }
+            }
+
+            var chunkedMagnets: [Magnet] = []
+            for try await magnetArray in group {
+                chunkedMagnets += magnetArray
+            }
+
+            return chunkedMagnets
+        }
+
+        return availableMagnets
+    }
+
+    // Parent function for initial checking of the cache
+    func checkCache(magnets: [Magnet]) async throws -> [Magnet] {
+        var urlComponents = URLComponents(string: "\(baseApiUrl)/cache/check")!
+        urlComponents.queryItems = magnets.map { URLQueryItem(name: "items[]", value: $0.hash) }
+        guard let url = urlComponents.url else {
+            throw PMError.InvalidUrl
+        }
+
+        var request = URLRequest(url: url)
+
+        let data = try await performRequest(request: &request, requestName: #function)
+        let rawResponse = try jsonDecoder.decode(CacheCheckResponse.self, from: data)
+
+        if rawResponse.response.isEmpty {
+            throw PMError.EmptyData
+        } else {
+            let availableMagnets = magnets.enumerated().compactMap { index, magnet in
+                if rawResponse.response[safe: index] == true {
+                    return magnet
+                } else {
+                    return nil
+                }
+            }
+
+            return availableMagnets
+        }
+    }
+
+    // MARK: - Downloading
+
     // Wrapper function to fetch a DDL link from the API
     public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
         // Store the item in PM cloud for later use
@@ -248,6 +256,8 @@ public class Premiumize: OAuthDebridSource {
 
         try await performRequest(request: &request, requestName: #function)
     }
+
+    // MARK: - Cloud methods
 
     public func getUserDownloads() async throws -> [DebridCloudDownload] {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/item/listall")!)
