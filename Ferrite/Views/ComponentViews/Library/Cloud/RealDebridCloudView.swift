@@ -68,9 +68,14 @@ struct RealDebridCloudView: View {
                             )
 
                             Task {
-                                if cloudTorrent.links.count == 1 {
-                                    if let torrentLink = cloudTorrent.links[safe: 0] {
-                                        await debridManager.fetchDebridDownload(magnet: nil, cloudInfo: torrentLink)
+                                let magnet = Magnet(hash: cloudTorrent.hash, link: nil)
+                                await debridManager.populateDebridIA([magnet])
+                                if debridManager.selectDebridResult(magnet: magnet) {
+                                    // Is this a batch?
+
+                                    if cloudTorrent.links.count == 1 {
+                                        await debridManager.fetchDebridDownload(magnet: magnet)
+
                                         if !debridManager.downloadUrl.isEmpty {
                                             historyInfo.url = debridManager.downloadUrl
                                             PersistenceController.shared.createHistory(historyInfo, performSave: true)
@@ -80,14 +85,8 @@ struct RealDebridCloudView: View {
                                                 navModel: navModel
                                             )
                                         }
-                                    }
-                                } else {
-                                    let magnet = Magnet(hash: cloudTorrent.hash, link: nil)
-
-                                    // Do not clear old IA values
-                                    await debridManager.populateDebridIA([magnet])
-
-                                    if debridManager.selectDebridResult(magnet: magnet) {
+                                    } else {
+                                        navModel.selectedMagnet = magnet
                                         navModel.selectedHistoryInfo = historyInfo
                                         navModel.currentChoiceSheet = .batch
                                     }

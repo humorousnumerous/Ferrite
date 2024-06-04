@@ -181,10 +181,18 @@ public class AllDebrid: PollingDebridSource {
     // MARK: - Downloading
 
     // Wrapper function to fetch a download link from the API
-    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
-        let magnetID = try await addMagnet(magnet: magnet)
+    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?, userTorrents: [DebridCloudTorrent] = []) async throws -> String {
+        let selectedMagnetId: String
+
+        if let existingMagnet = userTorrents.first(where: { $0.hash == magnet.hash && $0.status == "Ready" }) {
+            selectedMagnetId = existingMagnet.torrentId
+        } else {
+            let magnetId = try await addMagnet(magnet: magnet)
+            selectedMagnetId = String(magnetId)
+        }
+
         let lockedLink = try await fetchMagnetStatus(
-            magnetId: magnetID,
+            magnetId: selectedMagnetId,
             selectedIndex: iaFile?.fileId ?? 0
         )
 
@@ -221,9 +229,9 @@ public class AllDebrid: PollingDebridSource {
         }
     }
 
-    public func fetchMagnetStatus(magnetId: Int, selectedIndex: Int?) async throws -> String {
+    public func fetchMagnetStatus(magnetId: String, selectedIndex: Int?) async throws -> String {
         let queryItems = [
-            URLQueryItem(name: "id", value: String(magnetId))
+            URLQueryItem(name: "id", value: magnetId)
         ]
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/status", queryItems: queryItems))
 
@@ -313,6 +321,11 @@ public class AllDebrid: PollingDebridSource {
         }
 
         return downloads
+    }
+
+    // Not used
+    public func checkUserDownloads(link: String, userDownloads: [DebridCloudDownload]) async throws -> String? {
+        nil
     }
 
     // The downloadId is actually the download link

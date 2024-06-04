@@ -251,7 +251,7 @@ public class Premiumize: OAuthDebridSource {
     // MARK: - Downloading
 
     // Wrapper function to fetch a DDL link from the API
-    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
+    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?, userTorrents: [DebridCloudTorrent] = []) async throws -> String {
         // Store the item in PM cloud for later use
         try await createTransfer(magnet: magnet)
 
@@ -314,6 +314,11 @@ public class Premiumize: OAuthDebridSource {
         let rawResponse = try jsonDecoder.decode(ItemDetailsResponse.self, from: data)
 
         return rawResponse
+    }
+
+    public func checkUserDownloads(link: String, userDownloads: [DebridCloudDownload]) async throws -> String? {
+        // Link is the cloud item ID
+        try await itemDetails(itemID: link).link
     }
 
     public func deleteDownload(downloadId: String) async throws {

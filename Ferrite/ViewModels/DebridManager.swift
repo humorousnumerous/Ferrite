@@ -559,42 +559,21 @@ public class DebridManager: ObservableObject {
 
         switch selectedDebridType {
         case .realDebrid:
-            await fetchRdDownload(magnet: magnet, existingLink: cloudInfo)
+            await fetchRdDownload(magnet: magnet, cloudInfo: cloudInfo)
         case .allDebrid:
-            await fetchAdDownload(magnet: magnet, existingLockedLink: cloudInfo)
+            await fetchAdDownload(magnet: magnet, cloudInfo: cloudInfo)
         case .premiumize:
-            await fetchPmDownload(magnet: magnet, cloudItemId: cloudInfo)
+            await fetchPmDownload(magnet: magnet, cloudInfo: cloudInfo)
         case .none:
             break
         }
     }
 
-    func fetchRdDownload(magnet: Magnet?, existingLink: String?) async {
-        // If an existing link is passed in args, set it to that. Otherwise, find one from RD cloud.
-        /*
-         let torrentLink: String?
-         if let existingLink {
-             torrentLink = existingLink
-         } else {
-             // Bypass the TTL for up to date information
-             await fetchRdCloud(bypassTTL: true)
-
-             let existingTorrent = realDebridCloudTorrents.first { $0.hash == selectedRealDebridItem?.magnet.hash && $0.status == "downloaded" }
-             torrentLink = existingTorrent?.links[safe: selectedRealDebridFile?.batchFileIndex ?? 0]
-         }
-         */
-
+    func fetchRdDownload(magnet: Magnet?, cloudInfo: String?) async {
         do {
-            // If the links match from a user's downloads, no need to re-run a download
-            /*
-             if let torrentLink,
-                let downloadLink = await checkRdUserDownloads(userTorrentLink: torrentLink)
-             {
-                 downloadUrl = downloadLink
-             } else */
             if let magnet {
                 let downloadLink = try await realDebrid.getDownloadLink(
-                    magnet: magnet, ia: selectedRealDebridItem, iaFile: selectedRealDebridFile
+                    magnet: magnet, ia: selectedRealDebridItem, iaFile: selectedRealDebridFile, userTorrents: realDebridCloudTorrents
                 )
 
                 // Update the UI
@@ -612,7 +591,9 @@ public class DebridManager: ObservableObject {
             default:
                 await sendDebridError(error, prefix: "RealDebrid download error", cancelString: "Download cancelled")
 
-                // await deleteRdTorrent(torrentID: selectedRealDebridID, presentError: false)
+                if let torrentId = selectedRealDebridID {
+                    try? await realDebrid.deleteTorrent(torrentId: torrentId)
+                }
             }
 
             logManager?.hideIndeterminateToast()
@@ -685,32 +666,11 @@ public class DebridManager: ObservableObject {
         }
     }
 
-    func fetchAdDownload(magnet: Magnet?, existingLockedLink: String?) async {
-        // If an existing link is passed in args, set it to that. Otherwise, find one from AD cloud.
-        /*
-         let lockedLink: String?
-         if let existingLockedLink {
-             lockedLink = existingLockedLink
-         } else {
-             // Bypass the TTL for up to date information
-             await fetchAdCloud(bypassTTL: true)
-
-             let existingMagnet = allDebridCloudMagnets.first { $0.hash == selectedAllDebridItem?.magnet.hash && $0.status == "Ready" }
-             lockedLink = existingMagnet?.links[safe: selectedAllDebridFile?.fileId ?? 0]?.link
-         }
-          */
-
+    func fetchAdDownload(magnet: Magnet?, cloudInfo: String?) async {
         do {
-            /*
-             if let lockedLink,
-                let unlockedLink = await checkAdUserLinks(lockedLink: lockedLink)
-             {
-                 downloadUrl = unlockedLink
-             } else if let magnet {
-             */
             if let magnet {
                 let downloadLink = try await allDebrid.getDownloadLink(
-                    magnet: magnet, ia: selectedAllDebridItem, iaFile: selectedAllDebridFile
+                    magnet: magnet, ia: selectedAllDebridItem, iaFile: selectedAllDebridFile, userTorrents: allDebridCloudMagnets
                 )
 
                 // Update UI
@@ -777,11 +737,14 @@ public class DebridManager: ObservableObject {
         }
     }
 
-    func fetchPmDownload(magnet: Magnet?, cloudItemId: String? = nil) async {
+    func fetchPmDownload(magnet: Magnet?, cloudInfo: String? = nil) async {
         do {
-            if let cloudItemId {
-                downloadUrl = try await premiumize.itemDetails(itemID: cloudItemId).link
-            } else if let magnet {
+            if let cloudInfo {
+                downloadUrl = try await premiumize.checkUserDownloads(link: cloudInfo, userDownloads: premiumizeCloudItems) ?? ""
+                return
+            }
+
+            if let magnet {
                 let downloadLink = try await premiumize.getDownloadLink(
                     magnet: magnet, ia: selectedPremiumizeItem, iaFile: selectedPremiumizeFile
                 )

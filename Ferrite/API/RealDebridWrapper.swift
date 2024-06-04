@@ -295,14 +295,22 @@ public class RealDebrid: PollingDebridSource {
     // MARK: - Downloading
 
     // Wrapper function to fetch a download link from the API
-    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
-        let selectedMagnetId = try await addMagnet(magnet: magnet)
+    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?, userTorrents: [DebridCloudTorrent] = []) async throws -> String {
+        let selectedMagnetId: String
 
-        try await selectFiles(debridID: selectedMagnetId, fileIds: iaFile?.batchIds ?? [])
+        // Don't queue a new job if the torrent already exists
+        if let existingTorrent = userTorrents.first(where: { $0.hash == magnet.hash && $0.status == "downloaded" }) {
+            selectedMagnetId = existingTorrent.torrentId
+        } else {
+            selectedMagnetId = try await addMagnet(magnet: magnet)
 
+            try await selectFiles(debridID: selectedMagnetId, fileIds: iaFile?.batchIds ?? [])
+        }
+
+        // RealDebrid has 1 as the first ID for a file
         let torrentLink = try await torrentInfo(
             debridID: selectedMagnetId,
-            selectedIndex: iaFile?.fileId ?? 0
+            selectedFileId: iaFile?.fileId ?? 1
         )
         let downloadLink = try await unrestrictLink(debridDownloadLink: torrentLink)
 
@@ -351,13 +359,13 @@ public class RealDebrid: PollingDebridSource {
     }
 
     // Gets the info of a torrent from a given ID
-    public func torrentInfo(debridID: String, selectedIndex: Int?) async throws -> String {
+    public func torrentInfo(debridID: String, selectedFileId: Int?) async throws -> String {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents/info/\(debridID)")!)
 
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode(TorrentInfoResponse.self, from: data)
         let filteredFiles = rawResponse.files.filter { $0.selected == 1 }
-        let linkIndex = filteredFiles.firstIndex(where: { $0.id == selectedIndex })
+        let linkIndex = filteredFiles.firstIndex(where: { $0.id == selectedFileId })
 
         // Let the user know if a torrent is downloading
         if let torrentLink = rawResponse.links[safe: linkIndex ?? -1], rawResponse.status == "downloaded" {
@@ -427,6 +435,11 @@ public class RealDebrid: PollingDebridSource {
         }
 
         return downloads
+    }
+
+    // Not used
+    public func checkUserDownloads(link: String, userDownloads: [DebridCloudDownload]) -> String? {
+        nil
     }
 
     public func deleteDownload(downloadId: String) async throws {

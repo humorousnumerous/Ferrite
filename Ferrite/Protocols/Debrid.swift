@@ -21,14 +21,16 @@ public protocol DebridSource {
 
     // Fetches a download link from a source
     // Include the instant availability information with the args
-    func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String
+    // Torrents also checked here
+    func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?, userTorrents: [DebridCloudTorrent]) async throws -> String
 
-    // Fetches cloud information from the service
+    // User downloads functions
     func getUserDownloads() async throws -> [DebridCloudDownload]
-    func getUserTorrents() async throws -> [DebridCloudTorrent]
-
-    // Deletes information from the service
+    func checkUserDownloads(link: String, userDownloads: [DebridCloudDownload]) async throws -> String?
     func deleteDownload(downloadId: String) async throws
+
+    // User torrent functions
+    func getUserTorrents() async throws -> [DebridCloudTorrent]
     func deleteTorrent(torrentId: String) async throws
 }
 
