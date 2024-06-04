@@ -13,6 +13,17 @@ public class RealDebrid: PollingDebridSource {
     public let website = "https://real-debrid.com"
     public var authTask: Task<Void, Error>?
 
+    public var authProcessing: Bool = false
+
+    // Directly checked because the request fetch uses async
+    public var isLoggedIn: Bool {
+        FerriteKeychain.shared.get("RealDebrid.AccessToken") != nil
+    }
+
+    public var IAValues: [DebridIA] = []
+    public var cloudDownloads: [DebridCloudDownload] = []
+    public var cloudTorrents: [DebridCloudTorrent] = []
+
     let baseAuthUrl = "https://api.real-debrid.com/oauth/v2"
     let baseApiUrl = "https://api.real-debrid.com/rest/1.0"
     let openSourceClientId = "X245A4XAIBGVM"
@@ -97,7 +108,7 @@ public class RealDebrid: PollingDebridSource {
                 await setUserDefaultsValue(clientId, forKey: "RealDebrid.ClientId")
                 FerriteKeychain.shared.set(clientSecret, forKey: "RealDebrid.ClientSecret")
 
-                try await getTokens(deviceCode: deviceCode)
+                try await getApiTokens(deviceCode: deviceCode)
 
                 return
             } else {
@@ -110,7 +121,7 @@ public class RealDebrid: PollingDebridSource {
     }
 
     // Fetch all tokens for the user and store in FerriteKeychain.shared
-    public func getTokens(deviceCode: String) async throws {
+    public func getApiTokens(deviceCode: String) async throws {
         guard let clientId = UserDefaults.standard.string(forKey: "RealDebrid.ClientId") else {
             throw RDError.EmptyData
         }
@@ -144,13 +155,13 @@ public class RealDebrid: PollingDebridSource {
         await setUserDefaultsValue(accessTimestamp, forKey: "RealDebrid.AccessTokenStamp")
     }
 
-    public func fetchToken() async -> String? {
+    public func getToken() async -> String? {
         let accessTokenStamp = UserDefaults.standard.double(forKey: "RealDebrid.AccessTokenStamp")
 
         if Date().timeIntervalSince1970 > accessTokenStamp {
             do {
                 if let refreshToken = FerriteKeychain.shared.get("RealDebrid.RefreshToken") {
-                    try await getTokens(deviceCode: refreshToken)
+                    try await getApiTokens(deviceCode: refreshToken)
                 }
             } catch {
                 print(error)
@@ -195,7 +206,7 @@ public class RealDebrid: PollingDebridSource {
 
     // Wrapper request function which matches the responses and returns data
     @discardableResult private func performRequest(request: inout URLRequest, requestName: String) async throws -> Data {
-        guard let token = await fetchToken() else {
+        guard let token = await getToken() else {
             throw RDError.InvalidToken
         }
 
@@ -220,8 +231,7 @@ public class RealDebrid: PollingDebridSource {
     // MARK: - Instant availability
 
     // Checks if the magnet is streamable on RD
-    public func instantAvailability(magnets: [Magnet]) async throws -> [DebridIA] {
-        var availableHashes: [DebridIA] = []
+    public func instantAvailability(magnets: [Magnet]) async throws {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents/instantAvailability/\(magnets.compactMap(\.hash).joined(separator: "/"))")!)
 
         let data = try await performRequest(request: &request, requestName: #function)
@@ -269,7 +279,7 @@ public class RealDebrid: PollingDebridSource {
                 }
 
                 // TTL: 5 minutes
-                availableHashes.append(
+                IAValues.append(
                     DebridIA(
                         magnet: Magnet(hash: hash, link: nil),
                         source: id,
@@ -278,7 +288,7 @@ public class RealDebrid: PollingDebridSource {
                     )
                 )
             } else {
-                availableHashes.append(
+                IAValues.append(
                     DebridIA(
                         magnet: Magnet(hash: hash, link: nil),
                         source: id,
@@ -288,19 +298,17 @@ public class RealDebrid: PollingDebridSource {
                 )
             }
         }
-
-        return availableHashes
     }
 
     // MARK: - Downloading
 
     // Wrapper function to fetch a download link from the API
-    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?, userTorrents: [DebridCloudTorrent] = []) async throws -> String {
-        var selectedMagnetId: String = ""
+    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
+        var selectedMagnetId = ""
 
         do {
             // Don't queue a new job if the torrent already exists
-            if let existingTorrent = userTorrents.first(where: { $0.hash == magnet.hash && $0.status == "downloaded" }) {
+            if let existingTorrent = cloudTorrents.first(where: { $0.hash == magnet.hash && $0.status == "downloaded" }) {
                 selectedMagnetId = existingTorrent.torrentId
             } else {
                 selectedMagnetId = try await addMagnet(magnet: magnet)
@@ -411,7 +419,7 @@ public class RealDebrid: PollingDebridSource {
 
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode([UserTorrentsResponse].self, from: data)
-        let torrents = rawResponse.map { response in
+        cloudTorrents = rawResponse.map { response in
             DebridCloudTorrent(
                 torrentId: response.id,
                 source: self.id,
@@ -422,7 +430,7 @@ public class RealDebrid: PollingDebridSource {
             )
         }
 
-        return torrents
+        return cloudTorrents
     }
 
     // Deletes a torrent download from RD
@@ -439,15 +447,15 @@ public class RealDebrid: PollingDebridSource {
 
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode([UserDownloadsResponse].self, from: data)
-        let downloads = rawResponse.map { response in
+        cloudDownloads = rawResponse.map { response in
             DebridCloudDownload(downloadId: response.id, source: self.id, fileName: response.filename, link: response.download)
         }
 
-        return downloads
+        return cloudDownloads
     }
 
     // Not used
-    public func checkUserDownloads(link: String, userDownloads: [DebridCloudDownload]) -> String? {
+    public func checkUserDownloads(link: String) -> String? {
         nil
     }
 

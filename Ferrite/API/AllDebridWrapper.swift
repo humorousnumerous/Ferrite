@@ -14,6 +14,15 @@ public class AllDebrid: PollingDebridSource {
     public let website = "https://alldebrid.com"
     public var authTask: Task<Void, Error>?
 
+    public var authProcessing: Bool = false
+    public var isLoggedIn: Bool {
+        getToken() != nil
+    }
+
+    public var IAValues: [DebridIA] = []
+    public var cloudDownloads: [DebridCloudDownload] = []
+    public var cloudTorrents: [DebridCloudTorrent] = []
+
     let baseApiUrl = "https://api.alldebrid.com/v4"
     let appName = "Ferrite"
 
@@ -153,7 +162,7 @@ public class AllDebrid: PollingDebridSource {
 
     // MARK: - Instant availability
 
-    public func instantAvailability(magnets: [Magnet]) async throws -> [DebridIA] {
+    public func instantAvailability(magnets: [Magnet]) async throws {
         let queryItems = magnets.map { URLQueryItem(name: "magnets[]", value: $0.hash) }
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/instant", queryItems: queryItems))
 
@@ -175,16 +184,16 @@ public class AllDebrid: PollingDebridSource {
             )
         }
 
-        return availableHashes
+        IAValues += availableHashes
     }
 
     // MARK: - Downloading
 
     // Wrapper function to fetch a download link from the API
-    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?, userTorrents: [DebridCloudTorrent] = []) async throws -> String {
+    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
         let selectedMagnetId: String
 
-        if let existingMagnet = userTorrents.first(where: { $0.hash == magnet.hash && $0.status == "Ready" }) {
+        if let existingMagnet = cloudTorrents.first(where: { $0.hash == magnet.hash && $0.status == "Ready" }) {
             selectedMagnetId = existingMagnet.torrentId
         } else {
             let magnetId = try await addMagnet(magnet: magnet)
@@ -280,7 +289,7 @@ public class AllDebrid: PollingDebridSource {
             throw ADError.EmptyData
         }
 
-        let torrents = rawResponse.magnets.map { magnetResponse in
+        cloudTorrents = rawResponse.magnets.map { magnetResponse in
             DebridCloudTorrent(
                 torrentId: String(magnetResponse.id),
                 source: self.id,
@@ -291,7 +300,7 @@ public class AllDebrid: PollingDebridSource {
             )
         }
 
-        return torrents
+        return cloudTorrents
     }
 
     public func deleteTorrent(torrentId: String) async throws {
@@ -314,17 +323,17 @@ public class AllDebrid: PollingDebridSource {
         }
 
         // The link is also the ID
-        let downloads = rawResponse.links.map { link in
+        cloudDownloads = rawResponse.links.map { link in
             DebridCloudDownload(
                 downloadId: link.link, source: self.id, fileName: link.filename, link: link.link
             )
         }
 
-        return downloads
+        return cloudDownloads
     }
 
     // Not used
-    public func checkUserDownloads(link: String, userDownloads: [DebridCloudDownload]) async throws -> String? {
+    public func checkUserDownloads(link: String) async throws -> String? {
         nil
     }
 

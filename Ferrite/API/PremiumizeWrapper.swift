@@ -12,6 +12,15 @@ public class Premiumize: OAuthDebridSource {
     public let abbreviation = "PM"
     public let website = "https://premiumize.me"
 
+    public var authProcessing: Bool = false
+    public var isLoggedIn: Bool {
+        getToken() != nil
+    }
+
+    public var IAValues: [DebridIA] = []
+    public var cloudDownloads: [DebridCloudDownload] = []
+    public var cloudTorrents: [DebridCloudTorrent] = []
+
     let baseAuthUrl = "https://www.premiumize.me/authorize"
     let baseApiUrl = "https://www.premiumize.me/api"
     let clientId = "791565696"
@@ -118,9 +127,7 @@ public class Premiumize: OAuthDebridSource {
 
     // MARK: - Instant availability
 
-    public func instantAvailability(magnets: [Magnet]) async throws -> [DebridIA] {
-        var collectedIA: [DebridIA] = []
-
+    public func instantAvailability(magnets: [Magnet]) async throws {
         // Only strip magnets that don't have an associated link for PM
         let strippedMagnets: [Magnet] = magnets.compactMap {
             if let magnetLink = $0.link {
@@ -135,10 +142,8 @@ public class Premiumize: OAuthDebridSource {
         // Split DDL requests into chunks of 10
         for chunk in availableMagnets.chunked(into: 10) {
             let tempIA = try await divideDDLRequests(magnetChunk: chunk)
-            collectedIA += tempIA
+            IAValues += tempIA
         }
-
-        return collectedIA
     }
 
     // Function to divide and execute DDL endpoint requests in parallel
@@ -251,7 +256,7 @@ public class Premiumize: OAuthDebridSource {
     // MARK: - Downloading
 
     // Wrapper function to fetch a DDL link from the API
-    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?, userTorrents: [DebridCloudTorrent] = []) async throws -> String {
+    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
         // Store the item in PM cloud for later use
         try await createTransfer(magnet: magnet)
 
@@ -294,11 +299,11 @@ public class Premiumize: OAuthDebridSource {
         }
 
         // The "link" is the ID for Premiumize
-        let downloads = rawResponse.files.map { file in
+        cloudDownloads = rawResponse.files.map { file in
             DebridCloudDownload(downloadId: file.id, source: self.id, fileName: file.name, link: file.id)
         }
 
-        return downloads
+        return cloudDownloads
     }
 
     func itemDetails(itemID: String) async throws -> ItemDetailsResponse {
@@ -316,7 +321,7 @@ public class Premiumize: OAuthDebridSource {
         return rawResponse
     }
 
-    public func checkUserDownloads(link: String, userDownloads: [DebridCloudDownload]) async throws -> String? {
+    public func checkUserDownloads(link: String) async throws -> String? {
         // Link is the cloud item ID
         try await itemDetails(itemID: link).link
     }

@@ -16,6 +16,8 @@ public class DebridManager: ObservableObject {
     let allDebrid: AllDebrid = .init()
     let premiumize: Premiumize = .init()
 
+    lazy var debridSources: [DebridSource] = [realDebrid, allDebrid, premiumize]
+
     // UI Variables
     @Published var showWebView: Bool = false
     @Published var showAuthSession: Bool = false
@@ -198,22 +200,22 @@ public class DebridManager: ObservableObject {
         // If a hash isn't found in the IA, update it
         // If the hash is expired, remove it and update it
         let sendMagnets = resultMagnets.filter { magnet in
-            if let IAIndex = realDebridIAValues.firstIndex(where: { $0.magnet.hash == magnet.hash }), enabledDebrids.contains(.realDebrid) {
-                if now.timeIntervalSince1970 > realDebridIAValues[IAIndex].expiryTimeStamp {
-                    realDebridIAValues.remove(at: IAIndex)
+            if let IAIndex = realDebrid.IAValues.firstIndex(where: { $0.magnet.hash == magnet.hash }), enabledDebrids.contains(.realDebrid) {
+                if now.timeIntervalSince1970 > realDebrid.IAValues[IAIndex].expiryTimeStamp {
+                    realDebrid.IAValues.remove(at: IAIndex)
                     return true
                 } else {
                     return false
                 }
-            } else if let IAIndex = allDebridIAValues.firstIndex(where: { $0.magnet.hash == magnet.hash }), enabledDebrids.contains(.allDebrid) {
-                if now.timeIntervalSince1970 > allDebridIAValues[IAIndex].expiryTimeStamp {
-                    allDebridIAValues.remove(at: IAIndex)
+            } else if let IAIndex = allDebrid.IAValues.firstIndex(where: { $0.magnet.hash == magnet.hash }), enabledDebrids.contains(.allDebrid) {
+                if now.timeIntervalSince1970 > allDebrid.IAValues[IAIndex].expiryTimeStamp {
+                    allDebrid.IAValues.remove(at: IAIndex)
                     return true
                 } else {
                     return false
                 }
-            } else if let IAIndex = premiumizeIAValues.firstIndex(where: { $0.magnet.hash == magnet.hash }), enabledDebrids.contains(.premiumize) {
-                if now.timeIntervalSince1970 > premiumizeIAValues[IAIndex].expiryTimeStamp {
+            } else if let IAIndex = premiumize.IAValues.firstIndex(where: { $0.magnet.hash == magnet.hash }), enabledDebrids.contains(.premiumize) {
+                if now.timeIntervalSince1970 > premiumize.IAValues[IAIndex].expiryTimeStamp {
                     premiumizeIAValues.remove(at: IAIndex)
                     return true
                 } else {
@@ -228,8 +230,7 @@ public class DebridManager: ObservableObject {
         if !sendMagnets.isEmpty {
             if enabledDebrids.contains(.realDebrid) {
                 do {
-                    let fetchedRealDebridIA = try await realDebrid.instantAvailability(magnets: sendMagnets)
-                    realDebridIAValues += fetchedRealDebridIA
+                    try await realDebrid.instantAvailability(magnets: sendMagnets)
                 } catch {
                     await sendDebridError(error, prefix: "RealDebrid IA fetch error")
                 }
@@ -237,8 +238,7 @@ public class DebridManager: ObservableObject {
 
             if enabledDebrids.contains(.allDebrid) {
                 do {
-                    let fetchedAllDebridIA = try await allDebrid.instantAvailability(magnets: sendMagnets)
-                    allDebridIAValues += fetchedAllDebridIA
+                    try await allDebrid.instantAvailability(magnets: sendMagnets)
                 } catch {
                     await sendDebridError(error, prefix: "AllDebrid IA fetch error")
                 }
@@ -246,8 +246,7 @@ public class DebridManager: ObservableObject {
 
             if enabledDebrids.contains(.premiumize) {
                 do {
-                    let fetchedPremiumizeIA = try await premiumize.instantAvailability(magnets: sendMagnets)
-                    premiumizeIAValues += fetchedPremiumizeIA
+                    try await premiumize.instantAvailability(magnets: sendMagnets)
                 } catch {
                     await sendDebridError(error, prefix: "Premiumize IA fetch error")
                 }
@@ -263,7 +262,7 @@ public class DebridManager: ObservableObject {
 
         switch selectedDebridType {
         case .realDebrid:
-            guard let realDebridMatch = realDebridIAValues.first(where: { magnetHash == $0.magnet.hash }) else {
+            guard let realDebridMatch = realDebrid.IAValues.first(where: { magnetHash == $0.magnet.hash }) else {
                 return .none
             }
 
@@ -273,7 +272,7 @@ public class DebridManager: ObservableObject {
                 return .full
             }
         case .allDebrid:
-            guard let allDebridMatch = allDebridIAValues.first(where: { magnetHash == $0.magnet.hash }) else {
+            guard let allDebridMatch = allDebrid.IAValues.first(where: { magnetHash == $0.magnet.hash }) else {
                 return .none
             }
 
@@ -283,7 +282,7 @@ public class DebridManager: ObservableObject {
                 return .full
             }
         case .premiumize:
-            guard let premiumizeMatch = premiumizeIAValues.first(where: { magnetHash == $0.magnet.hash }) else {
+            guard let premiumizeMatch = premiumize.IAValues.first(where: { magnetHash == $0.magnet.hash }) else {
                 return .none
             }
 
@@ -305,7 +304,7 @@ public class DebridManager: ObservableObject {
 
         switch selectedDebridType {
         case .realDebrid:
-            if let realDebridItem = realDebridIAValues.first(where: { magnetHash == $0.magnet.hash }) {
+            if let realDebridItem = realDebrid.IAValues.first(where: { magnetHash == $0.magnet.hash }) {
                 selectedRealDebridItem = realDebridItem
                 return true
             } else {
@@ -313,7 +312,7 @@ public class DebridManager: ObservableObject {
                 return false
             }
         case .allDebrid:
-            if let allDebridItem = allDebridIAValues.first(where: { magnetHash == $0.magnet.hash }) {
+            if let allDebridItem = allDebrid.IAValues.first(where: { magnetHash == $0.magnet.hash }) {
                 selectedAllDebridItem = allDebridItem
                 return true
             } else {
@@ -321,7 +320,7 @@ public class DebridManager: ObservableObject {
                 return false
             }
         case .premiumize:
-            if let premiumizeItem = premiumizeIAValues.first(where: { magnetHash == $0.magnet.hash }) {
+            if let premiumizeItem = premiumize.IAValues.first(where: { magnetHash == $0.magnet.hash }) {
                 selectedPremiumizeItem = premiumizeItem
                 return true
             } else {
@@ -573,7 +572,7 @@ public class DebridManager: ObservableObject {
         do {
             if let magnet {
                 let downloadLink = try await realDebrid.getDownloadLink(
-                    magnet: magnet, ia: selectedRealDebridItem, iaFile: selectedRealDebridFile, userTorrents: realDebridCloudTorrents
+                    magnet: magnet, ia: selectedRealDebridItem, iaFile: selectedRealDebridFile
                 )
 
                 // Update the UI
@@ -643,6 +642,8 @@ public class DebridManager: ObservableObject {
         do {
             if let torrentID {
                 try await realDebrid.deleteTorrent(torrentId: torrentID)
+
+                await fetchRdCloud(bypassTTL: true)
             } else {
                 throw RealDebrid.RDError.FailedRequest(description: "No torrent ID was provided")
             }
@@ -670,7 +671,7 @@ public class DebridManager: ObservableObject {
         do {
             if let magnet {
                 let downloadLink = try await allDebrid.getDownloadLink(
-                    magnet: magnet, ia: selectedAllDebridItem, iaFile: selectedAllDebridFile, userTorrents: allDebridCloudMagnets
+                    magnet: magnet, ia: selectedAllDebridItem, iaFile: selectedAllDebridFile
                 )
 
                 // Update UI
@@ -740,7 +741,7 @@ public class DebridManager: ObservableObject {
     func fetchPmDownload(magnet: Magnet?, cloudInfo: String? = nil) async {
         do {
             if let cloudInfo {
-                downloadUrl = try await premiumize.checkUserDownloads(link: cloudInfo, userDownloads: premiumizeCloudItems) ?? ""
+                downloadUrl = try await premiumize.checkUserDownloads(link: cloudInfo) ?? ""
                 return
             }
 

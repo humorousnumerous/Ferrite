@@ -17,7 +17,7 @@ struct RealDebridCloudView: View {
     var body: some View {
         Group {
             DisclosureGroup("Downloads") {
-                ForEach(debridManager.realDebridCloudDownloads.filter {
+                ForEach(debridManager.realDebrid.cloudDownloads.filter {
                     searchText.isEmpty ? true : $0.fileName.lowercased().contains(searchText.lowercased())
                 }, id: \.self) { cloudDownload in
                     Button(cloudDownload.fileName) {
@@ -54,7 +54,7 @@ struct RealDebridCloudView: View {
             }
 
             DisclosureGroup("Torrents") {
-                ForEach(debridManager.realDebridCloudTorrents.filter {
+                ForEach(debridManager.realDebrid.cloudTorrents.filter {
                     searchText.isEmpty ? true : $0.fileName.lowercased().contains(searchText.lowercased())
                 }, id: \.self) { cloudTorrent in
                     Button {

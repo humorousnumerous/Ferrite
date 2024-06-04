@@ -13,20 +13,32 @@ public protocol DebridSource {
     var abbreviation: String { get }
     var website: String { get }
 
+    // Auth variables
+    var authProcessing: Bool { get set }
+    var isLoggedIn: Bool { get }
+
     // Common authentication functions
     func setApiKey(_ key: String) -> Bool
     func logout() async
 
-    func instantAvailability(magnets: [Magnet]) async throws -> [DebridIA]
+    // Instant availability variables
+    var IAValues: [DebridIA] { get set }
+
+    // Instant availability functions
+    func instantAvailability(magnets: [Magnet]) async throws
 
     // Fetches a download link from a source
     // Include the instant availability information with the args
     // Torrents also checked here
-    func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?, userTorrents: [DebridCloudTorrent]) async throws -> String
+    func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String
+
+    // Cloud variables
+    var cloudDownloads: [DebridCloudDownload] { get set }
+    var cloudTorrents: [DebridCloudTorrent] { get set }
 
     // User downloads functions
     func getUserDownloads() async throws -> [DebridCloudDownload]
-    func checkUserDownloads(link: String, userDownloads: [DebridCloudDownload]) async throws -> String?
+    func checkUserDownloads(link: String) async throws -> String?
     func deleteDownload(downloadId: String) async throws
 
     // User torrent functions
