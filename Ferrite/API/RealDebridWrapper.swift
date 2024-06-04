@@ -296,25 +296,34 @@ public class RealDebrid: PollingDebridSource {
 
     // Wrapper function to fetch a download link from the API
     public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?, userTorrents: [DebridCloudTorrent] = []) async throws -> String {
-        let selectedMagnetId: String
+        var selectedMagnetId: String = ""
 
-        // Don't queue a new job if the torrent already exists
-        if let existingTorrent = userTorrents.first(where: { $0.hash == magnet.hash && $0.status == "downloaded" }) {
-            selectedMagnetId = existingTorrent.torrentId
-        } else {
-            selectedMagnetId = try await addMagnet(magnet: magnet)
+        do {
+            // Don't queue a new job if the torrent already exists
+            if let existingTorrent = userTorrents.first(where: { $0.hash == magnet.hash && $0.status == "downloaded" }) {
+                selectedMagnetId = existingTorrent.torrentId
+            } else {
+                selectedMagnetId = try await addMagnet(magnet: magnet)
 
-            try await selectFiles(debridID: selectedMagnetId, fileIds: iaFile?.batchIds ?? [])
+                try await selectFiles(debridID: selectedMagnetId, fileIds: iaFile?.batchIds ?? [])
+            }
+
+            // RealDebrid has 1 as the first ID for a file
+            let torrentLink = try await torrentInfo(
+                debridID: selectedMagnetId,
+                selectedFileId: iaFile?.fileId ?? 1
+            )
+            let downloadLink = try await unrestrictLink(debridDownloadLink: torrentLink)
+
+            return downloadLink
+        } catch {
+            if case RealDebrid.RDError.EmptyTorrents = error, !selectedMagnetId.isEmpty {
+                try? await deleteTorrent(torrentId: selectedMagnetId)
+            }
+
+            // Re-raise the error to the calling function
+            throw error
         }
-
-        // RealDebrid has 1 as the first ID for a file
-        let torrentLink = try await torrentInfo(
-            debridID: selectedMagnetId,
-            selectedFileId: iaFile?.fileId ?? 1
-        )
-        let downloadLink = try await unrestrictLink(debridDownloadLink: torrentLink)
-
-        return downloadLink
     }
 
     // Adds a magnet link to the user's RD account
