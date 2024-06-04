@@ -19,7 +19,7 @@ struct LibraryPickerView: View {
                 Text("Bookmarks").tag(NavigationViewModel.LibraryPickerSegment.bookmarks)
                 Text("History").tag(NavigationViewModel.LibraryPickerSegment.history)
 
-                if !debridManager.enabledDebrids.isEmpty {
+                if debridManager.hasEnabledDebrids {
                     Text("Cloud").tag(NavigationViewModel.LibraryPickerSegment.debridCloud)
                 }
             }

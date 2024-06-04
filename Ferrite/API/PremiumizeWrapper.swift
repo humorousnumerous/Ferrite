@@ -12,14 +12,14 @@ public class Premiumize: OAuthDebridSource {
     public let abbreviation = "PM"
     public let website = "https://premiumize.me"
 
-    public var authProcessing: Bool = false
+    @Published public var authProcessing: Bool = false
     public var isLoggedIn: Bool {
         getToken() != nil
     }
 
-    public var IAValues: [DebridIA] = []
-    public var cloudDownloads: [DebridCloudDownload] = []
-    public var cloudTorrents: [DebridCloudTorrent] = []
+    @Published public var IAValues: [DebridIA] = []
+    @Published public var cloudDownloads: [DebridCloudDownload] = []
+    @Published public var cloudTorrents: [DebridCloudTorrent] = []
 
     let baseAuthUrl = "https://www.premiumize.me/authorize"
     let baseApiUrl = "https://www.premiumize.me/api"

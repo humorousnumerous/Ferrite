@@ -56,7 +56,7 @@ struct BookmarksView: View {
                 .frame(height: 15)
         }
         .task {
-            if debridManager.enabledDebrids.count > 0 {
+            if debridManager.hasEnabledDebrids {
                 let magnets = bookmarks.compactMap {
                     if let magnetHash = $0.magnetHash {
                         return Magnet(hash: magnetHash, link: $0.magnetLink)

@@ -13,16 +13,16 @@ public class RealDebrid: PollingDebridSource {
     public let website = "https://real-debrid.com"
     public var authTask: Task<Void, Error>?
 
-    public var authProcessing: Bool = false
+    @Published public var authProcessing: Bool = false
 
     // Directly checked because the request fetch uses async
     public var isLoggedIn: Bool {
         FerriteKeychain.shared.get("RealDebrid.AccessToken") != nil
     }
 
-    public var IAValues: [DebridIA] = []
-    public var cloudDownloads: [DebridCloudDownload] = []
-    public var cloudTorrents: [DebridCloudTorrent] = []
+    @Published public var IAValues: [DebridIA] = []
+    @Published public var cloudDownloads: [DebridCloudDownload] = []
+    @Published public var cloudTorrents: [DebridCloudTorrent] = []
 
     let baseAuthUrl = "https://api.real-debrid.com/oauth/v2"
     let baseApiUrl = "https://api.real-debrid.com/rest/1.0"

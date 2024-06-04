@@ -12,15 +12,19 @@ import SwiftUI
 public class DebridManager: ObservableObject {
     // Linked classes
     var logManager: LoggingManager?
-    let realDebrid: RealDebrid = .init()
-    let allDebrid: AllDebrid = .init()
-    let premiumize: Premiumize = .init()
+    @Published var realDebrid: RealDebrid = .init()
+    @Published var allDebrid: AllDebrid = .init()
+    @Published var premiumize: Premiumize = .init()
 
-    lazy var debridSources: [DebridSource] = [realDebrid, allDebrid, premiumize]
+    lazy var debridSources: [any DebridSource] = [realDebrid, allDebrid, premiumize]
 
     // UI Variables
     @Published var showWebView: Bool = false
     @Published var showAuthSession: Bool = false
+
+    var hasEnabledDebrids: Bool {
+        debridSources.contains { $0.isLoggedIn }
+    }
 
     // Service agnostic variables
     @Published var enabledDebrids: Set<DebridType> = [] {
@@ -60,9 +64,6 @@ public class DebridManager: ObservableObject {
     // RealDebrid auth variables
     var realDebridAuthProcessing: Bool = false
 
-    // RealDebrid fetch variables
-    @Published var realDebridIAValues: [DebridIA] = []
-
     @Published var showDeleteAlert: Bool = false
 
     var selectedRealDebridItem: DebridIA?
@@ -78,9 +79,6 @@ public class DebridManager: ObservableObject {
     // AllDebrid auth variables
     var allDebridAuthProcessing: Bool = false
 
-    // AllDebrid fetch variables
-    @Published var allDebridIAValues: [DebridIA] = []
-
     var selectedAllDebridItem: DebridIA?
     var selectedAllDebridFile: DebridIAFile?
 
@@ -91,9 +89,6 @@ public class DebridManager: ObservableObject {
 
     // Premiumize auth variables
     var premiumizeAuthProcessing: Bool = false
-
-    // Premiumize fetch variables
-    @Published var premiumizeIAValues: [DebridIA] = []
 
     var selectedPremiumizeItem: DebridIA?
     var selectedPremiumizeFile: DebridIAFile?
@@ -171,9 +166,9 @@ public class DebridManager: ObservableObject {
 
     // Cleans all cached IA values in the event of a full IA refresh
     public func clearIAValues() {
-        realDebridIAValues = []
-        allDebridIAValues = []
-        premiumizeIAValues = []
+        for debridSource in debridSources {
+            debridSource.IAValues = []
+        }
     }
 
     // Clears all selected files and items
@@ -216,7 +211,7 @@ public class DebridManager: ObservableObject {
                 }
             } else if let IAIndex = premiumize.IAValues.firstIndex(where: { $0.magnet.hash == magnet.hash }), enabledDebrids.contains(.premiumize) {
                 if now.timeIntervalSince1970 > premiumize.IAValues[IAIndex].expiryTimeStamp {
-                    premiumizeIAValues.remove(at: IAIndex)
+                    premiumize.IAValues.remove(at: IAIndex)
                     return true
                 } else {
                     return false
