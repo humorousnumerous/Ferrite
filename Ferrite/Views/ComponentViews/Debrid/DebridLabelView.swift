@@ -8,38 +8,40 @@
 import SwiftUI
 
 struct DebridLabelView: View {
-    @EnvironmentObject var debridManager: DebridManager
+    @Store var debridSource: DebridSource
 
     @State var cloudLinks: [String] = []
+    @State var tagColor: Color = .red
     var magnet: Magnet?
 
     var body: some View {
-        if let selectedDebridType = debridManager.selectedDebridType {
-            Tag(
-                name: selectedDebridType.toString(abbreviated: true),
-                color: getTagColor(),
-                horizontalPadding: 5,
-                verticalPadding: 3
-            )
+        Tag(
+            name: debridSource.id.abbreviation,
+            color: tagColor,
+            horizontalPadding: 5,
+            verticalPadding: 3
+        )
+        .onAppear {
+            tagColor = getTagColor()
+        }
+        .onChange(of: debridSource.IAValues) { _ in
+            tagColor = getTagColor()
         }
     }
 
     func getTagColor() -> Color {
         if let magnet, cloudLinks.isEmpty {
-            switch debridManager.matchMagnetHash(magnet) {
-            case .full:
-                return Color.green
-            case .partial:
-                return Color.orange
-            case .none:
-                return Color.red
+            guard let match = debridSource.IAValues.first(where: { magnet.hash == $0.magnet.hash }) else {
+                return .red
             }
+
+            return match.files.count > 1 ? .orange : .green
         } else if cloudLinks.count == 1 {
-            return Color.green
+            return .green
         } else if cloudLinks.count > 1 {
-            return Color.orange
+            return .orange
         } else {
-            return Color.red
+            return .red
         }
     }
 }

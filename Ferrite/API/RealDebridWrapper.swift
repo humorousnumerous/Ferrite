@@ -7,10 +7,10 @@
 
 import Foundation
 
-public class RealDebrid: PollingDebridSource {
-    public let id = "RealDebrid"
-    public let abbreviation = "RD"
-    public let website = "https://real-debrid.com"
+public class RealDebrid: PollingDebridSource, ObservableObject {
+    public let id = DebridInfo(
+        name: "RealDebrid", abbreviation: "RD", website: "https://real-debrid.com"
+    )
     public var authTask: Task<Void, Error>?
 
     @Published public var authProcessing: Bool = false
@@ -20,9 +20,14 @@ public class RealDebrid: PollingDebridSource {
         FerriteKeychain.shared.get("RealDebrid.AccessToken") != nil
     }
 
-    @Published public var IAValues: [DebridIA] = []
+    @Published public var IAValues: [DebridIA] = [] {
+        willSet {
+            self.objectWillChange.send()
+        }
+    }
     @Published public var cloudDownloads: [DebridCloudDownload] = []
     @Published public var cloudTorrents: [DebridCloudTorrent] = []
+    var cloudTTL: Double = 0.0
 
     let baseAuthUrl = "https://api.real-debrid.com/oauth/v2"
     let baseApiUrl = "https://api.real-debrid.com/rest/1.0"
@@ -282,7 +287,7 @@ public class RealDebrid: PollingDebridSource {
                 IAValues.append(
                     DebridIA(
                         magnet: Magnet(hash: hash, link: nil),
-                        source: id,
+                        source: id.name,
                         expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                         files: files
                     )
@@ -291,7 +296,7 @@ public class RealDebrid: PollingDebridSource {
                 IAValues.append(
                     DebridIA(
                         magnet: Magnet(hash: hash, link: nil),
-                        source: id,
+                        source: id.name,
                         expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                         files: []
                     )
@@ -422,7 +427,7 @@ public class RealDebrid: PollingDebridSource {
         cloudTorrents = rawResponse.map { response in
             DebridCloudTorrent(
                 torrentId: response.id,
-                source: self.id,
+                source: self.id.name,
                 fileName: response.filename,
                 status: response.status,
                 hash: response.hash,
@@ -448,7 +453,7 @@ public class RealDebrid: PollingDebridSource {
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode([UserDownloadsResponse].self, from: data)
         cloudDownloads = rawResponse.map { response in
-            DebridCloudDownload(downloadId: response.id, source: self.id, fileName: response.filename, link: response.download)
+            DebridCloudDownload(downloadId: response.id, source: self.id.name, fileName: response.filename, link: response.download)
         }
 
         return cloudDownloads

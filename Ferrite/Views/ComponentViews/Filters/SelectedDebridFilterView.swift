@@ -15,23 +15,23 @@ struct SelectedDebridFilterView<Content: View>: View {
     var body: some View {
         Menu {
             Button {
-                debridManager.selectedDebridType = nil
+                debridManager.selectedDebridId = nil
             } label: {
                 Text("None")
 
-                if debridManager.selectedDebridType == nil {
+                if debridManager.selectedDebridId == nil {
                     Image(systemName: "checkmark")
                 }
             }
 
-            ForEach(DebridType.allCases, id: \.self) { (debridType: DebridType) in
-                if debridManager.enabledDebrids.contains(debridType) {
+            ForEach(debridManager.debridSources, id: \.id) { debridSource in
+                if debridSource.isLoggedIn {
                     Button {
-                        debridManager.selectedDebridType = debridType
+                        debridManager.selectedDebridId = debridSource.id
                     } label: {
-                        Text(debridType.toString())
+                        Text(debridSource.id.name)
 
-                        if debridManager.selectedDebridType == debridType {
+                        if debridManager.selectedDebridId == debridSource.id {
                             Image(systemName: "checkmark")
                         }
                     }
@@ -40,6 +40,6 @@ struct SelectedDebridFilterView<Content: View>: View {
         } label: {
             label
         }
-        .id(debridManager.selectedDebridType)
+        .id(debridManager.selectedDebridId)
     }
 }

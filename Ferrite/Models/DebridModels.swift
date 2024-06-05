@@ -7,6 +7,12 @@
 
 import Foundation
 
+public struct DebridInfo: Hashable, Sendable {
+    let name: String
+    let abbreviation: String
+    let website: String
+}
+
 public struct DebridIA: Hashable, Sendable {
     let magnet: Magnet
     let source: String

@@ -7,10 +7,10 @@
 
 import Foundation
 
-public class Premiumize: OAuthDebridSource {
-    public let id = "Premiumize"
-    public let abbreviation = "PM"
-    public let website = "https://premiumize.me"
+public class Premiumize: OAuthDebridSource, ObservableObject {
+    public let id = DebridInfo(
+        name: "Premiumize", abbreviation: "PM", website: "https://premiumize.me"
+    )
 
     @Published public var authProcessing: Bool = false
     public var isLoggedIn: Bool {
@@ -195,7 +195,7 @@ public class Premiumize: OAuthDebridSource {
 
             return DebridIA(
                 magnet: magnet,
-                source: id,
+                source: id.name,
                 expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                 files: files
             )
@@ -300,7 +300,7 @@ public class Premiumize: OAuthDebridSource {
 
         // The "link" is the ID for Premiumize
         cloudDownloads = rawResponse.files.map { file in
-            DebridCloudDownload(downloadId: file.id, source: self.id, fileName: file.name, link: file.id)
+            DebridCloudDownload(downloadId: file.id, source: self.id.name, fileName: file.name, link: file.id)
         }
 
         return cloudDownloads

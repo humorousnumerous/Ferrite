@@ -16,7 +16,7 @@ public class DebridManager: ObservableObject {
     @Published var allDebrid: AllDebrid = .init()
     @Published var premiumize: Premiumize = .init()
 
-    lazy var debridSources: [any DebridSource] = [realDebrid, allDebrid, premiumize]
+    lazy var debridSources: [DebridSource] = [realDebrid, allDebrid, premiumize]
 
     // UI Variables
     @Published var showWebView: Bool = false
@@ -24,6 +24,12 @@ public class DebridManager: ObservableObject {
 
     var hasEnabledDebrids: Bool {
         debridSources.contains { $0.isLoggedIn }
+    }
+
+    @Published var selectedDebridId: DebridInfo?
+
+    func debridSourceFromName(_ name: String? = nil) -> DebridSource? {
+        debridSources.first { $0.id.name == name ?? selectedDebridId?.name }
     }
 
     // Service agnostic variables
@@ -106,12 +112,16 @@ public class DebridManager: ObservableObject {
 
         // If a UserDefaults integer isn't set, it's usually 0
         let rawPreferredService = UserDefaults.standard.integer(forKey: "Debrid.PreferredService")
-        selectedDebridType = DebridType(rawValue: rawPreferredService)
+        let legacyPreferredService = DebridType(rawValue: rawPreferredService)
+        let preferredDebridSource = self.debridSourceFromName(legacyPreferredService?.toString())
+        selectedDebridId = preferredDebridSource?.id
 
         // If a user has one logged in service, automatically set the preferred service to that one
+        /*
         if enabledDebrids.count == 1 {
             selectedDebridType = enabledDebrids.first
         }
+         */
     }
 
     // TODO: Remove this after v0.6.0
@@ -255,38 +265,13 @@ public class DebridManager: ObservableObject {
             return .none
         }
 
-        switch selectedDebridType {
-        case .realDebrid:
-            guard let realDebridMatch = realDebrid.IAValues.first(where: { magnetHash == $0.magnet.hash }) else {
-                return .none
-            }
+        let selectedSource = debridSourceFromName()
 
-            if realDebridMatch.files.count > 1 {
-                return .partial
-            } else {
-                return .full
-            }
-        case .allDebrid:
-            guard let allDebridMatch = allDebrid.IAValues.first(where: { magnetHash == $0.magnet.hash }) else {
-                return .none
-            }
-
-            if allDebridMatch.files.count > 1 {
-                return .partial
-            } else {
-                return .full
-            }
-        case .premiumize:
-            guard let premiumizeMatch = premiumize.IAValues.first(where: { magnetHash == $0.magnet.hash }) else {
-                return .none
-            }
-
-            if premiumizeMatch.files.count > 1 {
-                return .partial
-            } else {
-                return .full
-            }
-        case .none:
+        if let selectedSource,
+           let match = selectedSource.IAValues.first(where: { magnetHash == $0.magnet.hash })
+        {
+            return match.files.count > 1 ? .partial : .full
+        } else {
             return .none
         }
     }
@@ -297,8 +282,8 @@ public class DebridManager: ObservableObject {
             return false
         }
 
-        switch selectedDebridType {
-        case .realDebrid:
+        switch selectedDebridId?.name {
+        case .some("RealDebrid"):
             if let realDebridItem = realDebrid.IAValues.first(where: { magnetHash == $0.magnet.hash }) {
                 selectedRealDebridItem = realDebridItem
                 return true
@@ -306,7 +291,7 @@ public class DebridManager: ObservableObject {
                 logManager?.error("DebridManager: Could not find the associated RealDebrid entry for magnet hash \(magnetHash)")
                 return false
             }
-        case .allDebrid:
+        case .some("AllDebrid"):
             if let allDebridItem = allDebrid.IAValues.first(where: { magnetHash == $0.magnet.hash }) {
                 selectedAllDebridItem = allDebridItem
                 return true
@@ -314,7 +299,7 @@ public class DebridManager: ObservableObject {
                 logManager?.error("DebridManager: Could not find the associated AllDebrid entry for magnet hash \(magnetHash)")
                 return false
             }
-        case .premiumize:
+        case .some("Premiumize"):
             if let premiumizeItem = premiumize.IAValues.first(where: { magnetHash == $0.magnet.hash }) {
                 selectedPremiumizeItem = premiumizeItem
                 return true
@@ -322,7 +307,7 @@ public class DebridManager: ObservableObject {
                 logManager?.error("DebridManager: Could not find the associated Premiumize entry for magnet hash \(magnetHash)")
                 return false
             }
-        case .none:
+        default:
             return false
         }
     }

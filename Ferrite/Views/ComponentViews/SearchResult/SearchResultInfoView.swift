@@ -30,7 +30,9 @@ struct SearchResultInfoView: View {
                 Text(size)
             }
 
-            DebridLabelView(magnet: result.magnet)
+            if let debridSource = debridManager.debridSourceFromName() {
+                DebridLabelView(debridSource: debridSource, magnet: result.magnet)
+            }
         }
         .font(.caption)
     }

@@ -23,8 +23,8 @@ struct BatchChoiceView: View {
     var body: some View {
         NavView {
             List {
-                switch debridManager.selectedDebridType {
-                case .realDebrid:
+                switch debridManager.selectedDebridId?.name {
+                case .some("RealDebrid"):
                     ForEach(debridManager.selectedRealDebridItem?.files ?? [], id: \.self) { file in
                         if file.name.lowercased().contains(searchText.lowercased()) || searchText.isEmpty {
                             Button(file.name) {
@@ -34,7 +34,7 @@ struct BatchChoiceView: View {
                             }
                         }
                     }
-                case .allDebrid:
+                case .some("AllDebrid"):
                     ForEach(debridManager.selectedAllDebridItem?.files ?? [], id: \.self) { file in
                         if file.name.lowercased().contains(searchText.lowercased()) || searchText.isEmpty {
                             Button(file.name) {
@@ -44,7 +44,7 @@ struct BatchChoiceView: View {
                             }
                         }
                     }
-                case .premiumize:
+                case .some("Premiumize"):
                     ForEach(debridManager.selectedPremiumizeItem?.files ?? [], id: \.self) { file in
                         if file.name.lowercased().contains(searchText.lowercased()) || searchText.isEmpty {
                             Button(file.name) {
@@ -54,7 +54,7 @@ struct BatchChoiceView: View {
                             }
                         }
                     }
-                case .none:
+                default:
                     EmptyView()
                 }
             }

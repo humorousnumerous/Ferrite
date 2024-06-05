@@ -10,7 +10,7 @@ import SwiftUI
 struct SettingsDebridInfoView: View {
     @EnvironmentObject var debridManager: DebridManager
 
-    let debridType: DebridType
+    @Store var debridSource: DebridSource
 
     @State private var apiKeyTempText: String = ""
 
@@ -18,9 +18,9 @@ struct SettingsDebridInfoView: View {
         List {
             Section(header: InlineHeader("Description")) {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("\(debridType.toString()) is a debrid service that is used for unrestricting downloads and media playback. You must pay to access the service.")
+                    Text("\(debridSource.id.name) is a debrid service that is used for unrestricting downloads and media playback. You must pay to access the service.")
 
-                    Link("Website", destination: URL(string: debridType.website()) ?? URL(string: "https://kingbri.dev/ferrite")!)
+                    Link("Website", destination: URL(string: debridSource.id.website) ?? URL(string: "https://kingbri.dev/ferrite")!)
                 }
             }
 
@@ -30,21 +30,21 @@ struct SettingsDebridInfoView: View {
             ) {
                 Button {
                     Task {
-                        if debridManager.enabledDebrids.contains(debridType) {
-                            await debridManager.logoutDebrid(debridType: debridType)
-                        } else if !debridManager.authProcessing(debridType) {
-                            await debridManager.authenticateDebrid(debridType: debridType, apiKey: nil)
+                        if debridSource.isLoggedIn {
+                            //await debridManager.logoutDebrid(debridType: debridType)
+                        } else if !debridSource.authProcessing {
+                            //await debridManager.authenticateDebrid(debridType: debridType, apiKey: nil)
                         }
 
-                        apiKeyTempText = await debridManager.getManualAuthKey(debridType) ?? ""
+                        //apiKeyTempText = await debridManager.getManualAuthKey(debridType) ?? ""
                     }
                 } label: {
                     Text(
-                        debridManager.enabledDebrids.contains(debridType)
+                        debridSource.isLoggedIn
                             ? "Logout"
-                            : (debridManager.authProcessing(debridType) ? "Processing" : "Login")
+                            : (debridSource.authProcessing ? "Processing" : "Login")
                     )
-                    .foregroundColor(debridManager.enabledDebrids.contains(debridType) ? .red : .blue)
+                    .foregroundColor(debridSource.isLoggedIn ? .red : .blue)
                 }
             }
 
@@ -57,22 +57,22 @@ struct SettingsDebridInfoView: View {
                     onCommit: {
                         Task {
                             if !apiKeyTempText.isEmpty {
-                                await debridManager.authenticateDebrid(debridType: debridType, apiKey: apiKeyTempText)
-                                apiKeyTempText = await debridManager.getManualAuthKey(debridType) ?? ""
+                                //await debridManager.authenticateDebrid(debridType: debridType, apiKey: apiKeyTempText)
+                                //apiKeyTempText = await debridManager.getManualAuthKey(debridType) ?? ""
                             }
                         }
                     }
                 )
-                .fieldDisabled(debridManager.enabledDebrids.contains(debridType))
+                .fieldDisabled(debridSource.isLoggedIn)
             }
             .onAppear {
                 Task {
-                    apiKeyTempText = await debridManager.getManualAuthKey(debridType) ?? ""
+                    //apiKeyTempText = await debridManager.getManualAuthKey(debridType) ?? ""
                 }
             }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle(debridType.toString())
+        .navigationTitle(debridSource.id.name)
         .navigationBarTitleDisplayMode(.inline)
     }
 }

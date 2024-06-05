@@ -7,11 +7,9 @@
 
 import Foundation
 
-public protocol DebridSource: ObservableObject {
+public protocol DebridSource: AnyObservableObject {
     // ID of the service
-    var id: String { get }
-    var abbreviation: String { get }
-    var website: String { get }
+    var id: DebridInfo { get }
 
     // Auth variables
     var authProcessing: Bool { get set }

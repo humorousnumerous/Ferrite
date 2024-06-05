@@ -102,7 +102,7 @@ struct AllDebridCloudView: View {
                         HStack {
                             Text(cloudTorrent.status.capitalizingFirstLetter())
                             Spacer()
-                            DebridLabelView(cloudLinks: cloudTorrent.links)
+                            //DebridLabelView(cloudLinks: cloudTorrent.links)
                         }
                         .font(.caption)
                     }

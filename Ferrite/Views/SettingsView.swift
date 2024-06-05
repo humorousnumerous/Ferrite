@@ -46,14 +46,14 @@ struct SettingsView: View {
         NavView {
             Form {
                 Section(header: InlineHeader("Debrid services")) {
-                    ForEach(DebridType.allCases, id: \.self) { debridType in
+                    ForEach(debridManager.debridSources, id: \.id) { (debridSource: DebridSource) in
                         NavigationLink {
-                            SettingsDebridInfoView(debridType: debridType)
+                            SettingsDebridInfoView(debridSource: debridSource)
                         } label: {
                             HStack {
-                                Text(debridType.toString())
+                                Text(debridSource.id.name)
                                 Spacer()
-                                Text(debridManager.enabledDebrids.contains(debridType) ? "Enabled" : "Disabled")
+                                Text(debridSource.isLoggedIn ? "Enabled" : "Disabled")
                                     .foregroundColor(.secondary)
                             }
                         }
