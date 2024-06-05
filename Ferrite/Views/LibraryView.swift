@@ -53,7 +53,7 @@ struct LibraryView: View {
                             EmptyInstructionView(title: "No History", message: "Start watching to build history")
                         }
                     case .debridCloud:
-                        if debridManager.selectedDebridId == nil {
+                        if debridManager.selectedDebridSource == nil {
                             EmptyInstructionView(title: "Cloud Unavailable", message: "Listing is not available for this service")
                         }
                     }
@@ -69,7 +69,7 @@ struct LibraryView: View {
                         switch navModel.libraryPickerSelection {
                         case .bookmarks, .debridCloud:
                             SelectedDebridFilterView {
-                                Text(debridManager.selectedDebridId?.abbreviation ?? "Debrid")
+                                Text(debridManager.selectedDebridSource?.abbreviation ?? "Debrid")
                             }
                             .transaction {
                                 $0.animation = .none

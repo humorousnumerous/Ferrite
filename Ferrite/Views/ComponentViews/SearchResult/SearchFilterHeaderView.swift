@@ -53,7 +53,7 @@ struct SearchFilterHeaderView: View {
 
                 SelectedDebridFilterView {
                     FilterLabelView(
-                        name: debridManager.selectedDebridId?.name,
+                        name: debridManager.selectedDebridSource?.id,
                         fallbackName: "Debrid"
                     )
                 }

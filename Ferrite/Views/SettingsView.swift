@@ -51,7 +51,7 @@ struct SettingsView: View {
                             SettingsDebridInfoView(debridSource: debridSource)
                         } label: {
                             HStack {
-                                Text(debridSource.id.name)
+                                Text(debridSource.id)
                                 Spacer()
                                 Text(debridSource.isLoggedIn ? "Enabled" : "Disabled")
                                     .foregroundColor(.secondary)

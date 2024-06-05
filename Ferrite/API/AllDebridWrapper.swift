@@ -9,9 +9,9 @@ import Foundation
 
 // TODO: Fix errors
 public class AllDebrid: PollingDebridSource, ObservableObject {
-    public let id = DebridInfo(
-        name: "AllDebrid", abbreviation: "AD", website: "https://alldebrid.com"
-    )
+    public let id = "AllDebrid"
+    public let abbreviation = "AD"
+    public let website = "https://alldebrid.com"
     public var authTask: Task<Void, Error>?
 
     public var authProcessing: Bool = false
@@ -178,7 +178,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
 
             return DebridIA(
                 magnet: Magnet(hash: magnetResp.hash, link: magnetResp.magnet),
-                source: self.id.name,
+                source: self.id,
                 expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                 files: files
             )
@@ -292,7 +292,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         cloudTorrents = rawResponse.magnets.map { magnetResponse in
             DebridCloudTorrent(
                 torrentId: String(magnetResponse.id),
-                source: self.id.name,
+                source: self.id,
                 fileName: magnetResponse.filename,
                 status: magnetResponse.status,
                 hash: magnetResponse.hash,
@@ -325,7 +325,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         // The link is also the ID
         cloudDownloads = rawResponse.links.map { link in
             DebridCloudDownload(
-                downloadId: link.link, source: self.id.name, fileName: link.filename, link: link.link
+                downloadId: link.link, source: self.id, fileName: link.filename, link: link.link
             )
         }
 

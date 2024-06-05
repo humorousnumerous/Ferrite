@@ -8,9 +8,9 @@
 import Foundation
 
 public class RealDebrid: PollingDebridSource, ObservableObject {
-    public let id = DebridInfo(
-        name: "RealDebrid", abbreviation: "RD", website: "https://real-debrid.com"
-    )
+    public let id = "RealDebrid"
+    public let abbreviation = "RD"
+    public let website = "https://real-debrid.com"
     public var authTask: Task<Void, Error>?
 
     @Published public var authProcessing: Bool = false
@@ -287,7 +287,7 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
                 IAValues.append(
                     DebridIA(
                         magnet: Magnet(hash: hash, link: nil),
-                        source: id.name,
+                        source: id,
                         expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                         files: files
                     )
@@ -296,7 +296,7 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
                 IAValues.append(
                     DebridIA(
                         magnet: Magnet(hash: hash, link: nil),
-                        source: id.name,
+                        source: id,
                         expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                         files: []
                     )
@@ -427,7 +427,7 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
         cloudTorrents = rawResponse.map { response in
             DebridCloudTorrent(
                 torrentId: response.id,
-                source: self.id.name,
+                source: self.id,
                 fileName: response.filename,
                 status: response.status,
                 hash: response.hash,
@@ -453,7 +453,7 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode([UserDownloadsResponse].self, from: data)
         cloudDownloads = rawResponse.map { response in
-            DebridCloudDownload(downloadId: response.id, source: self.id.name, fileName: response.filename, link: response.download)
+            DebridCloudDownload(downloadId: response.id, source: self.id, fileName: response.filename, link: response.download)
         }
 
         return cloudDownloads

@@ -18,9 +18,9 @@ struct SettingsDebridInfoView: View {
         List {
             Section(header: InlineHeader("Description")) {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("\(debridSource.id.name) is a debrid service that is used for unrestricting downloads and media playback. You must pay to access the service.")
+                    Text("\(debridSource.id) is a debrid service that is used for unrestricting downloads and media playback. You must pay to access the service.")
 
-                    Link("Website", destination: URL(string: debridSource.id.website) ?? URL(string: "https://kingbri.dev/ferrite")!)
+                    Link("Website", destination: URL(string: debridSource.website) ?? URL(string: "https://kingbri.dev/ferrite")!)
                 }
             }
 
@@ -72,7 +72,7 @@ struct SettingsDebridInfoView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle(debridSource.id.name)
+        .navigationTitle(debridSource.id)
         .navigationBarTitleDisplayMode(.inline)
     }
 }

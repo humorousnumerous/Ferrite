@@ -16,7 +16,7 @@ struct DebridLabelView: View {
 
     var body: some View {
         Tag(
-            name: debridSource.id.abbreviation,
+            name: debridSource.abbreviation,
             color: tagColor,
             horizontalPadding: 5,
             verticalPadding: 3

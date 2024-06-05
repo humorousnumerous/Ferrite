@@ -26,11 +26,13 @@ public class DebridManager: ObservableObject {
         debridSources.contains { $0.isLoggedIn }
     }
 
-    @Published var selectedDebridId: DebridInfo?
+    @Published var selectedDebridSource: DebridSource?
 
+    /*
     func debridSourceFromName(_ name: String? = nil) -> DebridSource? {
         debridSources.first { $0.id.name == name ?? selectedDebridId?.name }
     }
+     */
 
     // Service agnostic variables
     @Published var enabledDebrids: Set<DebridType> = [] {
@@ -113,8 +115,7 @@ public class DebridManager: ObservableObject {
         // If a UserDefaults integer isn't set, it's usually 0
         let rawPreferredService = UserDefaults.standard.integer(forKey: "Debrid.PreferredService")
         let legacyPreferredService = DebridType(rawValue: rawPreferredService)
-        let preferredDebridSource = self.debridSourceFromName(legacyPreferredService?.toString())
-        selectedDebridId = preferredDebridSource?.id
+        selectedDebridSource = self.debridSources.first { $0.id == legacyPreferredService?.toString() }
 
         // If a user has one logged in service, automatically set the preferred service to that one
         /*
@@ -265,10 +266,8 @@ public class DebridManager: ObservableObject {
             return .none
         }
 
-        let selectedSource = debridSourceFromName()
-
-        if let selectedSource,
-           let match = selectedSource.IAValues.first(where: { magnetHash == $0.magnet.hash })
+        if let selectedDebridSource,
+           let match = selectedDebridSource.IAValues.first(where: { magnetHash == $0.magnet.hash })
         {
             return match.files.count > 1 ? .partial : .full
         } else {
@@ -282,7 +281,7 @@ public class DebridManager: ObservableObject {
             return false
         }
 
-        switch selectedDebridId?.name {
+        switch selectedDebridSource?.id {
         case .some("RealDebrid"):
             if let realDebridItem = realDebrid.IAValues.first(where: { magnetHash == $0.magnet.hash }) {
                 selectedRealDebridItem = realDebridItem

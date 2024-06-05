@@ -23,7 +23,7 @@ struct BatchChoiceView: View {
     var body: some View {
         NavView {
             List {
-                switch debridManager.selectedDebridId?.name {
+                switch debridManager.selectedDebridSource?.id {
                 case .some("RealDebrid"):
                     ForEach(debridManager.selectedRealDebridItem?.files ?? [], id: \.self) { file in
                         if file.name.lowercased().contains(searchText.lowercased()) || searchText.isEmpty {

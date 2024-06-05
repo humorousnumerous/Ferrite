@@ -30,7 +30,7 @@ struct SearchResultInfoView: View {
                 Text(size)
             }
 
-            if let debridSource = debridManager.debridSourceFromName() {
+            if let debridSource = debridManager.selectedDebridSource {
                 DebridLabelView(debridSource: debridSource, magnet: result.magnet)
             }
         }
