@@ -51,6 +51,7 @@ public enum DebridError: Error {
     case InvalidToken
     case EmptyData
     case EmptyTorrents
+    case IsCaching
     case FailedRequest(description: String)
     case AuthQuery(description: String)
 }

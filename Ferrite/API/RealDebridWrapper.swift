@@ -408,9 +408,9 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
         if let torrentLink = rawResponse.links[safe: linkIndex ?? -1], rawResponse.status == "downloaded" {
             return torrentLink
         } else if rawResponse.status == "downloading" || rawResponse.status == "queued" {
-            throw DebridError.EmptyTorrents
+            throw DebridError.IsCaching
         } else {
-            throw DebridError.EmptyData
+            throw DebridError.EmptyTorrents
         }
     }
 
@@ -454,8 +454,23 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
     }
 
     // Deletes a torrent download from RD
-    public func deleteTorrent(torrentId: String) async throws {
-        var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents/delete/\(torrentId)")!)
+    public func deleteTorrent(torrentId: String?) async throws {
+        let deleteId: String
+
+        if let torrentId {
+            deleteId = torrentId
+        } else {
+            // Refresh the torrent cloud
+            // The first file is the currently caching one
+            let _ = try await getUserTorrents()
+            guard let firstTorrent = cloudTorrents[safe: -1] else {
+                throw DebridError.EmptyTorrents
+            }
+
+            deleteId = firstTorrent.torrentId
+        }
+
+        var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents/delete/\(deleteId)")!)
         request.httpMethod = "DELETE"
 
         try await performRequest(request: &request, requestName: #function)

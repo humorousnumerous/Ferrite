@@ -359,5 +359,5 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         []
     }
 
-    public func deleteTorrent(torrentId: String) async throws {}
+    public func deleteTorrent(torrentId: String?) async throws {}
 }

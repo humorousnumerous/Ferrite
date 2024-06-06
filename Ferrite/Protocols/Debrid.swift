@@ -45,7 +45,7 @@ public protocol DebridSource: AnyObservableObject {
 
     // User torrent functions
     func getUserTorrents() async throws -> [DebridCloudTorrent]
-    func deleteTorrent(torrentId: String) async throws
+    func deleteTorrent(torrentId: String?) async throws
 }
 
 public protocol PollingDebridSource: DebridSource {

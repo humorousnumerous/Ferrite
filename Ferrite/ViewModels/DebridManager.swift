@@ -483,8 +483,14 @@ public class DebridManager: ObservableObject {
             // TODO: Add common fetch cloud method
             //await fetchRdCloud(bypassTTL: true)
         } catch {
-            // TODO: Fix error types and unify errors
-            print("Error \(error)")
+            switch error {
+            case DebridError.IsCaching:
+                showDeleteAlert.toggle()
+            default:
+                await sendDebridError(error, prefix: "\(debridSource.id) download error", cancelString: "Download cancelled")
+            }
+
+            logManager?.hideIndeterminateToast()
         }
     }
 

@@ -323,7 +323,11 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         return cloudTorrents
     }
 
-    public func deleteTorrent(torrentId: String) async throws {
+    public func deleteTorrent(torrentId: String?) async throws {
+        guard let torrentId else {
+            throw DebridError.FailedRequest(description: "The torrentID \(String(describing: torrentId)) is invalid")
+        }
+
         let queryItems = [
             URLQueryItem(name: "id", value: torrentId)
         ]

@@ -127,13 +127,14 @@ struct SearchResultButtonView: View {
         .alert("Caching file", isPresented: $debridManager.showDeleteAlert) {
             Button("Yes", role: .destructive) {
                 Task {
-                    await debridManager.deleteRdTorrent()
+                    try? await debridManager.selectedDebridSource?.deleteTorrent(torrentId: nil)
                 }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(
-                "RealDebrid is currently caching this file. Would you like to delete it? \n\n" +
+                "\(String(describing: debridManager.selectedDebridSource?.id)) is currently caching this file. " +
+                    "Would you like to delete it? \n\n" +
                     "Progress can be checked on the RealDebrid website."
             )
         }
