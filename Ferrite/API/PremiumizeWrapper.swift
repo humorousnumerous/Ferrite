@@ -19,6 +19,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
     @Published public var IAValues: [DebridIA] = []
     @Published public var cloudDownloads: [DebridCloudDownload] = []
     @Published public var cloudTorrents: [DebridCloudTorrent] = []
+    public var cloudTTL: Double = 0.0
 
     let baseAuthUrl = "https://www.premiumize.me/authorize"
     let baseApiUrl = "https://www.premiumize.me/api"
@@ -127,16 +128,31 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
     // MARK: - Instant availability
 
     public func instantAvailability(magnets: [Magnet]) async throws {
-        // Only strip magnets that don't have an associated link for PM
-        let strippedMagnets: [Magnet] = magnets.compactMap {
-            if let magnetLink = $0.link {
-                return Magnet(hash: $0.hash, link: magnetLink)
+        let now = Date().timeIntervalSince1970
+
+        // Remove magnets that don't have an associated link for PM along with existing TTL logic
+        let sendMagnets = magnets.filter { magnet in
+            if magnet.link == nil {
+                return false
+            }
+
+            if let IAIndex = IAValues.firstIndex(where: { $0.magnet.hash == magnet.hash }) {
+                if now > IAValues[IAIndex].expiryTimeStamp {
+                    IAValues.remove(at: IAIndex)
+                    return true
+                } else {
+                    return false
+                }
             } else {
-                return nil
+                return true
             }
         }
 
-        let availableMagnets = try await divideCacheRequests(magnets: strippedMagnets)
+        if sendMagnets.isEmpty {
+            return
+        }
+
+        let availableMagnets = try await divideCacheRequests(magnets: sendMagnets)
 
         // Split DDL requests into chunks of 10
         for chunk in availableMagnets.chunked(into: 10) {

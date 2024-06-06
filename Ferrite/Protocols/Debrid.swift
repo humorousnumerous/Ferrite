@@ -36,6 +36,7 @@ public protocol DebridSource: AnyObservableObject {
     // Cloud variables
     var cloudDownloads: [DebridCloudDownload] { get set }
     var cloudTorrents: [DebridCloudTorrent] { get set }
+    var cloudTTL: Double { get set }
 
     // User downloads functions
     func getUserDownloads() async throws -> [DebridCloudDownload]

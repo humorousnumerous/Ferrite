@@ -19,9 +19,10 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         getToken() != nil
     }
 
-    public var IAValues: [DebridIA] = []
-    public var cloudDownloads: [DebridCloudDownload] = []
-    public var cloudTorrents: [DebridCloudTorrent] = []
+    @Published public var IAValues: [DebridIA] = []
+    @Published public var cloudDownloads: [DebridCloudDownload] = []
+    @Published public var cloudTorrents: [DebridCloudTorrent] = []
+    public var cloudTTL: Double = 0.0
 
     let baseApiUrl = "https://api.alldebrid.com/v4"
     let appName = "Ferrite"
@@ -163,7 +164,26 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
     // MARK: - Instant availability
 
     public func instantAvailability(magnets: [Magnet]) async throws {
-        let queryItems = magnets.map { URLQueryItem(name: "magnets[]", value: $0.hash) }
+        let now = Date().timeIntervalSince1970
+
+        let sendMagnets = magnets.filter { magnet in
+            if let IAIndex = IAValues.firstIndex(where: { $0.magnet.hash == magnet.hash }) {
+                if now > IAValues[IAIndex].expiryTimeStamp {
+                    IAValues.remove(at: IAIndex)
+                    return true
+                } else {
+                    return false
+                }
+            } else {
+                return true
+            }
+        }
+
+        if sendMagnets.isEmpty {
+            return
+        }
+
+        let queryItems = sendMagnets.map { URLQueryItem(name: "magnets[]", value: $0.hash) }
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/instant", queryItems: queryItems))
 
         let data = try await performRequest(request: &request, requestName: #function)

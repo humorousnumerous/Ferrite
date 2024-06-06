@@ -23,39 +23,14 @@ struct BatchChoiceView: View {
     var body: some View {
         NavView {
             List {
-                switch debridManager.selectedDebridSource?.id {
-                case .some("RealDebrid"):
-                    ForEach(debridManager.selectedRealDebridItem?.files ?? [], id: \.self) { file in
-                        if file.name.lowercased().contains(searchText.lowercased()) || searchText.isEmpty {
-                            Button(file.name) {
-                                debridManager.selectedRealDebridFile = file
+                ForEach(debridManager.selectedDebridItem?.files ?? [], id: \.self) { file in
+                    if file.name.lowercased().contains(searchText.lowercased()) || searchText.isEmpty {
+                        Button(file.name) {
+                            debridManager.selectedDebridFile = file
 
-                                queueCommonDownload(fileName: file.name)
-                            }
+                            queueCommonDownload(fileName: file.name)
                         }
                     }
-                case .some("AllDebrid"):
-                    ForEach(debridManager.selectedAllDebridItem?.files ?? [], id: \.self) { file in
-                        if file.name.lowercased().contains(searchText.lowercased()) || searchText.isEmpty {
-                            Button(file.name) {
-                                debridManager.selectedAllDebridFile = file
-
-                                queueCommonDownload(fileName: file.name)
-                            }
-                        }
-                    }
-                case .some("Premiumize"):
-                    ForEach(debridManager.selectedPremiumizeItem?.files ?? [], id: \.self) { file in
-                        if file.name.lowercased().contains(searchText.lowercased()) || searchText.isEmpty {
-                            Button(file.name) {
-                                debridManager.selectedPremiumizeFile = file
-
-                                queueCommonDownload(fileName: file.name)
-                            }
-                        }
-                    }
-                default:
-                    EmptyView()
                 }
             }
             .tint(.primary)

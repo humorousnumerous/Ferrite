@@ -27,12 +27,8 @@ public class DebridManager: ObservableObject {
     }
 
     @Published var selectedDebridSource: DebridSource?
-
-    /*
-    func debridSourceFromName(_ name: String? = nil) -> DebridSource? {
-        debridSources.first { $0.id.name == name ?? selectedDebridId?.name }
-    }
-     */
+    var selectedDebridItem: DebridIA?
+    var selectedDebridFile: DebridIAFile?
 
     // Service agnostic variables
     @Published var enabledDebrids: Set<DebridType> = [] {
@@ -184,78 +180,22 @@ public class DebridManager: ObservableObject {
 
     // Clears all selected files and items
     public func clearSelectedDebridItems() {
-        switch selectedDebridType {
-        case .realDebrid:
-            selectedRealDebridFile = nil
-            selectedRealDebridItem = nil
-        case .allDebrid:
-            selectedAllDebridFile = nil
-            selectedAllDebridItem = nil
-        case .premiumize:
-            selectedPremiumizeFile = nil
-            selectedPremiumizeItem = nil
-        case .none:
-            break
-        }
+        selectedDebridItem = nil
+        selectedDebridFile = nil
     }
 
     // Common function to populate hashes for debrid services
     public func populateDebridIA(_ resultMagnets: [Magnet]) async {
-        let now = Date()
-
-        // If a hash isn't found in the IA, update it
-        // If the hash is expired, remove it and update it
-        let sendMagnets = resultMagnets.filter { magnet in
-            if let IAIndex = realDebrid.IAValues.firstIndex(where: { $0.magnet.hash == magnet.hash }), enabledDebrids.contains(.realDebrid) {
-                if now.timeIntervalSince1970 > realDebrid.IAValues[IAIndex].expiryTimeStamp {
-                    realDebrid.IAValues.remove(at: IAIndex)
-                    return true
-                } else {
-                    return false
-                }
-            } else if let IAIndex = allDebrid.IAValues.firstIndex(where: { $0.magnet.hash == magnet.hash }), enabledDebrids.contains(.allDebrid) {
-                if now.timeIntervalSince1970 > allDebrid.IAValues[IAIndex].expiryTimeStamp {
-                    allDebrid.IAValues.remove(at: IAIndex)
-                    return true
-                } else {
-                    return false
-                }
-            } else if let IAIndex = premiumize.IAValues.firstIndex(where: { $0.magnet.hash == magnet.hash }), enabledDebrids.contains(.premiumize) {
-                if now.timeIntervalSince1970 > premiumize.IAValues[IAIndex].expiryTimeStamp {
-                    premiumize.IAValues.remove(at: IAIndex)
-                    return true
-                } else {
-                    return false
-                }
-            } else {
-                return true
-            }
-        }
-
-        // Don't exit the function if the API fetch errors
-        if !sendMagnets.isEmpty {
-            if enabledDebrids.contains(.realDebrid) {
-                do {
-                    try await realDebrid.instantAvailability(magnets: sendMagnets)
-                } catch {
-                    await sendDebridError(error, prefix: "RealDebrid IA fetch error")
-                }
+        for debridSource in debridSources {
+            if !debridSource.isLoggedIn {
+                continue
             }
 
-            if enabledDebrids.contains(.allDebrid) {
-                do {
-                    try await allDebrid.instantAvailability(magnets: sendMagnets)
-                } catch {
-                    await sendDebridError(error, prefix: "AllDebrid IA fetch error")
-                }
-            }
-
-            if enabledDebrids.contains(.premiumize) {
-                do {
-                    try await premiumize.instantAvailability(magnets: sendMagnets)
-                } catch {
-                    await sendDebridError(error, prefix: "Premiumize IA fetch error")
-                }
+            // Don't exit the function if the API fetch errors
+            do {
+                try await debridSource.instantAvailability(magnets: resultMagnets)
+            } catch {
+                await sendDebridError(error, prefix: "\(debridSource.id) IA fetch error")
             }
         }
     }
@@ -281,32 +221,15 @@ public class DebridManager: ObservableObject {
             return false
         }
 
-        switch selectedDebridSource?.id {
-        case .some("RealDebrid"):
-            if let realDebridItem = realDebrid.IAValues.first(where: { magnetHash == $0.magnet.hash }) {
-                selectedRealDebridItem = realDebridItem
-                return true
-            } else {
-                logManager?.error("DebridManager: Could not find the associated RealDebrid entry for magnet hash \(magnetHash)")
-                return false
-            }
-        case .some("AllDebrid"):
-            if let allDebridItem = allDebrid.IAValues.first(where: { magnetHash == $0.magnet.hash }) {
-                selectedAllDebridItem = allDebridItem
-                return true
-            } else {
-                logManager?.error("DebridManager: Could not find the associated AllDebrid entry for magnet hash \(magnetHash)")
-                return false
-            }
-        case .some("Premiumize"):
-            if let premiumizeItem = premiumize.IAValues.first(where: { magnetHash == $0.magnet.hash }) {
-                selectedPremiumizeItem = premiumizeItem
-                return true
-            } else {
-                logManager?.error("DebridManager: Could not find the associated Premiumize entry for magnet hash \(magnetHash)")
-                return false
-            }
-        default:
+        guard let selectedSource = selectedDebridSource else {
+            return false
+        }
+
+        if let IAItem = selectedSource.IAValues.first(where: { magnetHash == $0.magnet.hash }) {
+            selectedDebridItem = IAItem
+            return true
+        } else {
+            logManager?.error("DebridManager: Could not find the associated \(selectedSource.id) entry for magnet hash \(magnetHash)")
             return false
         }
     }
@@ -535,23 +458,19 @@ public class DebridManager: ObservableObject {
             self.currentDebridTask = nil
         })
 
-        switch selectedDebridType {
-        case .realDebrid:
-            await fetchRdDownload(magnet: magnet, cloudInfo: cloudInfo)
-        case .allDebrid:
-            await fetchAdDownload(magnet: magnet, cloudInfo: cloudInfo)
-        case .premiumize:
-            await fetchPmDownload(magnet: magnet, cloudInfo: cloudInfo)
-        case .none:
-            break
+        guard let debridSource = selectedDebridSource else {
+            return
         }
-    }
 
-    func fetchRdDownload(magnet: Magnet?, cloudInfo: String?) async {
         do {
+            if let cloudInfo {
+                downloadUrl = try await debridSource.checkUserDownloads(link: cloudInfo) ?? ""
+                return
+            }
+
             if let magnet {
-                let downloadLink = try await realDebrid.getDownloadLink(
-                    magnet: magnet, ia: selectedRealDebridItem, iaFile: selectedRealDebridFile
+                let downloadLink = try await debridSource.getDownloadLink(
+                    magnet: magnet, ia: selectedDebridItem, iaFile: selectedDebridFile
                 )
 
                 // Update the UI
@@ -559,6 +478,28 @@ public class DebridManager: ObservableObject {
             } else {
                 throw RealDebrid.RDError.FailedRequest(description: "Could not fetch your file from RealDebrid's cache or API")
             }
+
+            // Fetch one more time to add updated data into the RD cloud cache
+            // TODO: Add common fetch cloud method
+            //await fetchRdCloud(bypassTTL: true)
+        } catch {
+            // TODO: Fix error types and unify errors
+            print("Error \(error)")
+        }
+    }
+
+    func fetchRdDownload(magnet: Magnet?, cloudInfo: String?) async {
+        do {
+            guard let magnet else {
+                throw RealDebrid.RDError.FailedRequest(description: "Could not fetch your file from RealDebrid's cache or API")
+            }
+
+            let downloadLink = try await realDebrid.getDownloadLink(
+                magnet: magnet, ia: selectedRealDebridItem, iaFile: selectedRealDebridFile
+            )
+
+            // Update the UI
+            downloadUrl = downloadLink
 
             // Fetch one more time to add updated data into the RD cloud cache
             await fetchRdCloud(bypassTTL: true)
@@ -631,21 +572,6 @@ public class DebridManager: ObservableObject {
         }
     }
 
-    func checkRdUserDownloads(userTorrentLink: String) async -> String? {
-        do {
-            let existingLinks = realDebridCloudDownloads.first { $0.link == userTorrentLink }
-            if let existingLink = existingLinks?.fileName {
-                return existingLink
-            } else {
-                return try await realDebrid.unrestrictLink(debridDownloadLink: userTorrentLink)
-            }
-        } catch {
-            await sendDebridError(error, prefix: "RealDebrid download check error")
-
-            return nil
-        }
-    }
-
     func fetchAdDownload(magnet: Magnet?, cloudInfo: String?) async {
         do {
             if let magnet {
@@ -663,22 +589,6 @@ public class DebridManager: ObservableObject {
             await fetchAdCloud(bypassTTL: true)
         } catch {
             await sendDebridError(error, prefix: "AllDebrid download error", cancelString: "Download cancelled")
-        }
-    }
-
-    func checkAdUserLinks(lockedLink: String) async -> String? {
-        do {
-            let existingLinks = allDebridCloudLinks.first { $0.link == lockedLink }
-            if let existingLink = existingLinks?.link {
-                return existingLink
-            } else {
-                try await allDebrid.saveLink(link: lockedLink)
-                return try await allDebrid.unlockLink(lockedLink: lockedLink)
-            }
-        } catch {
-            await sendDebridError(error, prefix: "AllDebrid download check error")
-
-            return nil
         }
     }
 

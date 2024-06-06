@@ -20,14 +20,10 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
         FerriteKeychain.shared.get("RealDebrid.AccessToken") != nil
     }
 
-    @Published public var IAValues: [DebridIA] = [] {
-        willSet {
-            self.objectWillChange.send()
-        }
-    }
+    @Published public var IAValues: [DebridIA] = []
     @Published public var cloudDownloads: [DebridCloudDownload] = []
     @Published public var cloudTorrents: [DebridCloudTorrent] = []
-    var cloudTTL: Double = 0.0
+    public var cloudTTL: Double = 0.0
 
     let baseAuthUrl = "https://api.real-debrid.com/oauth/v2"
     let baseApiUrl = "https://api.real-debrid.com/rest/1.0"
@@ -237,7 +233,26 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
 
     // Checks if the magnet is streamable on RD
     public func instantAvailability(magnets: [Magnet]) async throws {
-        var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents/instantAvailability/\(magnets.compactMap(\.hash).joined(separator: "/"))")!)
+        let now = Date().timeIntervalSince1970
+
+        let sendMagnets = magnets.filter { magnet in
+            if let IAIndex = IAValues.firstIndex(where: { $0.magnet.hash == magnet.hash }) {
+                if now > IAValues[IAIndex].expiryTimeStamp {
+                    IAValues.remove(at: IAIndex)
+                    return true
+                } else {
+                    return false
+                }
+            } else {
+                return true
+            }
+        }
+
+        if sendMagnets.isEmpty {
+            return
+        }
+
+        var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents/instantAvailability/\(sendMagnets.compactMap(\.hash).joined(separator: "/"))")!)
 
         let data = try await performRequest(request: &request, requestName: #function)
 
