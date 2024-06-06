@@ -404,45 +404,6 @@ public class DebridManager: ObservableObject {
         }
     }
 
-    // MARK: - Logout UI linked functions
-
-    // Common function to delegate what debrid service to logout of
-    public func logoutDebrid(debridType: DebridType) async {
-        switch debridType {
-        case .realDebrid:
-            await logoutRd()
-        case .allDebrid:
-            logoutAd()
-        case .premiumize:
-            logoutPm()
-        }
-
-        // Automatically resets the preferred debrid service if it was set to the logged out service
-        if selectedDebridType == debridType {
-            selectedDebridType = nil
-        }
-    }
-
-    private func logoutRd() async {
-        await realDebrid.logout()
-        enabledDebrids.remove(.realDebrid)
-    }
-
-    private func logoutAd() {
-        allDebrid.logout()
-        enabledDebrids.remove(.allDebrid)
-
-        logManager?.info(
-            "AllDebrid: Logged out, API key needs to be removed",
-            description: "Please manually delete the AllDebrid API key"
-        )
-    }
-
-    private func logoutPm() {
-        premiumize.logout()
-        enabledDebrids.remove(.premiumize)
-    }
-
     // MARK: - Debrid fetch UI linked functions
 
     // Common function to delegate what debrid service to fetch from

@@ -31,7 +31,7 @@ struct SettingsDebridInfoView: View {
                 Button {
                     Task {
                         if debridSource.isLoggedIn {
-                            //await debridManager.logoutDebrid(debridType: debridType)
+                            await debridSource.logout()
                         } else if !debridSource.authProcessing {
                             //await debridManager.authenticateDebrid(debridType: debridType, apiKey: nil)
                         }
