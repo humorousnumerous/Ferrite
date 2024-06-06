@@ -40,7 +40,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         if let url = urlComponents.url {
             return url
         } else {
-            throw PMError.InvalidUrl
+            throw DebridError.InvalidUrl
         }
     }
 
@@ -48,14 +48,14 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         let callbackComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)
 
         guard let callbackFragment = callbackComponents?.fragment else {
-            throw PMError.InvalidResponse
+            throw DebridError.InvalidResponse
         }
 
         var fragmentComponents = URLComponents()
         fragmentComponents.query = callbackFragment
 
         guard let accessToken = fragmentComponents.queryItems?.first(where: { $0.name == "access_token" })?.value else {
-            throw PMError.InvalidToken
+            throw DebridError.InvalidToken
         }
 
         FerriteKeychain.shared.set(accessToken, forKey: "Premiumize.AccessToken")
@@ -84,7 +84,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
     // Wrapper request function which matches the responses and returns data
     @discardableResult private func performRequest(request: inout URLRequest, requestName: String) async throws -> Data {
         guard let token = getToken() else {
-            throw PMError.InvalidToken
+            throw DebridError.InvalidToken
         }
 
         // Use the API query parameter if a manual API key is present
@@ -93,7 +93,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
                 let requestUrl = request.url,
                 var components = URLComponents(url: requestUrl, resolvingAgainstBaseURL: false)
             else {
-                throw PMError.InvalidUrl
+                throw DebridError.InvalidUrl
             }
 
             let apiTokenItem = URLQueryItem(name: "apikey", value: token)
@@ -112,16 +112,16 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let response = response as? HTTPURLResponse else {
-            throw PMError.FailedRequest(description: "No HTTP response given")
+            throw DebridError.FailedRequest(description: "No HTTP response given")
         }
 
         if response.statusCode >= 200, response.statusCode <= 299 {
             return data
         } else if response.statusCode == 401 {
             logout()
-            throw PMError.FailedRequest(description: "The request \(requestName) failed because you were unauthorized. Please relogin to Premiumize in Settings.")
+            throw DebridError.FailedRequest(description: "The request \(requestName) failed because you were unauthorized. Please relogin to Premiumize in Settings.")
         } else {
-            throw PMError.FailedRequest(description: "The request \(requestName) failed with status code \(response.statusCode).")
+            throw DebridError.FailedRequest(description: "The request \(requestName) failed with status code \(response.statusCode).")
         }
     }
 
@@ -184,7 +184,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
     // Grabs DDL links
     func fetchDDL(magnet: Magnet) async throws -> DebridIA {
         if magnet.hash == nil {
-            throw PMError.EmptyData
+            throw DebridError.EmptyData
         }
 
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/transfer/directdl")!)
@@ -215,7 +215,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
                 files: files
             )
         } else {
-            throw PMError.EmptyData
+            throw DebridError.EmptyData
         }
     }
 
@@ -245,7 +245,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         var urlComponents = URLComponents(string: "\(baseApiUrl)/cache/check")!
         urlComponents.queryItems = magnets.map { URLQueryItem(name: "items[]", value: $0.hash) }
         guard let url = urlComponents.url else {
-            throw PMError.InvalidUrl
+            throw DebridError.InvalidUrl
         }
 
         var request = URLRequest(url: url)
@@ -254,7 +254,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         let rawResponse = try jsonDecoder.decode(CacheCheckResponse.self, from: data)
 
         if rawResponse.response.isEmpty {
-            throw PMError.EmptyData
+            throw DebridError.EmptyData
         } else {
             let availableMagnets = magnets.enumerated().compactMap { index, magnet in
                 if rawResponse.response[safe: index] == true {
@@ -280,13 +280,13 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         } else if let premiumizeItem = ia, let firstFile = premiumizeItem.files[safe: 0], let streamUrlString = firstFile.streamUrlString {
             return streamUrlString
         } else {
-            throw PMError.FailedRequest(description: "Could not fetch your file from the Premiumize API")
+            throw DebridError.FailedRequest(description: "Could not fetch your file from the Premiumize API")
         }
     }
 
     func createTransfer(magnet: Magnet) async throws {
         guard let magnetLink = magnet.link else {
-            throw PMError.FailedRequest(description: "The magnet link is invalid")
+            throw DebridError.FailedRequest(description: "The magnet link is invalid")
         }
 
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/transfer/create")!)
@@ -310,7 +310,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         let rawResponse = try jsonDecoder.decode(AllItemsResponse.self, from: data)
 
         if rawResponse.files.isEmpty {
-            throw PMError.EmptyData
+            throw DebridError.EmptyData
         }
 
         // The "link" is the ID for Premiumize
@@ -325,7 +325,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         var urlComponents = URLComponents(string: "\(baseApiUrl)/item/details")!
         urlComponents.queryItems = [URLQueryItem(name: "id", value: itemID)]
         guard let url = urlComponents.url else {
-            throw PMError.InvalidUrl
+            throw DebridError.InvalidUrl
         }
 
         var request = URLRequest(url: url)

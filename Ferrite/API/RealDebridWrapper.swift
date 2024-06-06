@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class RealDebrid: PollingDebridSource, ObservableObject {
+public class RealDebrid: PollingDebridSource, ObservableObject {    
     public let id = "RealDebrid"
     public let abbreviation = "RD"
     public let website = "https://real-debrid.com"
@@ -52,7 +52,7 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
         ]
 
         guard let url = urlComponents.url else {
-            throw RDError.InvalidUrl
+            throw DebridError.InvalidUrl
         }
 
         let request = URLRequest(url: url)
@@ -62,7 +62,7 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
             // Validate the URL before doing anything else
             let rawResponse = try jsonDecoder.decode(DeviceCodeResponse.self, from: data)
             guard let directVerificationUrl = URL(string: rawResponse.directVerificationURL) else {
-                throw RDError.AuthQuery(description: "The verification URL is invalid")
+                throw DebridError.AuthQuery(description: "The verification URL is invalid")
             }
 
             // Spawn the polling task separately
@@ -73,7 +73,7 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
             return directVerificationUrl
         } catch {
             print("Couldn't get the new client creds!")
-            throw RDError.AuthQuery(description: error.localizedDescription)
+            throw DebridError.AuthQuery(description: error.localizedDescription)
         }
     }
 
@@ -86,7 +86,7 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
         ]
 
         guard let url = urlComponents.url else {
-            throw RDError.InvalidUrl
+            throw DebridError.InvalidUrl
         }
 
         let request = URLRequest(url: url)
@@ -96,7 +96,7 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
 
         while count < 12 {
             if Task.isCancelled {
-                throw RDError.AuthQuery(description: "Token request cancelled.")
+                throw DebridError.AuthQuery(description: "Token request cancelled.")
             }
 
             let (data, _) = try await URLSession.shared.data(for: request)
@@ -118,17 +118,17 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
             }
         }
 
-        throw RDError.AuthQuery(description: "Could not fetch the client ID and secret in time. Try logging in again.")
+        throw DebridError.AuthQuery(description: "Could not fetch the client ID and secret in time. Try logging in again.")
     }
 
     // Fetch all tokens for the user and store in FerriteKeychain.shared
     public func getApiTokens(deviceCode: String) async throws {
         guard let clientId = UserDefaults.standard.string(forKey: "RealDebrid.ClientId") else {
-            throw RDError.EmptyData
+            throw DebridError.EmptyData
         }
 
         guard let clientSecret = FerriteKeychain.shared.get("RealDebrid.ClientSecret") else {
-            throw RDError.EmptyData
+            throw DebridError.EmptyData
         }
 
         var request = URLRequest(url: URL(string: "\(baseAuthUrl)/token")!)
@@ -208,7 +208,7 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
     // Wrapper request function which matches the responses and returns data
     @discardableResult private func performRequest(request: inout URLRequest, requestName: String) async throws -> Data {
         guard let token = await getToken() else {
-            throw RDError.InvalidToken
+            throw DebridError.InvalidToken
         }
 
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -216,16 +216,16 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let response = response as? HTTPURLResponse else {
-            throw RDError.FailedRequest(description: "No HTTP response given")
+            throw DebridError.FailedRequest(description: "No HTTP response given")
         }
 
         if response.statusCode >= 200, response.statusCode <= 299 {
             return data
         } else if response.statusCode == 401 {
             await logout()
-            throw RDError.FailedRequest(description: "The request \(requestName) failed because you were unauthorized. Please relogin to RealDebrid in Settings.")
+            throw DebridError.FailedRequest(description: "The request \(requestName) failed because you were unauthorized. Please relogin to RealDebrid in Settings.")
         } else {
-            throw RDError.FailedRequest(description: "The request \(requestName) failed with status code \(response.statusCode).")
+            throw DebridError.FailedRequest(description: "The request \(requestName) failed with status code \(response.statusCode).")
         }
     }
 
@@ -345,7 +345,7 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
 
             return downloadLink
         } catch {
-            if case RealDebrid.RDError.EmptyTorrents = error, !selectedMagnetId.isEmpty {
+            if case DebridError.EmptyTorrents = error, !selectedMagnetId.isEmpty {
                 try? await deleteTorrent(torrentId: selectedMagnetId)
             }
 
@@ -357,7 +357,7 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
     // Adds a magnet link to the user's RD account
     public func addMagnet(magnet: Magnet) async throws -> String {
         guard let magnetLink = magnet.link else {
-            throw RDError.FailedRequest(description: "The magnet link is invalid")
+            throw DebridError.FailedRequest(description: "The magnet link is invalid")
         }
 
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents/addMagnet")!)
@@ -408,9 +408,9 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
         if let torrentLink = rawResponse.links[safe: linkIndex ?? -1], rawResponse.status == "downloaded" {
             return torrentLink
         } else if rawResponse.status == "downloading" || rawResponse.status == "queued" {
-            throw RDError.EmptyTorrents
+            throw DebridError.EmptyTorrents
         } else {
-            throw RDError.EmptyData
+            throw DebridError.EmptyData
         }
     }
 

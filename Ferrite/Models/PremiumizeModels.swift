@@ -8,20 +8,6 @@
 import Foundation
 
 public extension Premiumize {
-    // MARK: - Errors
-
-    // TODO: Hybridize debrid errors in one structure
-    enum PMError: Error {
-        case InvalidUrl
-        case InvalidPostBody
-        case InvalidResponse
-        case InvalidToken
-        case EmptyData
-        case EmptyTorrents
-        case FailedRequest(description: String)
-        case AuthQuery(description: String)
-    }
-
     // MARK: - CacheCheckResponse
 
     struct CacheCheckResponse: Codable {

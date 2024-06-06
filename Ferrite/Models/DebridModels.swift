@@ -43,3 +43,14 @@ public struct DebridCloudTorrent: Hashable, Sendable {
     let hash: String
     let links: [String]
 }
+
+public enum DebridError: Error {
+    case InvalidUrl
+    case InvalidPostBody
+    case InvalidResponse
+    case InvalidToken
+    case EmptyData
+    case EmptyTorrents
+    case FailedRequest(description: String)
+    case AuthQuery(description: String)
+}

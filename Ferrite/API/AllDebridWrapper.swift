@@ -42,7 +42,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
             // Validate the URL before doing anything else
             let rawResponse = try jsonDecoder.decode(ADResponse<PinResponse>.self, from: data).data
             guard let userUrl = URL(string: rawResponse.userURL) else {
-                throw ADError.AuthQuery(description: "The login URL is invalid")
+                throw DebridError.AuthQuery(description: "The login URL is invalid")
             }
 
             // Spawn the polling task separately
@@ -53,7 +53,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
             return userUrl
         } catch {
             print("Couldn't get pin information!")
-            throw ADError.AuthQuery(description: error.localizedDescription)
+            throw DebridError.AuthQuery(description: error.localizedDescription)
         }
     }
 
@@ -73,7 +73,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
 
             while count < 12 {
                 if Task.isCancelled {
-                    throw ADError.AuthQuery(description: "Token request cancelled.")
+                    throw DebridError.AuthQuery(description: "Token request cancelled.")
                 }
 
                 let (data, _) = try await URLSession.shared.data(for: request)
@@ -92,7 +92,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
                 }
             }
 
-            throw ADError.AuthQuery(description: "Could not fetch the client ID and secret in time. Try logging in again.")
+            throw DebridError.AuthQuery(description: "Could not fetch the client ID and secret in time. Try logging in again.")
         }
 
         if case let .failure(error) = await authTask?.result {
@@ -123,7 +123,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
     // Wrapper request function which matches the responses and returns data
     @discardableResult private func performRequest(request: inout URLRequest, requestName: String) async throws -> Data {
         guard let token = getToken() else {
-            throw ADError.InvalidToken
+            throw DebridError.InvalidToken
         }
 
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -131,23 +131,23 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let response = response as? HTTPURLResponse else {
-            throw ADError.FailedRequest(description: "No HTTP response given")
+            throw DebridError.FailedRequest(description: "No HTTP response given")
         }
 
         if response.statusCode >= 200, response.statusCode <= 299 {
             return data
         } else if response.statusCode == 401 {
             logout()
-            throw ADError.FailedRequest(description: "The request \(requestName) failed because you were unauthorized. Please relogin to AllDebrid in Settings.")
+            throw DebridError.FailedRequest(description: "The request \(requestName) failed because you were unauthorized. Please relogin to AllDebrid in Settings.")
         } else {
-            throw ADError.FailedRequest(description: "The request \(requestName) failed with status code \(response.statusCode).")
+            throw DebridError.FailedRequest(description: "The request \(requestName) failed with status code \(response.statusCode).")
         }
     }
 
     // Builds a URL for further requests
     private func buildRequestURL(urlString: String, queryItems: [URLQueryItem] = []) throws -> URL {
         guard var components = URLComponents(string: urlString) else {
-            throw ADError.InvalidUrl
+            throw DebridError.InvalidUrl
         }
 
         components.queryItems = [
@@ -157,7 +157,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         if let url = components.url {
             return url
         } else {
-            throw ADError.InvalidUrl
+            throw DebridError.InvalidUrl
         }
     }
 
@@ -234,7 +234,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
     // Adds a magnet link to the user's AD account
     public func addMagnet(magnet: Magnet) async throws -> Int {
         guard let magnetLink = magnet.link else {
-            throw ADError.FailedRequest(description: "The magnet link is invalid")
+            throw DebridError.FailedRequest(description: "The magnet link is invalid")
         }
 
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/upload"))
@@ -254,7 +254,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         if let magnet = rawResponse.magnets[safe: 0] {
             return magnet.id
         } else {
-            throw ADError.InvalidResponse
+            throw DebridError.InvalidResponse
         }
     }
 
@@ -271,7 +271,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         if let linkWrapper = rawResponse.magnets[safe: 0]?.links[safe: selectedIndex ?? -1] {
             return linkWrapper.link
         } else {
-            throw ADError.EmptyTorrents
+            throw DebridError.EmptyTorrents
         }
     }
 
@@ -306,7 +306,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         let rawResponse = try jsonDecoder.decode(ADResponse<MagnetStatusResponse>.self, from: data).data
 
         if rawResponse.magnets.isEmpty {
-            throw ADError.EmptyData
+            throw DebridError.EmptyData
         }
 
         cloudTorrents = rawResponse.magnets.map { magnetResponse in
@@ -339,7 +339,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         let rawResponse = try jsonDecoder.decode(ADResponse<SavedLinksResponse>.self, from: data).data
 
         if rawResponse.links.isEmpty {
-            throw ADError.EmptyData
+            throw DebridError.EmptyData
         }
 
         // The link is also the ID

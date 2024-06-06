@@ -342,7 +342,7 @@ public class DebridManager: ObservableObject {
                 try await realDebrid.authTask?.value
                 return true
             } else {
-                throw RealDebrid.RDError.AuthQuery(description: "The verification URL was invalid")
+                throw DebridError.AuthQuery(description: "The verification URL was invalid")
             }
         } catch {
             await sendDebridError(error, prefix: "RealDebrid authentication error")
@@ -361,7 +361,7 @@ public class DebridManager: ObservableObject {
                 try await allDebrid.authTask?.value
                 return true
             } else {
-                throw AllDebrid.ADError.AuthQuery(description: "The PIN URL was invalid")
+                throw DebridError.AuthQuery(description: "The PIN URL was invalid")
             }
         } catch {
             await sendDebridError(error, prefix: "AllDebrid authentication error")
@@ -388,14 +388,14 @@ public class DebridManager: ObservableObject {
     public func handleCallback(url: URL?, error: Error?) async {
         do {
             if let error {
-                throw Premiumize.PMError.AuthQuery(description: "OAuth callback Error: \(error)")
+                throw DebridError.AuthQuery(description: "OAuth callback Error: \(error)")
             }
 
             if let callbackUrl = url {
                 try premiumize.handleAuthCallback(url: callbackUrl)
                 completeDebridAuth(.premiumize, success: true)
             } else {
-                throw Premiumize.PMError.AuthQuery(description: "The callback URL was invalid")
+                throw DebridError.AuthQuery(description: "The callback URL was invalid")
             }
         } catch {
             await sendDebridError(error, prefix: "Premiumize authentication error (callback)")
@@ -476,7 +476,7 @@ public class DebridManager: ObservableObject {
                 // Update the UI
                 downloadUrl = downloadLink
             } else {
-                throw RealDebrid.RDError.FailedRequest(description: "Could not fetch your file from RealDebrid's cache or API")
+                throw DebridError.FailedRequest(description: "Could not fetch your file from RealDebrid's cache or API")
             }
 
             // Fetch one more time to add updated data into the RD cloud cache
@@ -491,7 +491,7 @@ public class DebridManager: ObservableObject {
     func fetchRdDownload(magnet: Magnet?, cloudInfo: String?) async {
         do {
             guard let magnet else {
-                throw RealDebrid.RDError.FailedRequest(description: "Could not fetch your file from RealDebrid's cache or API")
+                throw DebridError.FailedRequest(description: "Could not fetch your file from RealDebrid's cache or API")
             }
 
             let downloadLink = try await realDebrid.getDownloadLink(
@@ -505,7 +505,7 @@ public class DebridManager: ObservableObject {
             await fetchRdCloud(bypassTTL: true)
         } catch {
             switch error {
-            case RealDebrid.RDError.EmptyTorrents:
+            case DebridError.EmptyTorrents:
                 showDeleteAlert.toggle()
             default:
                 await sendDebridError(error, prefix: "RealDebrid download error", cancelString: "Download cancelled")
@@ -565,7 +565,7 @@ public class DebridManager: ObservableObject {
 
                 await fetchRdCloud(bypassTTL: true)
             } else {
-                throw RealDebrid.RDError.FailedRequest(description: "No torrent ID was provided")
+                throw DebridError.FailedRequest(description: "No torrent ID was provided")
             }
         } catch {
             await sendDebridError(error, prefix: "RealDebrid torrent delete error", presentError: presentError)
@@ -582,7 +582,7 @@ public class DebridManager: ObservableObject {
                 // Update UI
                 downloadUrl = downloadLink
             } else {
-                throw AllDebrid.ADError.FailedRequest(description: "Could not fetch your file from AllDebrid's cache or API")
+                throw DebridError.FailedRequest(description: "Could not fetch your file from AllDebrid's cache or API")
             }
 
             // Fetch one more time to add updated data into the AD cloud cache
@@ -641,7 +641,7 @@ public class DebridManager: ObservableObject {
 
                 downloadUrl = downloadLink
             } else {
-                throw Premiumize.PMError.FailedRequest(description: "Could not fetch your file from Premiumize's cache or API")
+                throw DebridError.FailedRequest(description: "Could not fetch your file from Premiumize's cache or API")
             }
 
             // Fetch one more time to add updated data into the PM cloud cache
