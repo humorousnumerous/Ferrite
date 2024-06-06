@@ -74,10 +74,6 @@ public class DebridManager: ObservableObject {
 
     @Published var showDeleteAlert: Bool = false
 
-    var selectedRealDebridItem: DebridIA?
-    var selectedRealDebridFile: DebridIAFile?
-    var selectedRealDebridID: String?
-
     // TODO: Maybe make these generic?
     // RealDebrid cloud variables
     @Published var realDebridCloudTorrents: [DebridCloudTorrent] = []
@@ -87,9 +83,6 @@ public class DebridManager: ObservableObject {
     // AllDebrid auth variables
     var allDebridAuthProcessing: Bool = false
 
-    var selectedAllDebridItem: DebridIA?
-    var selectedAllDebridFile: DebridIAFile?
-
     // AllDebrid cloud variables
     @Published var allDebridCloudMagnets: [DebridCloudTorrent] = []
     @Published var allDebridCloudLinks: [DebridCloudDownload] = []
@@ -97,9 +90,6 @@ public class DebridManager: ObservableObject {
 
     // Premiumize auth variables
     var premiumizeAuthProcessing: Bool = false
-
-    var selectedPremiumizeItem: DebridIA?
-    var selectedPremiumizeFile: DebridIAFile?
 
     // Premiumize cloud variables
     @Published var premiumizeCloudItems: [DebridCloudDownload] = []
