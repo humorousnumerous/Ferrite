@@ -38,7 +38,13 @@ struct LibraryView: View {
                 case .history:
                     HistoryView(allHistoryEntries: allHistoryEntries, searchText: $searchText)
                 case .debridCloud:
-                    DebridCloudView(searchText: $searchText)
+                    if let selectedDebridSource = debridManager.selectedDebridSource {
+                        DebridCloudView(debridSource: selectedDebridSource, searchText: $searchText)
+                    } else {
+                        // Placeholder view that takes up the entire parent view
+                        Color.clear
+                            .frame(maxWidth: .infinity)
+                    }
                 }
             }
             .overlay {

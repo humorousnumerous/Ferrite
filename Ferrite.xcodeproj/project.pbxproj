@@ -20,7 +20,6 @@
 		0C1A3E5229C8A7F500DA9730 /* SettingsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1A3E5129C8A7F500DA9730 /* SettingsModels.swift */; };
 		0C1A3E5629C9488C00DA9730 /* CodableWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1A3E5529C9488C00DA9730 /* CodableWrapper.swift */; };
 		0C2886D22960AC2800D6FC16 /* DebridCloudView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2886D12960AC2800D6FC16 /* DebridCloudView.swift */; };
-		0C2886D72960C50900D6FC16 /* RealDebridCloudView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2886D62960C50900D6FC16 /* RealDebridCloudView.swift */; };
 		0C2B028F29E9E61E00DCF127 /* SortFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2B028E29E9E61E00DCF127 /* SortFilterView.swift */; };
 		0C2D9653299316CC00A504B6 /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2D9652299316CC00A504B6 /* Tag.swift */; };
 		0C31133C28B1ABFA004DCB0D /* SourceJsonParser+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C31133A28B1ABFA004DCB0D /* SourceJsonParser+CoreDataClass.swift */; };
@@ -54,7 +53,6 @@
 		0C54D36428C5086E00BFEEE2 /* History+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C54D36228C5086E00BFEEE2 /* History+CoreDataProperties.swift */; };
 		0C5708EB29B8F89300BE07F9 /* SettingsLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C5708EA29B8F89300BE07F9 /* SettingsLogView.swift */; };
 		0C57D4CC289032ED008534E8 /* SearchResultInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C57D4CB289032ED008534E8 /* SearchResultInfoView.swift */; };
-		0C5FCB05296744F300849E87 /* AllDebridCloudView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C5FCB04296744F300849E87 /* AllDebridCloudView.swift */; };
 		0C64A4B4288903680079976D /* Base32 in Frameworks */ = {isa = PBXBuildFile; productRef = 0C64A4B3288903680079976D /* Base32 */; };
 		0C64A4B7288903880079976D /* KeychainSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 0C64A4B6288903880079976D /* KeychainSwift */; };
 		0C6771F429B3B4FD005D38D2 /* KodiWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C6771F329B3B4FD005D38D2 /* KodiWrapper.swift */; };
@@ -130,12 +128,13 @@
 		0CA3FB2028B91D9500FA10A8 /* IndeterminateProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA3FB1F28B91D9500FA10A8 /* IndeterminateProgressView.swift */; };
 		0CA429F828C5098D000D0610 /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA429F728C5098D000D0610 /* DateFormatter.swift */; };
 		0CAF1C7B286F5C8600296F86 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 0CAF1C7A286F5C8600296F86 /* SwiftSoup */; };
-		0CAF9319296399190050812A /* PremiumizeCloudView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CAF9318296399190050812A /* PremiumizeCloudView.swift */; };
 		0CB0115B29D36D9E009AFEDE /* SearchResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB0115A29D36D9E009AFEDE /* SearchResultsView.swift */; };
 		0CB0AB5F29BD2A200015422C /* KodiServerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB0AB5E29BD2A200015422C /* KodiServerView.swift */; };
 		0CB6516328C5A57300DCA721 /* ConditionalId.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB6516228C5A57300DCA721 /* ConditionalId.swift */; };
 		0CB6516528C5A5D700DCA721 /* InlinedList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB6516428C5A5D700DCA721 /* InlinedList.swift */; };
 		0CB6516A28C5B4A600DCA721 /* InlineHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB6516928C5B4A600DCA721 /* InlineHeader.swift */; };
+		0CB725322C123E6F0047FC0B /* CloudDownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB725312C123E6F0047FC0B /* CloudDownloadView.swift */; };
+		0CB725342C123E760047FC0B /* CloudTorrentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB725332C123E760047FC0B /* CloudTorrentView.swift */; };
 		0CBAB83628D12ED500AC903E /* DisableInteraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CBAB83528D12ED500AC903E /* DisableInteraction.swift */; };
 		0CBC76FD288D914F0054BE44 /* BatchChoiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CBC76FC288D914F0054BE44 /* BatchChoiceView.swift */; };
 		0CBC76FF288DAAD00054BE44 /* NavigationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CBC76FE288DAAD00054BE44 /* NavigationViewModel.swift */; };
@@ -174,7 +173,6 @@
 		0C1A3E5129C8A7F500DA9730 /* SettingsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModels.swift; sourceTree = "<group>"; };
 		0C1A3E5529C9488C00DA9730 /* CodableWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodableWrapper.swift; sourceTree = "<group>"; };
 		0C2886D12960AC2800D6FC16 /* DebridCloudView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebridCloudView.swift; sourceTree = "<group>"; };
-		0C2886D62960C50900D6FC16 /* RealDebridCloudView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealDebridCloudView.swift; sourceTree = "<group>"; };
 		0C2B028E29E9E61E00DCF127 /* SortFilterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SortFilterView.swift; sourceTree = "<group>"; };
 		0C2D9652299316CC00A504B6 /* Tag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tag.swift; sourceTree = "<group>"; };
 		0C31133A28B1ABFA004DCB0D /* SourceJsonParser+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceJsonParser+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -207,7 +205,6 @@
 		0C54D36228C5086E00BFEEE2 /* History+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "History+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		0C5708EA29B8F89300BE07F9 /* SettingsLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsLogView.swift; sourceTree = "<group>"; };
 		0C57D4CB289032ED008534E8 /* SearchResultInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultInfoView.swift; sourceTree = "<group>"; };
-		0C5FCB04296744F300849E87 /* AllDebridCloudView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllDebridCloudView.swift; sourceTree = "<group>"; };
 		0C6771F329B3B4FD005D38D2 /* KodiWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KodiWrapper.swift; sourceTree = "<group>"; };
 		0C6771F529B3B602005D38D2 /* SettingsKodiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsKodiView.swift; sourceTree = "<group>"; };
 		0C6771F929B3D1AE005D38D2 /* KodiModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KodiModels.swift; sourceTree = "<group>"; };
@@ -279,12 +276,13 @@
 		0CA3FB1F28B91D9500FA10A8 /* IndeterminateProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndeterminateProgressView.swift; sourceTree = "<group>"; };
 		0CA429F728C5098D000D0610 /* DateFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatter.swift; sourceTree = "<group>"; };
 		0CAF1C68286F5C0E00296F86 /* Ferrite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ferrite.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		0CAF9318296399190050812A /* PremiumizeCloudView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumizeCloudView.swift; sourceTree = "<group>"; };
 		0CB0115A29D36D9E009AFEDE /* SearchResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultsView.swift; sourceTree = "<group>"; };
 		0CB0AB5E29BD2A200015422C /* KodiServerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KodiServerView.swift; sourceTree = "<group>"; };
 		0CB6516228C5A57300DCA721 /* ConditionalId.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionalId.swift; sourceTree = "<group>"; };
 		0CB6516428C5A5D700DCA721 /* InlinedList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlinedList.swift; sourceTree = "<group>"; };
 		0CB6516928C5B4A600DCA721 /* InlineHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineHeader.swift; sourceTree = "<group>"; };
+		0CB725312C123E6F0047FC0B /* CloudDownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudDownloadView.swift; sourceTree = "<group>"; };
+		0CB725332C123E760047FC0B /* CloudTorrentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudTorrentView.swift; sourceTree = "<group>"; };
 		0CBAB83528D12ED500AC903E /* DisableInteraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisableInteraction.swift; sourceTree = "<group>"; };
 		0CBC76FC288D914F0054BE44 /* BatchChoiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchChoiceView.swift; sourceTree = "<group>"; };
 		0CBC76FE288DAAD00054BE44 /* NavigationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationViewModel.swift; sourceTree = "<group>"; };
@@ -413,9 +411,8 @@
 		0C2886D52960C4F800D6FC16 /* Cloud */ = {
 			isa = PBXGroup;
 			children = (
-				0C2886D62960C50900D6FC16 /* RealDebridCloudView.swift */,
-				0CAF9318296399190050812A /* PremiumizeCloudView.swift */,
-				0C5FCB04296744F300849E87 /* AllDebridCloudView.swift */,
+				0CB725312C123E6F0047FC0B /* CloudDownloadView.swift */,
+				0CB725332C123E760047FC0B /* CloudTorrentView.swift */,
 			);
 			path = Cloud;
 			sourceTree = "<group>";
@@ -856,7 +853,6 @@
 				0C5005522992B6750064606A /* PluginTagsView.swift in Sources */,
 				0CB0AB5F29BD2A200015422C /* KodiServerView.swift in Sources */,
 				0CF2C0A529D1EBD400E716DD /* UIApplication.swift in Sources */,
-				0C2886D72960C50900D6FC16 /* RealDebridCloudView.swift in Sources */,
 				0C3DD44229B6ACD9006429DB /* KodiServer+CoreDataClass.swift in Sources */,
 				0C794B6B289DACF100DD1CC8 /* PluginCatalogButtonView.swift in Sources */,
 				0C54D36428C5086E00BFEEE2 /* History+CoreDataProperties.swift in Sources */,
@@ -875,10 +871,10 @@
 				0C44E2A828D4DDDC007711AE /* Application.swift in Sources */,
 				0CC389542970AD900066D06F /* Action+CoreDataProperties.swift in Sources */,
 				0C7ED14128D61BBA009E29AD /* BackupModels.swift in Sources */,
-				0CAF9319296399190050812A /* PremiumizeCloudView.swift in Sources */,
 				0C84FCE529E4B43200B0DFE4 /* SelectedDebridFilterView.swift in Sources */,
 				0CA148EC288903F000DE2211 /* ContentView.swift in Sources */,
 				0CC389532970AD900066D06F /* Action+CoreDataClass.swift in Sources */,
+				0CB725342C123E760047FC0B /* CloudTorrentView.swift in Sources */,
 				0C03EB72296F619900162E9A /* PluginList+CoreDataProperties.swift in Sources */,
 				0C95D8D828A55B03005E22B3 /* DefaultActionPickerView.swift in Sources */,
 				0C44E2AF28D52E8A007711AE /* BackupsView.swift in Sources */,
@@ -905,7 +901,6 @@
 				0C6C7C9D29315292002DF910 /* AllDebridModels.swift in Sources */,
 				0C6C7C9B2931521B002DF910 /* AllDebridWrapper.swift in Sources */,
 				0C68135228BC1A7C00FAD890 /* GithubModels.swift in Sources */,
-				0C5FCB05296744F300849E87 /* AllDebridCloudView.swift in Sources */,
 				0CA3B23928C2660D00616D3A /* BookmarksView.swift in Sources */,
 				0C79DC072899AF3C003F1C5A /* SourceSeedLeech+CoreDataClass.swift in Sources */,
 				0CA148E6288903F000DE2211 /* WebView.swift in Sources */,
@@ -959,6 +954,7 @@
 				0CEC8AAE299B31B6007BFE8F /* SearchFilterHeaderView.swift in Sources */,
 				0C84F4822895BFED0074B7C9 /* Source+CoreDataClass.swift in Sources */,
 				0C3DD43F29B6968D006429DB /* KodiEditorView.swift in Sources */,
+				0CB725322C123E6F0047FC0B /* CloudDownloadView.swift in Sources */,
 				0C3DD44329B6ACD9006429DB /* KodiServer+CoreDataProperties.swift in Sources */,
 				0C7C128628DAA3CD00381CD1 /* URL.swift in Sources */,
 				0C84F4852895BFED0074B7C9 /* SourceHtmlParser+CoreDataProperties.swift in Sources */,

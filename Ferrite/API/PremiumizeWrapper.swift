@@ -303,7 +303,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
 
     // MARK: - Cloud methods
 
-    public func getUserDownloads() async throws -> [DebridCloudDownload] {
+    public func getUserDownloads() async throws {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/item/listall")!)
 
         let data = try await performRequest(request: &request, requestName: #function)
@@ -317,8 +317,6 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         cloudDownloads = rawResponse.files.map { file in
             DebridCloudDownload(downloadId: file.id, source: self.id, fileName: file.name, link: file.id)
         }
-
-        return cloudDownloads
     }
 
     func itemDetails(itemID: String) async throws -> ItemDetailsResponse {
@@ -355,9 +353,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
     }
 
     // No user torrents for Premiumize
-    public func getUserTorrents() async throws -> [DebridCloudTorrent] {
-        []
-    }
+    public func getUserTorrents() async throws {}
 
     public func deleteTorrent(torrentId: String?) async throws {}
 }

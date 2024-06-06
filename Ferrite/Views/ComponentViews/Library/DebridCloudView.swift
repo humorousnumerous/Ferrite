@@ -10,19 +10,18 @@ import SwiftUI
 struct DebridCloudView: View {
     @EnvironmentObject var debridManager: DebridManager
 
+    @Store var debridSource: DebridSource
+
     @Binding var searchText: String
 
     var body: some View {
         List {
-            switch debridManager.selectedDebridType {
-            case .realDebrid:
-                RealDebridCloudView(searchText: $searchText)
-            case .premiumize:
-                PremiumizeCloudView(searchText: $searchText)
-            case .allDebrid:
-                AllDebridCloudView(searchText: $searchText)
-            case .none:
-                EmptyView()
+            if !debridSource.cloudDownloads.isEmpty {
+                CloudDownloadView(debridSource: debridSource, searchText: $searchText)
+            }
+
+            if !debridSource.cloudTorrents.isEmpty {
+                CloudTorrentView(debridSource: debridSource, searchText: $searchText)
             }
         }
         .listStyle(.plain)

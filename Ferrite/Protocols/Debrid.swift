@@ -39,12 +39,12 @@ public protocol DebridSource: AnyObservableObject {
     var cloudTTL: Double { get set }
 
     // User downloads functions
-    func getUserDownloads() async throws -> [DebridCloudDownload]
+    func getUserDownloads() async throws
     func checkUserDownloads(link: String) async throws -> String?
     func deleteDownload(downloadId: String) async throws
 
     // User torrent functions
-    func getUserTorrents() async throws -> [DebridCloudTorrent]
+    func getUserTorrents() async throws
     func deleteTorrent(torrentId: String?) async throws
 }
 

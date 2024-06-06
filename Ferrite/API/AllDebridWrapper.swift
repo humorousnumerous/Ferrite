@@ -299,7 +299,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
     // MARK: - Cloud methods
 
     // Referred to as "User magnets" in AllDebrid's API
-    public func getUserTorrents() async throws -> [DebridCloudTorrent] {
+    public func getUserTorrents() async throws {
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/status"))
 
         let data = try await performRequest(request: &request, requestName: #function)
@@ -319,8 +319,6 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
                 links: magnetResponse.links.map(\.link)
             )
         }
-
-        return cloudTorrents
     }
 
     public func deleteTorrent(torrentId: String?) async throws {
@@ -336,7 +334,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         try await performRequest(request: &request, requestName: #function)
     }
 
-    public func getUserDownloads() async throws -> [DebridCloudDownload] {
+    public func getUserDownloads() async throws {
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/user/links"))
 
         let data = try await performRequest(request: &request, requestName: #function)
@@ -352,8 +350,6 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
                 downloadId: link.link, source: self.id, fileName: link.filename, link: link.link
             )
         }
-
-        return cloudDownloads
     }
 
     // Not used

@@ -74,26 +74,11 @@ public class DebridManager: ObservableObject {
 
     @Published var showDeleteAlert: Bool = false
 
-    // TODO: Maybe make these generic?
-    // RealDebrid cloud variables
-    @Published var realDebridCloudTorrents: [DebridCloudTorrent] = []
-    @Published var realDebridCloudDownloads: [DebridCloudDownload] = []
-    var realDebridCloudTTL: Double = 0.0
-
     // AllDebrid auth variables
     var allDebridAuthProcessing: Bool = false
 
-    // AllDebrid cloud variables
-    @Published var allDebridCloudMagnets: [DebridCloudTorrent] = []
-    @Published var allDebridCloudLinks: [DebridCloudDownload] = []
-    var allDebridCloudTTL: Double = 0.0
-
     // Premiumize auth variables
     var premiumizeAuthProcessing: Bool = false
-
-    // Premiumize cloud variables
-    @Published var premiumizeCloudItems: [DebridCloudDownload] = []
-    var premiumizeCloudTTL: Double = 0.0
 
     init() {
 
@@ -422,12 +407,11 @@ public class DebridManager: ObservableObject {
                 // Update the UI
                 downloadUrl = downloadLink
             } else {
-                throw DebridError.FailedRequest(description: "Could not fetch your file from RealDebrid's cache or API")
+                throw DebridError.FailedRequest(description: "Could not fetch your file from \(debridSource.id)'s cache or API")
             }
 
             // Fetch one more time to add updated data into the RD cloud cache
-            // TODO: Add common fetch cloud method
-            //await fetchRdCloud(bypassTTL: true)
+            await fetchDebridCloud(bypassTTL: true)
         } catch {
             switch error {
             case DebridError.IsCaching:
@@ -440,122 +424,55 @@ public class DebridManager: ObservableObject {
         }
     }
 
+    // Wrapper to handle cloud fetching
     public func fetchDebridCloud(bypassTTL: Bool = false) async {
-        switch selectedDebridType {
-        case .realDebrid:
-            await fetchRdCloud(bypassTTL: bypassTTL)
-        case .allDebrid:
-            await fetchAdCloud(bypassTTL: bypassTTL)
-        case .premiumize:
-            await fetchPmCloud(bypassTTL: bypassTTL)
-        case .none:
+        guard let selectedSource = selectedDebridSource else {
             return
         }
-    }
 
-    // Refreshes torrents and downloads from a RD user's account
-    public func fetchRdCloud(bypassTTL: Bool = false) async {
-        if bypassTTL || Date().timeIntervalSince1970 > realDebridCloudTTL {
+        if bypassTTL || Date().timeIntervalSince1970 > selectedSource.cloudTTL {
             do {
-                realDebridCloudTorrents = try await realDebrid.getUserTorrents()
-                realDebridCloudDownloads = try await realDebrid.getUserDownloads()
+                // Populates the inner downloads and torrent arrays
+                try await selectedSource.getUserDownloads()
+                try await selectedSource.getUserTorrents()
 
-                // 5 minutes
-                realDebridCloudTTL = Date().timeIntervalSince1970 + 300
-            } catch {
-                await sendDebridError(error, prefix: "RealDebrid cloud fetch error")
-            }
-        }
-    }
-
-    func deleteRdDownload(downloadID: String) async {
-        do {
-            try await realDebrid.deleteDownload(downloadId: downloadID)
-
-            // Bypass TTL to get current RD values
-            await fetchRdCloud(bypassTTL: true)
-        } catch {
-            await sendDebridError(error, prefix: "RealDebrid download delete error")
-        }
-    }
-
-    func deleteRdTorrent(torrentID: String? = nil, presentError: Bool = true) async {
-        do {
-            if let torrentID {
-                try await realDebrid.deleteTorrent(torrentId: torrentID)
-
-                await fetchRdCloud(bypassTTL: true)
-            } else {
-                throw DebridError.FailedRequest(description: "No torrent ID was provided")
-            }
-        } catch {
-            await sendDebridError(error, prefix: "RealDebrid torrent delete error", presentError: presentError)
-        }
-    }
-
-    // Refreshes torrents and downloads from a RD user's account
-    public func fetchAdCloud(bypassTTL: Bool = false) async {
-        if bypassTTL || Date().timeIntervalSince1970 > allDebridCloudTTL {
-            do {
-                allDebridCloudMagnets = try await allDebrid.getUserTorrents()
-                allDebridCloudLinks = try await allDebrid.getUserDownloads()
-
-                // 5 minutes
-                allDebridCloudTTL = Date().timeIntervalSince1970 + 300
-            } catch {
-                await sendDebridError(error, prefix: "AlLDebrid cloud fetch error")
-            }
-        }
-    }
-
-    func deleteAdLink(link: String) async {
-        do {
-            try await allDebrid.deleteDownload(downloadId: link)
-
-            await fetchAdCloud(bypassTTL: true)
-        } catch {
-            await sendDebridError(error, prefix: "AllDebrid link delete error")
-        }
-    }
-
-    func deleteAdMagnet(magnetId: String) async {
-        do {
-            try await allDebrid.deleteTorrent(torrentId: magnetId)
-
-            await fetchAdCloud(bypassTTL: true)
-        } catch {
-            await sendDebridError(error, prefix: "AllDebrid magnet delete error")
-        }
-    }
-
-    // Refreshes items and fetches from a PM user account
-    public func fetchPmCloud(bypassTTL: Bool = false) async {
-        if bypassTTL || Date().timeIntervalSince1970 > premiumizeCloudTTL {
-            do {
-                let userItems = try await premiumize.getUserDownloads()
-                withAnimation {
-                    premiumizeCloudItems = userItems
-                }
-
-                // 5 minutes
-                premiumizeCloudTTL = Date().timeIntervalSince1970 + 300
+                // Update the TTL to 5 minutes from now
+                selectedSource.cloudTTL = Date().timeIntervalSince1970 + 300
             } catch {
                 let error = error as NSError
                 if error.code != -999 {
-                    await sendDebridError(error, prefix: "Premiumize cloud fetch error")
+                    await sendDebridError(error, prefix: "\(selectedSource.id) cloud fetch error")
                 }
+                
             }
         }
     }
 
-    public func deletePmItem(id: String) async {
-        do {
-            try await premiumize.deleteDownload(downloadId: id)
+    public func deleteCloudDownload(_ download: DebridCloudDownload) async {
+        guard let selectedSource = selectedDebridSource else {
+            return
+        }
 
-            // Bypass TTL to get current RD values
-            await fetchPmCloud(bypassTTL: true)
+        do {
+            try await selectedSource.deleteDownload(downloadId: download.downloadId)
+
+            await fetchDebridCloud(bypassTTL: true)
         } catch {
-            await sendDebridError(error, prefix: "Premiumize cloud delete error")
+            await sendDebridError(error, prefix: "\(selectedSource.id) download delete error")
+        }
+    }
+
+    public func deleteCloudTorrent(_ torrent: DebridCloudTorrent) async {
+        guard let selectedSource = selectedDebridSource else {
+            return
+        }
+
+        do {
+            try await selectedSource.deleteTorrent(torrentId: torrent.torrentId)
+
+            await fetchDebridCloud(bypassTTL: true)
+        } catch {
+            await sendDebridError(error, prefix: "\(selectedSource.id) torrent delete error")
         }
     }
 }

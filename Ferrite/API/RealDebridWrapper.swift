@@ -434,7 +434,7 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
     // MARK: - Cloud methods
 
     // Gets the user's torrent library
-    public func getUserTorrents() async throws -> [DebridCloudTorrent] {
+    public func getUserTorrents() async throws {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents")!)
 
         let data = try await performRequest(request: &request, requestName: #function)
@@ -449,8 +449,6 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
                 links: response.links
             )
         }
-
-        return cloudTorrents
     }
 
     // Deletes a torrent download from RD
@@ -477,7 +475,7 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
     }
 
     // Gets the user's downloads
-    public func getUserDownloads() async throws -> [DebridCloudDownload] {
+    public func getUserDownloads() async throws {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/downloads")!)
 
         let data = try await performRequest(request: &request, requestName: #function)
@@ -485,8 +483,6 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
         cloudDownloads = rawResponse.map { response in
             DebridCloudDownload(downloadId: response.id, source: self.id, fileName: response.filename, link: response.download)
         }
-
-        return cloudDownloads
     }
 
     // Not used
