@@ -455,37 +455,6 @@ public class DebridManager: ObservableObject {
         }
     }
 
-    func fetchRdDownload(magnet: Magnet?, cloudInfo: String?) async {
-        do {
-            guard let magnet else {
-                throw DebridError.FailedRequest(description: "Could not fetch your file from RealDebrid's cache or API")
-            }
-
-            let downloadLink = try await realDebrid.getDownloadLink(
-                magnet: magnet, ia: selectedRealDebridItem, iaFile: selectedRealDebridFile
-            )
-
-            // Update the UI
-            downloadUrl = downloadLink
-
-            // Fetch one more time to add updated data into the RD cloud cache
-            await fetchRdCloud(bypassTTL: true)
-        } catch {
-            switch error {
-            case DebridError.EmptyTorrents:
-                showDeleteAlert.toggle()
-            default:
-                await sendDebridError(error, prefix: "RealDebrid download error", cancelString: "Download cancelled")
-
-                if let torrentId = selectedRealDebridID {
-                    try? await realDebrid.deleteTorrent(torrentId: torrentId)
-                }
-            }
-
-            logManager?.hideIndeterminateToast()
-        }
-    }
-
     public func fetchDebridCloud(bypassTTL: Bool = false) async {
         switch selectedDebridType {
         case .realDebrid:
@@ -539,26 +508,6 @@ public class DebridManager: ObservableObject {
         }
     }
 
-    func fetchAdDownload(magnet: Magnet?, cloudInfo: String?) async {
-        do {
-            if let magnet {
-                let downloadLink = try await allDebrid.getDownloadLink(
-                    magnet: magnet, ia: selectedAllDebridItem, iaFile: selectedAllDebridFile
-                )
-
-                // Update UI
-                downloadUrl = downloadLink
-            } else {
-                throw DebridError.FailedRequest(description: "Could not fetch your file from AllDebrid's cache or API")
-            }
-
-            // Fetch one more time to add updated data into the AD cloud cache
-            await fetchAdCloud(bypassTTL: true)
-        } catch {
-            await sendDebridError(error, prefix: "AllDebrid download error", cancelString: "Download cancelled")
-        }
-    }
-
     // Refreshes torrents and downloads from a RD user's account
     public func fetchAdCloud(bypassTTL: Bool = false) async {
         if bypassTTL || Date().timeIntervalSince1970 > allDebridCloudTTL {
@@ -591,30 +540,6 @@ public class DebridManager: ObservableObject {
             await fetchAdCloud(bypassTTL: true)
         } catch {
             await sendDebridError(error, prefix: "AllDebrid magnet delete error")
-        }
-    }
-
-    func fetchPmDownload(magnet: Magnet?, cloudInfo: String? = nil) async {
-        do {
-            if let cloudInfo {
-                downloadUrl = try await premiumize.checkUserDownloads(link: cloudInfo) ?? ""
-                return
-            }
-
-            if let magnet {
-                let downloadLink = try await premiumize.getDownloadLink(
-                    magnet: magnet, ia: selectedPremiumizeItem, iaFile: selectedPremiumizeFile
-                )
-
-                downloadUrl = downloadLink
-            } else {
-                throw DebridError.FailedRequest(description: "Could not fetch your file from Premiumize's cache or API")
-            }
-
-            // Fetch one more time to add updated data into the PM cloud cache
-            await fetchPmCloud(bypassTTL: true)
-        } catch {
-            await sendDebridError(error, prefix: "Premiumize download error", cancelString: "Download or transfer cancelled")
         }
     }
 
