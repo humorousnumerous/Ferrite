@@ -26,7 +26,11 @@ public class DebridManager: ObservableObject {
         debridSources.contains { $0.isLoggedIn }
     }
 
-    @Published var selectedDebridSource: DebridSource?
+    @Published var selectedDebridSource: DebridSource? {
+        didSet {
+            UserDefaults.standard.set(selectedDebridSource?.id ?? "", forKey: "Debrid.PreferredService")
+        }
+    }
     var selectedDebridItem: DebridIA?
     var selectedDebridFile: DebridIAFile?
 
@@ -102,45 +106,36 @@ public class DebridManager: ObservableObject {
     var premiumizeCloudTTL: Double = 0.0
 
     init() {
-        if let rawDebridList = UserDefaults.standard.string(forKey: "Debrid.EnabledArray"),
-           let serializedDebridList = Set<DebridType>(rawValue: rawDebridList)
-        {
-            enabledDebrids = serializedDebridList
-        }
 
-        // If a UserDefaults integer isn't set, it's usually 0
-        let rawPreferredService = UserDefaults.standard.integer(forKey: "Debrid.PreferredService")
-        let legacyPreferredService = DebridType(rawValue: rawPreferredService)
-        selectedDebridSource = self.debridSources.first { $0.id == legacyPreferredService?.toString() }
+        // Set the preferred service. Contains migration logic for earlier versions
+        if let rawPreferredService = UserDefaults.standard.string(forKey: "Debrid.PreferredService") {
+            let debridServiceId: String?
 
-        // If a user has one logged in service, automatically set the preferred service to that one
-        /*
-        if enabledDebrids.count == 1 {
-            selectedDebridType = enabledDebrids.first
+            if let preferredServiceInt = Int(rawPreferredService) {
+                debridServiceId = migratePreferredService(preferredServiceInt)
+            } else {
+                print(rawPreferredService)
+                debridServiceId = rawPreferredService
+            }
+
+            // Only set the debrid source if it's logged in
+            // Otherwise remove the key
+            let tempDebridSource = self.debridSources.first { $0.id == debridServiceId }
+            if (tempDebridSource?.isLoggedIn ?? false) {
+                selectedDebridSource = tempDebridSource
+            } else {
+                UserDefaults.standard.removeObject(forKey: "Debrid.PreferredService")
+            }
         }
-         */
     }
 
-    // TODO: Remove this after v0.6.0
-    // Login cleanup function that's automatically run to switch to the new login system
-    public func cleanupOldLogins() async {
-        let realDebridEnabled = UserDefaults.standard.bool(forKey: "RealDebrid.Enabled")
-        if realDebridEnabled {
-            enabledDebrids.insert(.realDebrid)
-            UserDefaults.standard.set(false, forKey: "RealDebrid.Enabled")
-        }
+    // TODO: Remove after v0.8.0
+    // Function to migrate the preferred service to the new string ID format
+    public func migratePreferredService(_ idInt: Int) -> String? {
+        // Undo the EnabledDebrids key
+        UserDefaults.standard.removeObject(forKey: "Debrid.EnabledArray")
 
-        let allDebridEnabled = UserDefaults.standard.bool(forKey: "AllDebrid.Enabled")
-        if allDebridEnabled {
-            enabledDebrids.insert(.allDebrid)
-            UserDefaults.standard.set(false, forKey: "AllDebrid.Enabled")
-        }
-
-        let premiumizeEnabled = UserDefaults.standard.bool(forKey: "Premiumize.Enabled")
-        if premiumizeEnabled {
-            enabledDebrids.insert(.premiumize)
-            UserDefaults.standard.set(false, forKey: "Premiumize.Enabled")
-        }
+        return DebridType(rawValue: idInt)?.toString()
     }
 
     // Wrapper function to match error descriptions
