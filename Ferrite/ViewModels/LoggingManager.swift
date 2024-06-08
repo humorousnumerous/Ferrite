@@ -121,7 +121,7 @@ class LoggingManager: ObservableObject {
             if let description {
                 toastDescription = description
             } else if showErrorToasts {
-                toastDescription = "An error was logged"
+                toastDescription = "An error was logged. Please look at logs in Settings."
             }
         }
 
