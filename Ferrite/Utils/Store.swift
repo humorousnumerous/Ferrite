@@ -12,12 +12,12 @@
 //  TODO: Replace with Observable when minVersion >= iOS 17
 //
 
-import SwiftUI
 import Combine
+import SwiftUI
 
 class ErasedObservableObject: ObservableObject {
     let objectWillChange: AnyPublisher<Void, Never>
-    
+
     init(objectWillChange: AnyPublisher<Void, Never>) {
         self.objectWillChange = objectWillChange
     }
@@ -62,14 +62,14 @@ public protocol AnyObservableObject: AnyObject {
 public struct Store<ObjectType> {
     /// The underlying object being stored.
     public let wrappedValue: ObjectType
-    
+
     // See https://github.com/Tiny-Home-Consulting/Dependiject/issues/38
     fileprivate var _observableObject: ObservedObject<ErasedObservableObject>
 
     @MainActor internal var observableObject: ErasedObservableObject {
-        return _observableObject.wrappedValue
+        _observableObject.wrappedValue
     }
-    
+
     /// A projected value which has the same properties as the wrapped value, but presented as
     /// bindings.
     ///
@@ -84,55 +84,54 @@ public struct Store<ObjectType> {
     /// }
     /// ```
     public var projectedValue: Wrapper {
-        return Wrapper(self)
+        Wrapper(self)
     }
-    
+
     /// Create a stored value on a custom scheduler.
     ///
     /// Use this init to schedule updates on a specific scheduler other than `DispatchQueue.main`.
-    public init<S: Scheduler>(
-        wrappedValue: ObjectType,
-        on scheduler: S,
-        schedulerOptions: S.SchedulerOptions? = nil
-    ) {
+    public init<S: Scheduler>(wrappedValue: ObjectType,
+                              on scheduler: S,
+                              schedulerOptions: S.SchedulerOptions? = nil)
+    {
         self.wrappedValue = wrappedValue
-        
+
         if let observable = wrappedValue as? AnyObservableObject {
             let objectWillChange = observable.objectWillChange
                 .receive(on: scheduler, options: schedulerOptions)
                 .eraseToAnyPublisher()
-            self._observableObject = .init(initialValue: .init(objectWillChange: objectWillChange))
+            _observableObject = .init(initialValue: .init(objectWillChange: objectWillChange))
         } else {
             assertionFailure(
                 "Only use the Store property wrapper with objects conforming to AnyObservableObject."
             )
-            self._observableObject = .init(initialValue: .empty())
+            _observableObject = .init(initialValue: .empty())
         }
     }
-    
+
     /// Create a stored value which publishes on the main thread.
     ///
     /// To control when updates are published, see ``init(wrappedValue:on:schedulerOptions:)``.
     public init(wrappedValue: ObjectType) {
         self.init(wrappedValue: wrappedValue, on: DispatchQueue.main)
     }
-    
+
     /// An equivalent to SwiftUI's
     /// [`ObservedObject.Wrapper`](https://developer.apple.com/documentation/swiftui/observedobject/wrapper)
     /// type.
     @dynamicMemberLookup
     public struct Wrapper {
         private var store: Store
-        
+
         internal init(_ store: Store<ObjectType>) {
             self.store = store
         }
-        
+
         /// Returns a binding to the resulting value of a given key path.
         public subscript<Subject>(
             dynamicMember keyPath: ReferenceWritableKeyPath<ObjectType, Subject>
         ) -> Binding<Subject> {
-            return Binding {
+            Binding {
                 self.store.wrappedValue[keyPath: keyPath]
             } set: {
                 self.store.wrappedValue[keyPath: keyPath] = $0

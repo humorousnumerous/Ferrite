@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class RealDebrid: PollingDebridSource, ObservableObject {    
+public class RealDebrid: PollingDebridSource, ObservableObject {
     public let id = "RealDebrid"
     public let abbreviation = "RD"
     public let website = "https://real-debrid.com"

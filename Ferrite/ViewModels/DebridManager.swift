@@ -27,7 +27,7 @@ public class DebridManager: ObservableObject {
     }
 
     var enabledDebridCount: Int {
-        debridSources.filter{ $0.isLoggedIn }.count
+        debridSources.filter(\.isLoggedIn).count
     }
 
     @Published var selectedDebridSource: DebridSource? {
@@ -35,6 +35,7 @@ public class DebridManager: ObservableObject {
             UserDefaults.standard.set(selectedDebridSource?.id ?? "", forKey: "Debrid.PreferredService")
         }
     }
+
     var selectedDebridItem: DebridIA?
     var selectedDebridFile: DebridIAFile?
 
@@ -59,7 +60,6 @@ public class DebridManager: ObservableObject {
     var premiumizeAuthProcessing: Bool = false
 
     init() {
-
         // Set the preferred service. Contains migration logic for earlier versions
         if let rawPreferredService = UserDefaults.standard.string(forKey: "Debrid.PreferredService") {
             let debridServiceId: String?
@@ -72,8 +72,8 @@ public class DebridManager: ObservableObject {
 
             // Only set the debrid source if it's logged in
             // Otherwise remove the key
-            let tempDebridSource = self.debridSources.first { $0.id == debridServiceId }
-            if (tempDebridSource?.isLoggedIn ?? false) {
+            let tempDebridSource = debridSources.first { $0.id == debridServiceId }
+            if tempDebridSource?.isLoggedIn ?? false {
                 selectedDebridSource = tempDebridSource
             } else {
                 UserDefaults.standard.removeObject(forKey: "Debrid.PreferredService")
@@ -286,7 +286,7 @@ public class DebridManager: ObservableObject {
 
             if let error {
                 throw DebridError.AuthQuery(description: "OAuth callback Error: \(error)")
-            }	
+            }
 
             if let callbackUrl = url {
                 try oauthDebridSource.handleAuthCallback(url: callbackUrl)
@@ -377,7 +377,6 @@ public class DebridManager: ObservableObject {
                 if error.code != -999 {
                     await sendDebridError(error, prefix: "\(selectedSource.id) cloud fetch error")
                 }
-                
             }
         }
     }

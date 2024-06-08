@@ -25,12 +25,12 @@ struct CloudTorrentView: View {
                     if cloudTorrent.status == "downloaded", !cloudTorrent.links.isEmpty {
                         navModel.resultFromCloud = true
                         navModel.selectedTitle = cloudTorrent.fileName
-                        
+
                         var historyInfo = HistoryEntryJson(
                             name: cloudTorrent.fileName,
                             source: debridSource.id
                         )
-                        
+
                         Task {
                             let magnet = Magnet(hash: cloudTorrent.hash, link: nil)
                             await debridManager.populateDebridIA([magnet])
@@ -39,11 +39,11 @@ struct CloudTorrentView: View {
 
                                 if cloudTorrent.links.count == 1 {
                                     await debridManager.fetchDebridDownload(magnet: magnet)
-                                    
+
                                     if !debridManager.downloadUrl.isEmpty {
                                         historyInfo.url = debridManager.downloadUrl
                                         PersistenceController.shared.createHistory(historyInfo, performSave: true)
-                                        
+
                                         pluginManager.runDefaultAction(
                                             urlString: debridManager.downloadUrl,
                                             navModel: navModel
@@ -63,7 +63,7 @@ struct CloudTorrentView: View {
                             .font(.callout)
                             .fixedSize(horizontal: false, vertical: true)
                             .lineLimit(4)
-                        
+
                         HStack {
                             Text(cloudTorrent.status.capitalizingFirstLetter())
                             Spacer()

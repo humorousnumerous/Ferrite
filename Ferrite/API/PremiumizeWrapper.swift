@@ -13,7 +13,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
     public let website = "https://premiumize.me"
     @Published public var authProcessing: Bool = false
     public var isLoggedIn: Bool {
-        return getToken() != nil
+        getToken() != nil
     }
 
     public var manualToken: String? {
