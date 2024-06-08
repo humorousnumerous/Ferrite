@@ -227,7 +227,7 @@ struct SettingsView: View {
                     callbackURLScheme: "ferrite"
                 ) { callbackURL, error in
                     Task {
-                        await debridManager.handleCallback(url: callbackURL, error: error)
+                        await debridManager.handleAuthCallback(url: callbackURL, error: error)
                     }
                 }
                 .prefersEphemeralWebBrowserSession(useEphemeralAuth)

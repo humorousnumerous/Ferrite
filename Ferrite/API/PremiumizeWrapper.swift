@@ -13,7 +13,15 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
     public let website = "https://premiumize.me"
     @Published public var authProcessing: Bool = false
     public var isLoggedIn: Bool {
-        getToken() != nil
+        return getToken() != nil
+    }
+
+    public var manualToken: String? {
+        if UserDefaults.standard.bool(forKey: "Premiumize.UseManualKey") {
+            return getToken()
+        } else {
+            return nil
+        }
     }
 
     @Published public var IAValues: [DebridIA] = []
@@ -62,11 +70,9 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
     }
 
     // Adds a manual API key instead of web auth
-    public func setApiKey(_ key: String) -> Bool {
+    public func setApiKey(_ key: String) {
         FerriteKeychain.shared.set(key, forKey: "Premiumize.AccessToken")
         UserDefaults.standard.set(true, forKey: "Premiumize.UseManualKey")
-
-        return FerriteKeychain.shared.get("Premiumize.AccessToken") == key
     }
 
     public func getToken() -> String? {
@@ -118,7 +124,6 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         if response.statusCode >= 200, response.statusCode <= 299 {
             return data
         } else if response.statusCode == 401 {
-            logout()
             throw DebridError.FailedRequest(description: "The request \(requestName) failed because you were unauthorized. Please relogin to Premiumize in Settings.")
         } else {
             throw DebridError.FailedRequest(description: "The request \(requestName) failed with status code \(response.statusCode).")

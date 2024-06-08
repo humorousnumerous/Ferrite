@@ -15,9 +15,17 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
 
     @Published public var authProcessing: Bool = false
 
-    // Directly checked because the request fetch uses async
+    // Check the manual token since getTokens() is async
     public var isLoggedIn: Bool {
         FerriteKeychain.shared.get("RealDebrid.AccessToken") != nil
+    }
+
+    public var manualToken: String? {
+        if UserDefaults.standard.bool(forKey: "RealDebrid.UseManualKey") {
+            return FerriteKeychain.shared.get("RealDebrid.AccessToken")
+        } else {
+            return nil
+        }
     }
 
     @Published public var IAValues: [DebridIA] = []
@@ -175,14 +183,12 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
 
     // Adds a manual API key instead of web auth
     // Clear out existing refresh tokens and timestamps
-    public func setApiKey(_ key: String) -> Bool {
+    public func setApiKey(_ key: String) {
         FerriteKeychain.shared.set(key, forKey: "RealDebrid.AccessToken")
         FerriteKeychain.shared.delete("RealDebrid.RefreshToken")
         FerriteKeychain.shared.delete("RealDebrid.AccessTokenStamp")
 
         UserDefaults.standard.set(true, forKey: "RealDebrid.UseManualKey")
-
-        return FerriteKeychain.shared.get("RealDebrid.AccessToken") == key
     }
 
     // Deletes tokens from device and RD's servers
@@ -222,7 +228,6 @@ public class RealDebrid: PollingDebridSource, ObservableObject {
         if response.statusCode >= 200, response.statusCode <= 299 {
             return data
         } else if response.statusCode == 401 {
-            await logout()
             throw DebridError.FailedRequest(description: "The request \(requestName) failed because you were unauthorized. Please relogin to RealDebrid in Settings.")
         } else {
             throw DebridError.FailedRequest(description: "The request \(requestName) failed with status code \(response.statusCode).")

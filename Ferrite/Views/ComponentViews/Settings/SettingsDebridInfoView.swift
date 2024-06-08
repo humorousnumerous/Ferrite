@@ -31,12 +31,12 @@ struct SettingsDebridInfoView: View {
                 Button {
                     Task {
                         if debridSource.isLoggedIn {
-                            await debridSource.logout()
+                            await debridManager.logout(debridSource)
                         } else if !debridSource.authProcessing {
-                            //await debridManager.authenticateDebrid(debridType: debridType, apiKey: nil)
+                            await debridManager.authenticateDebrid(debridSource, apiKey: nil)
                         }
 
-                        //apiKeyTempText = await debridManager.getManualAuthKey(debridType) ?? ""
+                        apiKeyTempText = await debridManager.getManualAuthKey(debridSource) ?? ""
                     }
                 } label: {
                     Text(
@@ -57,8 +57,8 @@ struct SettingsDebridInfoView: View {
                     onCommit: {
                         Task {
                             if !apiKeyTempText.isEmpty {
-                                //await debridManager.authenticateDebrid(debridType: debridType, apiKey: apiKeyTempText)
-                                //apiKeyTempText = await debridManager.getManualAuthKey(debridType) ?? ""
+                                await debridManager.authenticateDebrid(debridSource, apiKey: apiKeyTempText)
+                                apiKeyTempText = await debridManager.getManualAuthKey(debridSource) ?? ""
                             }
                         }
                     }
@@ -67,7 +67,7 @@ struct SettingsDebridInfoView: View {
             }
             .onAppear {
                 Task {
-                    //apiKeyTempText = await debridManager.getManualAuthKey(debridType) ?? ""
+                    apiKeyTempText = await debridManager.getManualAuthKey(debridSource) ?? ""
                 }
             }
         }

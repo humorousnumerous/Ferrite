@@ -19,6 +19,14 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         getToken() != nil
     }
 
+    public var manualToken: String? {
+        if UserDefaults.standard.bool(forKey: "AllDebrid.UseManualKey") {
+            return getToken()
+        } else {
+            return nil
+        }
+    }
+
     @Published public var IAValues: [DebridIA] = []
     @Published public var cloudDownloads: [DebridCloudDownload] = []
     @Published public var cloudTorrents: [DebridCloudTorrent] = []
@@ -101,11 +109,9 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
     }
 
     // Adds a manual API key instead of web auth
-    public func setApiKey(_ key: String) -> Bool {
+    public func setApiKey(_ key: String) {
         FerriteKeychain.shared.set(key, forKey: "AllDebrid.ApiKey")
         UserDefaults.standard.set(true, forKey: "AllDebrid.UseManualKey")
-
-        return FerriteKeychain.shared.get("AllDebrid.ApiKey") == key
     }
 
     public func getToken() -> String? {
@@ -137,7 +143,6 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         if response.statusCode >= 200, response.statusCode <= 299 {
             return data
         } else if response.statusCode == 401 {
-            logout()
             throw DebridError.FailedRequest(description: "The request \(requestName) failed because you were unauthorized. Please relogin to AllDebrid in Settings.")
         } else {
             throw DebridError.FailedRequest(description: "The request \(requestName) failed with status code \(response.statusCode).")

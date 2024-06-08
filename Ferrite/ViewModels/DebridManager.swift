@@ -26,6 +26,10 @@ public class DebridManager: ObservableObject {
         debridSources.contains { $0.isLoggedIn }
     }
 
+    var enabledDebridCount: Int {
+        debridSources.filter{ $0.isLoggedIn }.count
+    }
+
     @Published var selectedDebridSource: DebridSource? {
         didSet {
             UserDefaults.standard.set(selectedDebridSource?.id ?? "", forKey: "Debrid.PreferredService")
@@ -34,40 +38,14 @@ public class DebridManager: ObservableObject {
     var selectedDebridItem: DebridIA?
     var selectedDebridFile: DebridIAFile?
 
-    // Service agnostic variables
-    @Published var enabledDebrids: Set<DebridType> = [] {
-        didSet {
-            UserDefaults.standard.set(enabledDebrids.rawValue, forKey: "Debrid.EnabledArray")
-        }
-    }
-
-    @Published var selectedDebridType: DebridType? {
-        didSet {
-            UserDefaults.standard.set(selectedDebridType?.rawValue ?? 0, forKey: "Debrid.PreferredService")
-        }
-    }
+    // TODO: Figure out a way to remove this var
+    var selectedOAuthDebridSource: OAuthDebridSource?
 
     @Published var filteredIAStatus: Set<IAStatus> = []
 
     var currentDebridTask: Task<Void, Never>?
     var downloadUrl: String = ""
     var authUrl: URL?
-
-    // Is the current debrid type processing an auth request
-    func authProcessing(_ passedDebridType: DebridType?) -> Bool {
-        guard let debridType = passedDebridType ?? selectedDebridType else {
-            return false
-        }
-
-        switch debridType {
-        case .realDebrid:
-            return realDebridAuthProcessing
-        case .allDebrid:
-            return allDebridAuthProcessing
-        case .premiumize:
-            return premiumizeAuthProcessing
-        }
-    }
 
     // RealDebrid auth variables
     var realDebridAuthProcessing: Bool = false
@@ -89,7 +67,6 @@ public class DebridManager: ObservableObject {
             if let preferredServiceInt = Int(rawPreferredService) {
                 debridServiceId = migratePreferredService(preferredServiceInt)
             } else {
-                print(rawPreferredService)
                 debridServiceId = rawPreferredService
             }
 
@@ -207,73 +184,62 @@ public class DebridManager: ObservableObject {
     // MARK: - Authentication UI linked functions
 
     // Common function to delegate what debrid service to authenticate with
-    public func authenticateDebrid(debridType: DebridType, apiKey: String?) async {
-        switch debridType {
-        case .realDebrid:
-            let success = apiKey == nil ? await authenticateRd() : realDebrid.setApiKey(apiKey!)
-            completeDebridAuth(debridType, success: success)
-        case .allDebrid:
-            // Async can't work with nil mapping method
-            let success = apiKey == nil ? await authenticateAd() : allDebrid.setApiKey(apiKey!)
-            completeDebridAuth(debridType, success: success)
-        case .premiumize:
-            if let apiKey {
-                let success = premiumize.setApiKey(apiKey)
-                completeDebridAuth(debridType, success: success)
-            } else {
-                await authenticatePm()
+    public func authenticateDebrid(_ debridSource: some DebridSource, apiKey: String?) async {
+        defer {
+            // Don't cancel processing if using OAuth
+            if !(debridSource is OAuthDebridSource) {
+                debridSource.authProcessing = false
             }
-        }
-    }
 
-    // Callback to finish debrid auth since functions can be split
-    func completeDebridAuth(_ debridType: DebridType, success: Bool) {
-        if success {
-            enabledDebrids.insert(debridType)
-            if enabledDebrids.count == 1 {
-                selectedDebridType = enabledDebrids.first
+            if enabledDebridCount == 1 {
+                selectedDebridSource = debridSource
             }
         }
 
-        switch debridType {
-        case .realDebrid:
-            realDebridAuthProcessing = false
-        case .allDebrid:
-            allDebridAuthProcessing = false
-        case .premiumize:
-            premiumizeAuthProcessing = false
+        // Set an API key if manually provided
+        if let apiKey {
+            debridSource.setApiKey(apiKey)
+            return
+        }
+
+        // Processing has started
+        debridSource.authProcessing = true
+
+        if let pollingSource = debridSource as? PollingDebridSource {
+            do {
+                let authUrl = try await pollingSource.getAuthUrl()
+
+                if validateAuthUrl(authUrl) {
+                    try await pollingSource.authTask?.value
+                } else {
+                    throw DebridError.AuthQuery(description: "The authentication URL was invalid")
+                }
+            } catch {
+                await sendDebridError(error, prefix: "\(debridSource.id) authentication error")
+
+                pollingSource.authTask?.cancel()
+            }
+        } else if let oauthSource = debridSource as? OAuthDebridSource {
+            do {
+                let tempAuthUrl = try oauthSource.getAuthUrl()
+                selectedOAuthDebridSource = oauthSource
+
+                validateAuthUrl(tempAuthUrl, useAuthSession: true)
+            } catch {
+                await sendDebridError(error, prefix: "\(debridSource.id) authentication error")
+            }
+        } else {
+            logManager?.error(
+                "DebridManager: Auth: Could not figure out the authentication type for \(debridSource.id). Is this configured properly?"
+            )
+
+            return
         }
     }
 
     // Get a truncated manual API key if it's being used
-    func getManualAuthKey(_ passedDebridType: DebridType?) async -> String? {
-        guard let debridType = passedDebridType ?? selectedDebridType else {
-            return nil
-        }
-
-        let debridToken: String?
-        switch debridType {
-        case .realDebrid:
-            if UserDefaults.standard.bool(forKey: "RealDebrid.UseManualKey") {
-                debridToken = FerriteKeychain.shared.get("RealDebrid.AccessToken")
-            } else {
-                debridToken = nil
-            }
-        case .allDebrid:
-            if UserDefaults.standard.bool(forKey: "AllDebrid.UseManualKey") {
-                debridToken = FerriteKeychain.shared.get("AllDebrid.ApiKey")
-            } else {
-                debridToken = nil
-            }
-        case .premiumize:
-            if UserDefaults.standard.bool(forKey: "Premiumize.UseManualKey") {
-                debridToken = FerriteKeychain.shared.get("Premiumize.AccessToken")
-            } else {
-                debridToken = nil
-            }
-        }
-
-        if let debridToken {
+    func getManualAuthKey(_ debridSource: some DebridSource) async -> String? {
+        if let debridToken = debridSource.manualToken {
             let splitString = debridToken.suffix(4)
 
             if debridToken.count > 4 {
@@ -303,74 +269,42 @@ public class DebridManager: ObservableObject {
         return true
     }
 
-    private func authenticateRd() async -> Bool {
-        do {
-            realDebridAuthProcessing = true
-            let authUrl = try await realDebrid.getAuthUrl()
-
-            if validateAuthUrl(authUrl) {
-                try await realDebrid.authTask?.value
-                return true
-            } else {
-                throw DebridError.AuthQuery(description: "The verification URL was invalid")
-            }
-        } catch {
-            await sendDebridError(error, prefix: "RealDebrid authentication error")
-
-            realDebrid.authTask?.cancel()
-            return false
-        }
-    }
-
-    private func authenticateAd() async -> Bool {
-        do {
-            allDebridAuthProcessing = true
-            let authUrl = try await allDebrid.getAuthUrl()
-
-            if validateAuthUrl(authUrl) {
-                try await allDebrid.authTask?.value
-                return true
-            } else {
-                throw DebridError.AuthQuery(description: "The PIN URL was invalid")
-            }
-        } catch {
-            await sendDebridError(error, prefix: "AllDebrid authentication error")
-
-            allDebrid.authTask?.cancel()
-            return false
-        }
-    }
-
-    private func authenticatePm() async {
-        do {
-            premiumizeAuthProcessing = true
-            let tempAuthUrl = try premiumize.getAuthUrl()
-
-            validateAuthUrl(tempAuthUrl, useAuthSession: true)
-        } catch {
-            await sendDebridError(error, prefix: "Premiumize authentication error")
-
-            completeDebridAuth(.premiumize, success: false)
-        }
-    }
-
     // Currently handles Premiumize callback
-    public func handleCallback(url: URL?, error: Error?) async {
+    public func handleAuthCallback(url: URL?, error: Error?) async {
+        defer {
+            if enabledDebridCount == 1 {
+                selectedDebridSource = selectedOAuthDebridSource
+            }
+
+            selectedOAuthDebridSource?.authProcessing = false
+        }
+
         do {
+            guard let oauthDebridSource = selectedOAuthDebridSource else {
+                throw DebridError.AuthQuery(description: "OAuth source couldn't be found for callback. Aborting.")
+            }
+
             if let error {
                 throw DebridError.AuthQuery(description: "OAuth callback Error: \(error)")
-            }
+            }	
 
             if let callbackUrl = url {
-                try premiumize.handleAuthCallback(url: callbackUrl)
-                completeDebridAuth(.premiumize, success: true)
+                try oauthDebridSource.handleAuthCallback(url: callbackUrl)
             } else {
                 throw DebridError.AuthQuery(description: "The callback URL was invalid")
             }
         } catch {
             await sendDebridError(error, prefix: "Premiumize authentication error (callback)")
+        }
+    }
 
-            completeDebridAuth(.premiumize, success: false)
+    // MARK: - Logout UI functions
+
+    public func logout(_ debridSource: some DebridSource) async {
+        await debridSource.logout()
+
+        if selectedDebridSource?.id == debridSource.id {
+            selectedDebridSource = nil
         }
     }
 

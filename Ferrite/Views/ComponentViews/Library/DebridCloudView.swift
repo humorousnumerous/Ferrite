@@ -31,7 +31,7 @@ struct DebridCloudView: View {
         .refreshable {
             await debridManager.fetchDebridCloud(bypassTTL: true)
         }
-        .onChange(of: debridManager.selectedDebridType) { newType in
+        .onChange(of: debridManager.selectedDebridSource?.id) { newType in
             if newType != nil {
                 Task {
                     await debridManager.fetchDebridCloud()

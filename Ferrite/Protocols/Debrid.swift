@@ -18,8 +18,11 @@ public protocol DebridSource: AnyObservableObject {
     var authProcessing: Bool { get set }
     var isLoggedIn: Bool { get }
 
+    // Manual API key
+    var manualToken: String? { get }
+
     // Common authentication functions
-    func setApiKey(_ key: String) -> Bool
+    func setApiKey(_ key: String)
     func logout() async
 
     // Instant availability variables
