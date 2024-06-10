@@ -40,6 +40,5 @@ struct SelectedDebridFilterView<Content: View>: View {
         } label: {
             label
         }
-        .id(debridManager.selectedDebridSource?.id)
     }
 }

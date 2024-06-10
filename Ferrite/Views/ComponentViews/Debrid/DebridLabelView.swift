@@ -17,16 +17,10 @@ struct DebridLabelView: View {
     var body: some View {
         Tag(
             name: debridSource.abbreviation,
-            color: tagColor,
+            color: getTagColor(),
             horizontalPadding: 5,
             verticalPadding: 3
         )
-        .onAppear {
-            tagColor = getTagColor()
-        }
-        .onChange(of: debridSource.IAValues) { _ in
-            tagColor = getTagColor()
-        }
     }
 
     func getTagColor() -> Color {
