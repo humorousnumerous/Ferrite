@@ -203,9 +203,10 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
 
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode(DDLResponse.self, from: data)
+        let content = rawResponse.content ?? []
 
-        if !rawResponse.content.isEmpty {
-            let files = rawResponse.content.map { file in
+        if !content.isEmpty {
+            let files = content.map { file in
                 DebridIAFile(
                     fileId: 0,
                     name: file.path.split(separator: "/").last.flatMap { String($0) } ?? file.path,
