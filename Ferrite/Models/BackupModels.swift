@@ -8,7 +8,7 @@
 import Foundation
 
 // Version is optional until v1 is phased out
-public struct Backup: Codable {
+struct Backup: Codable {
     let version: Int?
     var bookmarks: [BookmarkJson]?
     var history: [HistoryJson]?

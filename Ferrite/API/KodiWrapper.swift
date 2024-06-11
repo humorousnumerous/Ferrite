@@ -7,11 +7,11 @@
 
 import Foundation
 
-public class Kodi {
-    let encoder = JSONEncoder()
+class Kodi {
+    private let encoder = JSONEncoder()
 
     // Used to add server to CoreData. Not part of API
-    public func addServer(urlString: String,
+    func addServer(urlString: String,
                           friendlyName: String?,
                           username: String?,
                           password: String?,
@@ -65,7 +65,7 @@ public class Kodi {
         try backgroundContext.save()
     }
 
-    public func ping(server: KodiServer) async throws {
+    func ping(server: KodiServer) async throws {
         var request = URLRequest(url: URL(string: "\(server.urlString)/jsonrpc")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -94,7 +94,7 @@ public class Kodi {
         }
     }
 
-    public func sendVideoUrl(urlString: String, server: KodiServer) async throws {
+    func sendVideoUrl(urlString: String, server: KodiServer) async throws {
         if URL(string: urlString) == nil {
             throw KodiError.InvalidPlaybackUrl
         }

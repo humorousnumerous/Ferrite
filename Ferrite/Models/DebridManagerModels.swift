@@ -10,7 +10,7 @@ import Foundation
 
 // MARK: - Universal IA enum (IA = InstantAvailability)
 
-public enum IAStatus: String, Codable, Hashable, Sendable, CaseIterable {
+enum IAStatus: String, Codable, Hashable, Sendable, CaseIterable {
     case full = "Cached"
     case partial = "Batch"
     case none = "Uncached"
@@ -18,7 +18,7 @@ public enum IAStatus: String, Codable, Hashable, Sendable, CaseIterable {
 
 // MARK: - Enum for debrid differentiation. 0 is nil
 
-public enum DebridType: Int, Codable, Hashable, CaseIterable {
+enum DebridType: Int, Codable, Hashable, CaseIterable {
     case realDebrid = 1
     case allDebrid = 2
     case premiumize = 3
@@ -47,7 +47,7 @@ public enum DebridType: Int, Codable, Hashable, CaseIterable {
 }
 
 // Wrapper struct for magnet links to contain both the link and hash for easy access
-public struct Magnet: Codable, Hashable, Sendable {
+struct Magnet: Codable, Hashable, Sendable {
     var hash: String?
     var link: String?
 

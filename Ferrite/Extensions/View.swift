@@ -11,7 +11,7 @@ import SwiftUI
 extension View {
     // Modifies properties of a view. Works the same way as a ViewModifier
     // From: https://github.com/SwiftUIX/SwiftUIX/blob/master/Sources/Intermodular/Extensions/SwiftUI/View%2B%2B.swift#L10
-    public func modifyViewProp(_ body: (inout Self) -> Void) -> Self {
+    func modifyViewProp(_ body: (inout Self) -> Void) -> Self {
         var result = self
         body(&result)
 

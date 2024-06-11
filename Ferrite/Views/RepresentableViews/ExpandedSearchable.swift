@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-public extension View {
+extension View {
     // A dismissAction must be added in the parent view struct due to lifecycle issues
     func expandedSearchable(text: Binding<String>,
                             isSearching: Binding<Bool>? = nil,

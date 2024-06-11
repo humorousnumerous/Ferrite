@@ -7,16 +7,17 @@
 
 import Foundation
 
-public class Premiumize: OAuthDebridSource, ObservableObject {
-    public let id = "Premiumize"
-    public let abbreviation = "PM"
-    public let website = "https://premiumize.me"
-    @Published public var authProcessing: Bool = false
-    public var isLoggedIn: Bool {
+class Premiumize: OAuthDebridSource, ObservableObject {
+    let id = "Premiumize"
+    let abbreviation = "PM"
+    let website = "https://premiumize.me"
+
+    @Published var authProcessing: Bool = false
+    var isLoggedIn: Bool {
         getToken() != nil
     }
 
-    public var manualToken: String? {
+    var manualToken: String? {
         if UserDefaults.standard.bool(forKey: "Premiumize.UseManualKey") {
             return getToken()
         } else {
@@ -24,20 +25,20 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         }
     }
 
-    @Published public var IAValues: [DebridIA] = []
-    @Published public var cloudDownloads: [DebridCloudDownload] = []
-    @Published public var cloudTorrents: [DebridCloudTorrent] = []
-    public var cloudTTL: Double = 0.0
+    @Published var IAValues: [DebridIA] = []
+    @Published var cloudDownloads: [DebridCloudDownload] = []
+    @Published var cloudTorrents: [DebridCloudTorrent] = []
+    var cloudTTL: Double = 0.0
 
-    let baseAuthUrl = "https://www.premiumize.me/authorize"
-    let baseApiUrl = "https://www.premiumize.me/api"
-    let clientId = "791565696"
+    private let baseAuthUrl = "https://www.premiumize.me/authorize"
+    private let baseApiUrl = "https://www.premiumize.me/api"
+    private let clientId = "791565696"
 
-    let jsonDecoder = JSONDecoder()
+    private let jsonDecoder = JSONDecoder()
 
     // MARK: - Auth
 
-    public func getAuthUrl() throws -> URL {
+    func getAuthUrl() throws -> URL {
         var urlComponents = URLComponents(string: baseAuthUrl)!
         urlComponents.queryItems = [
             URLQueryItem(name: "client_id", value: clientId),
@@ -52,7 +53,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         }
     }
 
-    public func handleAuthCallback(url: URL) throws {
+    func handleAuthCallback(url: URL) throws {
         let callbackComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)
 
         guard let callbackFragment = callbackComponents?.fragment else {
@@ -70,17 +71,17 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
     }
 
     // Adds a manual API key instead of web auth
-    public func setApiKey(_ key: String) {
+    func setApiKey(_ key: String) {
         FerriteKeychain.shared.set(key, forKey: "Premiumize.AccessToken")
         UserDefaults.standard.set(true, forKey: "Premiumize.UseManualKey")
     }
 
-    public func getToken() -> String? {
+    func getToken() -> String? {
         FerriteKeychain.shared.get("Premiumize.AccessToken")
     }
 
     // Clears tokens. No endpoint to deregister a device
-    public func logout() {
+    func logout() {
         FerriteKeychain.shared.delete("Premiumize.AccessToken")
         UserDefaults.standard.removeObject(forKey: "Premiumize.UseManualKey")
     }
@@ -132,7 +133,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
 
     // MARK: - Instant availability
 
-    public func instantAvailability(magnets: [Magnet]) async throws {
+    func instantAvailability(magnets: [Magnet]) async throws {
         let now = Date().timeIntervalSince1970
 
         // Remove magnets that don't have an associated link for PM along with existing TTL logic
@@ -168,7 +169,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
 
     // Function to divide and execute DDL endpoint requests in parallel
     // Calls this for 10 requests at a time to not overwhelm API servers
-    public func divideDDLRequests(magnetChunk: [Magnet]) async throws -> [DebridIA] {
+    func divideDDLRequests(magnetChunk: [Magnet]) async throws -> [DebridIA] {
         let tempIA = try await withThrowingTaskGroup(of: DebridIA.self) { group in
             for magnet in magnetChunk {
                 group.addTask {
@@ -187,7 +188,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
     }
 
     // Grabs DDL links
-    func fetchDDL(magnet: Magnet) async throws -> DebridIA {
+    private func fetchDDL(magnet: Magnet) async throws -> DebridIA {
         if magnet.hash == nil {
             throw DebridError.EmptyData
         }
@@ -227,7 +228,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
 
     // Function to divide and execute cache endpoint requests in parallel
     // Calls this for 100 hashes at a time due to API limits
-    public func divideCacheRequests(magnets: [Magnet]) async throws -> [Magnet] {
+    func divideCacheRequests(magnets: [Magnet]) async throws -> [Magnet] {
         let availableMagnets = try await withThrowingTaskGroup(of: [Magnet].self) { group in
             for chunk in magnets.chunked(into: 100) {
                 group.addTask {
@@ -247,7 +248,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
     }
 
     // Parent function for initial checking of the cache
-    func checkCache(magnets: [Magnet]) async throws -> [Magnet] {
+    private func checkCache(magnets: [Magnet]) async throws -> [Magnet] {
         var urlComponents = URLComponents(string: "\(baseApiUrl)/cache/check")!
         urlComponents.queryItems = magnets.map { URLQueryItem(name: "items[]", value: $0.hash) }
         guard let url = urlComponents.url else {
@@ -277,7 +278,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
     // MARK: - Downloading
 
     // Wrapper function to fetch a DDL link from the API
-    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
+    func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
         // Store the item in PM cloud for later use
         try await createTransfer(magnet: magnet)
 
@@ -290,7 +291,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         }
     }
 
-    func createTransfer(magnet: Magnet) async throws {
+    private func createTransfer(magnet: Magnet) async throws {
         guard let magnetLink = magnet.link else {
             throw DebridError.FailedRequest(description: "The magnet link is invalid")
         }
@@ -309,7 +310,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
 
     // MARK: - Cloud methods
 
-    public func getUserDownloads() async throws {
+    func getUserDownloads() async throws {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/item/listall")!)
 
         let data = try await performRequest(request: &request, requestName: #function)
@@ -325,7 +326,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         }
     }
 
-    func itemDetails(itemID: String) async throws -> ItemDetailsResponse {
+    private func itemDetails(itemID: String) async throws -> ItemDetailsResponse {
         var urlComponents = URLComponents(string: "\(baseApiUrl)/item/details")!
         urlComponents.queryItems = [URLQueryItem(name: "id", value: itemID)]
         guard let url = urlComponents.url else {
@@ -340,12 +341,12 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
         return rawResponse
     }
 
-    public func checkUserDownloads(link: String) async throws -> String? {
+    func checkUserDownloads(link: String) async throws -> String? {
         // Link is the cloud item ID
         try await itemDetails(itemID: link).link
     }
 
-    public func deleteDownload(downloadId: String) async throws {
+    func deleteDownload(downloadId: String) async throws {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/item/delete")!)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -359,7 +360,7 @@ public class Premiumize: OAuthDebridSource, ObservableObject {
     }
 
     // No user torrents for Premiumize
-    public func getUserTorrents() async throws {}
+    func getUserTorrents() async throws {}
 
-    public func deleteTorrent(torrentId: String?) async throws {}
+    func deleteTorrent(torrentId: String?) async throws {}
 }

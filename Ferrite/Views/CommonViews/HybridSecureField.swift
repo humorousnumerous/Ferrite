@@ -56,7 +56,7 @@ struct HybridSecureField: View {
 }
 
 extension HybridSecureField {
-    public func fieldDisabled(_ isFieldDisabled: Bool) -> Self {
+    func fieldDisabled(_ isFieldDisabled: Bool) -> Self {
         modifyViewProp { $0.isFieldDisabled = isFieldDisabled }
     }
 }

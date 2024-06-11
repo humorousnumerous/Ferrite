@@ -7,20 +7,20 @@
 
 import Foundation
 
-public struct ActionJson: Codable, Hashable, PluginJson {
-    public let name: String
-    public let version: Int16
+struct ActionJson: Codable, Hashable, PluginJson {
+    let name: String
+    let version: Int16
     let minVersion: String?
     let about: String?
     let website: String?
     let requires: [ActionRequirement]
     let deeplink: [DeeplinkActionJson]?
-    public let author: String?
-    public let listId: UUID?
-    public let listName: String?
-    public let tags: [PluginTagJson]?
+    let author: String?
+    let listId: UUID?
+    let listName: String?
+    let tags: [PluginTagJson]?
 
-    public init(name: String,
+    init(name: String,
                 version: Int16,
                 minVersion: String?,
                 about: String?,
@@ -45,7 +45,7 @@ public struct ActionJson: Codable, Hashable, PluginJson {
         self.tags = tags
     }
 
-    public init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
         version = try container.decode(Int16.self, forKey: .version)
@@ -68,7 +68,7 @@ public struct ActionJson: Codable, Hashable, PluginJson {
     }
 }
 
-public struct DeeplinkActionJson: Codable, Hashable {
+struct DeeplinkActionJson: Codable, Hashable {
     let os: [String]
     let scheme: String
 
@@ -77,7 +77,7 @@ public struct DeeplinkActionJson: Codable, Hashable {
         self.scheme = scheme
     }
 
-    public init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
         if let os = try? container.decode(String.self, forKey: .os) {
@@ -92,7 +92,7 @@ public struct DeeplinkActionJson: Codable, Hashable {
     }
 }
 
-public extension ActionJson {
+extension ActionJson {
     // Fetches all tags without optional requirement
     // Avoids the need for extra tag additions in DB
     func getTags() -> [PluginTagJson] {
@@ -100,7 +100,7 @@ public extension ActionJson {
     }
 }
 
-public enum ActionRequirement: String, Codable {
+enum ActionRequirement: String, Codable {
     case magnet
     case debrid
 }

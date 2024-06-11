@@ -7,19 +7,18 @@
 
 import Foundation
 
-// TODO: Fix errors
-public class AllDebrid: PollingDebridSource, ObservableObject {
-    public let id = "AllDebrid"
-    public let abbreviation = "AD"
-    public let website = "https://alldebrid.com"
-    public var authTask: Task<Void, Error>?
+class AllDebrid: PollingDebridSource, ObservableObject {
+    let id = "AllDebrid"
+    let abbreviation = "AD"
+    let website = "https://alldebrid.com"
+    var authTask: Task<Void, Error>?
 
-    public var authProcessing: Bool = false
-    public var isLoggedIn: Bool {
+    var authProcessing: Bool = false
+    var isLoggedIn: Bool {
         getToken() != nil
     }
 
-    public var manualToken: String? {
+    var manualToken: String? {
         if UserDefaults.standard.bool(forKey: "AllDebrid.UseManualKey") {
             return getToken()
         } else {
@@ -27,20 +26,20 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         }
     }
 
-    @Published public var IAValues: [DebridIA] = []
-    @Published public var cloudDownloads: [DebridCloudDownload] = []
-    @Published public var cloudTorrents: [DebridCloudTorrent] = []
-    public var cloudTTL: Double = 0.0
+    @Published var IAValues: [DebridIA] = []
+    @Published var cloudDownloads: [DebridCloudDownload] = []
+    @Published var cloudTorrents: [DebridCloudTorrent] = []
+    var cloudTTL: Double = 0.0
 
-    let baseApiUrl = "https://api.alldebrid.com/v4"
-    let appName = "Ferrite"
+    private let baseApiUrl = "https://api.alldebrid.com/v4"
+    private let appName = "Ferrite"
 
-    let jsonDecoder = JSONDecoder()
+    private let jsonDecoder = JSONDecoder()
 
     // MARK: - Auth
 
     // Fetches information for PIN auth
-    public func getAuthUrl() async throws -> URL {
+    func getAuthUrl() async throws -> URL {
         let url = try buildRequestURL(urlString: "\(baseApiUrl)/pin/get")
         let request = URLRequest(url: url)
 
@@ -66,7 +65,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
     }
 
     // Fetches API keys
-    public func getApiKey(checkID: String, pin: String) async throws {
+    func getApiKey(checkID: String, pin: String) async throws {
         let queryItems = [
             URLQueryItem(name: "agent", value: appName),
             URLQueryItem(name: "check", value: checkID),
@@ -109,17 +108,17 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
     }
 
     // Adds a manual API key instead of web auth
-    public func setApiKey(_ key: String) {
+    func setApiKey(_ key: String) {
         FerriteKeychain.shared.set(key, forKey: "AllDebrid.ApiKey")
         UserDefaults.standard.set(true, forKey: "AllDebrid.UseManualKey")
     }
 
-    public func getToken() -> String? {
+    func getToken() -> String? {
         FerriteKeychain.shared.get("AllDebrid.ApiKey")
     }
 
     // Clears tokens. No endpoint to deregister a device
-    public func logout() {
+    func logout() {
         FerriteKeychain.shared.delete("AllDebrid.ApiKey")
         UserDefaults.standard.removeObject(forKey: "AllDebrid.UseManualKey")
     }
@@ -150,7 +149,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
     }
 
     // Builds a URL for further requests
-    private func buildRequestURL(urlString: String, queryItems: [URLQueryItem] = []) throws -> URL {
+    func buildRequestURL(urlString: String, queryItems: [URLQueryItem] = []) throws -> URL {
         guard var components = URLComponents(string: urlString) else {
             throw DebridError.InvalidUrl
         }
@@ -168,7 +167,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
 
     // MARK: - Instant availability
 
-    public func instantAvailability(magnets: [Magnet]) async throws {
+    func instantAvailability(magnets: [Magnet]) async throws {
         let now = Date().timeIntervalSince1970
 
         let sendMagnets = magnets.filter { magnet in
@@ -215,7 +214,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
     // MARK: - Downloading
 
     // Wrapper function to fetch a download link from the API
-    public func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
+    func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
         let selectedMagnetId: String
 
         if let existingMagnet = cloudTorrents.first(where: { $0.hash == magnet.hash && $0.status == "Ready" }) {
@@ -237,7 +236,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
     }
 
     // Adds a magnet link to the user's AD account
-    public func addMagnet(magnet: Magnet) async throws -> Int {
+    func addMagnet(magnet: Magnet) async throws -> Int {
         guard let magnetLink = magnet.link else {
             throw DebridError.FailedRequest(description: "The magnet link is invalid")
         }
@@ -263,7 +262,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         }
     }
 
-    public func fetchMagnetStatus(magnetId: String, selectedIndex: Int?) async throws -> String {
+    func fetchMagnetStatus(magnetId: String, selectedIndex: Int?) async throws -> String {
         let queryItems = [
             URLQueryItem(name: "id", value: magnetId)
         ]
@@ -280,7 +279,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         }
     }
 
-    public func unlockLink(lockedLink: String) async throws -> String {
+    func unlockLink(lockedLink: String) async throws -> String {
         let queryItems = [
             URLQueryItem(name: "link", value: lockedLink)
         ]
@@ -292,7 +291,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         return rawResponse.link
     }
 
-    public func saveLink(link: String) async throws {
+    func saveLink(link: String) async throws {
         let queryItems = [
             URLQueryItem(name: "links[]", value: link)
         ]
@@ -304,7 +303,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
     // MARK: - Cloud methods
 
     // Referred to as "User magnets" in AllDebrid's API
-    public func getUserTorrents() async throws {
+    func getUserTorrents() async throws {
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/status"))
 
         let data = try await performRequest(request: &request, requestName: #function)
@@ -326,7 +325,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         }
     }
 
-    public func deleteTorrent(torrentId: String?) async throws {
+    func deleteTorrent(torrentId: String?) async throws {
         guard let torrentId else {
             throw DebridError.FailedRequest(description: "The torrentID \(String(describing: torrentId)) is invalid")
         }
@@ -339,7 +338,7 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
         try await performRequest(request: &request, requestName: #function)
     }
 
-    public func getUserDownloads() async throws {
+    func getUserDownloads() async throws {
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/user/links"))
 
         let data = try await performRequest(request: &request, requestName: #function)
@@ -358,12 +357,12 @@ public class AllDebrid: PollingDebridSource, ObservableObject {
     }
 
     // Not used
-    public func checkUserDownloads(link: String) async throws -> String? {
+    func checkUserDownloads(link: String) async throws -> String? {
         nil
     }
 
     // The downloadId is actually the download link
-    public func deleteDownload(downloadId: String) async throws {
+    func deleteDownload(downloadId: String) async throws {
         let queryItems = [
             URLQueryItem(name: "link", value: downloadId)
         ]

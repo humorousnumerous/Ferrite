@@ -8,7 +8,7 @@
 import CoreData
 import Foundation
 
-public protocol Plugin: ObservableObject, NSManagedObject {
+protocol Plugin: ObservableObject, NSManagedObject {
     var id: UUID { get set }
     var listId: UUID? { get set }
     var name: String { get set }
@@ -27,7 +27,7 @@ extension Plugin {
     }
 }
 
-public protocol PluginJson: Hashable {
+protocol PluginJson: Hashable {
     var name: String { get }
     var version: Int16 { get }
     var author: String? { get }

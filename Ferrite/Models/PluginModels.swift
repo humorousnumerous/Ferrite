@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PluginListJson: Codable {
+struct PluginListJson: Codable {
     let name: String
     let author: String
     var sources: [SourceJson]?
@@ -16,8 +16,8 @@ public struct PluginListJson: Codable {
 
 // Color: Hex value
 public struct PluginTagJson: Codable, Hashable, Sendable {
-    public let name: String
-    public let colorHex: String?
+    let name: String
+    let colorHex: String?
 
     enum CodingKeys: String, CodingKey {
         case name

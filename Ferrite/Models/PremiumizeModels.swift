@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension Premiumize {
+extension Premiumize {
     // MARK: - CacheCheckResponse
 
     struct CacheCheckResponse: Codable {

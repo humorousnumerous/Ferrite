@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension AllDebrid {
+extension AllDebrid {
     // MARK: - Generic AllDebrid response
 
     // Uses a generic parametr for whatever underlying response is present
@@ -71,7 +71,7 @@ public extension AllDebrid {
     struct MagnetStatusResponse: Codable {
         let magnets: [MagnetStatusData]
 
-        public init(from decoder: Decoder) throws {
+        init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
 
             if let data = try? container.decode(MagnetStatusData.self, forKey: .magnets) {

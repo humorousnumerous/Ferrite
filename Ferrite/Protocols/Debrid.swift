@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol DebridSource: AnyObservableObject {
+protocol DebridSource: AnyObservableObject {
     // ID of the service
     // var id: DebridInfo { get }
     var id: String { get }
@@ -51,7 +51,7 @@ public protocol DebridSource: AnyObservableObject {
     func deleteTorrent(torrentId: String?) async throws
 }
 
-public protocol PollingDebridSource: DebridSource {
+protocol PollingDebridSource: DebridSource {
     // Task reference for polling
     var authTask: Task<Void, Error>? { get set }
 
@@ -59,7 +59,7 @@ public protocol PollingDebridSource: DebridSource {
     func getAuthUrl() async throws -> URL
 }
 
-public protocol OAuthDebridSource: DebridSource {
+protocol OAuthDebridSource: DebridSource {
     // Fetches the auth URL
     func getAuthUrl() throws -> URL
 

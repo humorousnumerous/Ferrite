@@ -7,9 +7,9 @@
 
 import Foundation
 
-public class BackupManager: ObservableObject {
+class BackupManager: ObservableObject {
     // Constant variable for backup versions
-    let latestBackupVersion: Int = 2
+    private let latestBackupVersion: Int = 2
 
     var logManager: LoggingManager?
 
@@ -21,17 +21,17 @@ public class BackupManager: ObservableObject {
     @Published var selectedBackupUrl: URL?
 
     @MainActor
-    func updateRestoreCompletedMessage(newString: String) {
+    private func updateRestoreCompletedMessage(newString: String) {
         restoreCompletedMessage.append(newString)
     }
 
     @MainActor
-    func toggleRestoreCompletedAlert() {
+    private func toggleRestoreCompletedAlert() {
         showRestoreCompletedAlert.toggle()
     }
 
     @MainActor
-    func updateBackupUrls(newUrl: URL) {
+    private func updateBackupUrls(newUrl: URL) {
         backupUrls.append(newUrl)
     }
 

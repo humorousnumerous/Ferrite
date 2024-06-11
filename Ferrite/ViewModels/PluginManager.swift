@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 import Yams
 
-public class PluginManager: ObservableObject {
+class PluginManager: ObservableObject {
     var logManager: LoggingManager?
     let kodi: Kodi = .init()
 
@@ -25,18 +25,18 @@ public class PluginManager: ObservableObject {
     @Published var actionSuccessAlertMessage: String = ""
 
     @MainActor
-    func cleanAvailablePlugins() {
+    private func cleanAvailablePlugins() {
         availableSources = []
         availableActions = []
     }
 
     @MainActor
-    func updateAvailablePlugins(_ newPlugins: AvailablePlugins) {
+    private func updateAvailablePlugins(_ newPlugins: AvailablePlugins) {
         availableSources += newPlugins.availableSources
         availableActions += newPlugins.availableActions
     }
 
-    public func fetchPluginsFromUrl() async {
+    func fetchPluginsFromUrl() async {
         let pluginListRequest = PluginList.fetchRequest()
         guard let pluginLists = try? PersistenceController.shared.backgroundContext.fetch(pluginListRequest) else {
             await logManager?.error("PluginManager: No plugin lists found")
@@ -97,7 +97,7 @@ public class PluginManager: ObservableObject {
         await logManager?.info("Plugin list fetch finished")
     }
 
-    func fetchPluginList(pluginList: PluginList, url: URL) async throws -> AvailablePlugins? {
+    private func fetchPluginList(pluginList: PluginList, url: URL) async throws -> AvailablePlugins? {
         var tempSources: [SourceJson] = []
         var tempActions: [ActionJson] = []
 
@@ -176,7 +176,7 @@ public class PluginManager: ObservableObject {
     }
 
     // Checks if a deeplink action is present and if there's a single action for the OS (or fallback)
-    func getFilteredDeeplinks(_ deeplinks: [DeeplinkActionJson]) -> [DeeplinkActionJson]? {
+    private func getFilteredDeeplinks(_ deeplinks: [DeeplinkActionJson]) -> [DeeplinkActionJson]? {
         let osArray = deeplinks.filter { deeplink in
             deeplink.os.contains(where: { $0.lowercased() == Application.shared.os.lowercased() })
         }
@@ -244,7 +244,7 @@ public class PluginManager: ObservableObject {
             }
     }
 
-    func fetchCastedPlugins<PJ: PluginJson>(_ forType: PJ.Type) -> [PJ] {
+    private func fetchCastedPlugins<PJ: PluginJson>(_ forType: PJ.Type) -> [PJ] {
         switch String(describing: PJ.self) {
         case "SourceJson":
             return availableSources as? [PJ] ?? []
@@ -256,7 +256,7 @@ public class PluginManager: ObservableObject {
     }
 
     // Checks if the current app version is supported by the source
-    func checkAppVersion(minVersion: String?) -> Bool {
+    private func checkAppVersion(minVersion: String?) -> Bool {
         // If there's no min version, assume that every version is supported
         guard let minVersion else {
             return true
@@ -266,7 +266,7 @@ public class PluginManager: ObservableObject {
     }
 
     // Fetches sources using the background context
-    public func fetchInstalledSources(searchResultsEmpty: Bool) -> [Source] {
+    func fetchInstalledSources(searchResultsEmpty: Bool) -> [Source] {
         let backgroundContext = PersistenceController.shared.backgroundContext
 
         if !filteredInstalledSources.isEmpty, !searchResultsEmpty {
@@ -279,7 +279,7 @@ public class PluginManager: ObservableObject {
     }
 
     @MainActor
-    public func runDefaultAction(urlString: String?, navModel: NavigationViewModel) {
+    func runDefaultAction(urlString: String?, navModel: NavigationViewModel) {
         let context = PersistenceController.shared.backgroundContext
 
         guard let urlString else {
@@ -332,7 +332,7 @@ public class PluginManager: ObservableObject {
 
     // The iOS version of Ferrite only runs deeplink actions
     @MainActor
-    public func runDeeplinkAction(_ action: Action, urlString: String?) {
+    func runDeeplinkAction(_ action: Action, urlString: String?) {
         guard let deeplink = action.deeplink, let urlString else {
             actionErrorAlertMessage = "Could not run action: \(action.name) since there is no deeplink to execute. Contact the action dev!"
             showActionErrorAlert.toggle()
@@ -355,7 +355,7 @@ public class PluginManager: ObservableObject {
     }
 
     @MainActor
-    public func sendToKodi(urlString: String?, server: KodiServer) async {
+    func sendToKodi(urlString: String?, server: KodiServer) async {
         guard let urlString else {
             actionErrorAlertMessage = "Could not send URL to Kodi since there is no playback URL to send"
             showActionErrorAlert.toggle()
@@ -380,7 +380,7 @@ public class PluginManager: ObservableObject {
         }
     }
 
-    public func installAction(actionJson: ActionJson?, doUpsert: Bool = false) async {
+    func installAction(actionJson: ActionJson?, doUpsert: Bool = false) async {
         guard let actionJson else {
             await logManager?.error("Action addition: No action present. Contact the app dev!")
             return
@@ -448,7 +448,7 @@ public class PluginManager: ObservableObject {
         }
     }
 
-    public func installSource(sourceJson: SourceJson?, doUpsert: Bool = false) async {
+    func installSource(sourceJson: SourceJson?, doUpsert: Bool = false) async {
         guard let sourceJson else {
             await logManager?.error("Source addition: No source present. Contact the app dev!")
             return
@@ -535,7 +535,7 @@ public class PluginManager: ObservableObject {
         }
     }
 
-    func addSourceApi(newSource: Source, apiJson: SourceApiJson) {
+    private func addSourceApi(newSource: Source, apiJson: SourceApiJson) {
         let backgroundContext = PersistenceController.shared.backgroundContext
 
         let newSourceApi = SourceApi(context: backgroundContext)
@@ -571,7 +571,7 @@ public class PluginManager: ObservableObject {
     }
 
     // TODO: Migrate parser addition to a common protocol
-    func addJsonParser(newSource: Source, jsonParserJson: SourceJsonParserJson) {
+    private func addJsonParser(newSource: Source, jsonParserJson: SourceJsonParserJson) {
         let backgroundContext = PersistenceController.shared.backgroundContext
 
         let newSourceJsonParser = SourceJsonParser(context: backgroundContext)
@@ -646,7 +646,7 @@ public class PluginManager: ObservableObject {
         newSource.jsonParser = newSourceJsonParser
     }
 
-    func addRssParser(newSource: Source, rssParserJson: SourceRssParserJson) {
+    private func addRssParser(newSource: Source, rssParserJson: SourceRssParserJson) {
         let backgroundContext = PersistenceController.shared.backgroundContext
 
         let newSourceRssParser = SourceRssParser(context: backgroundContext)
@@ -725,7 +725,7 @@ public class PluginManager: ObservableObject {
         newSource.rssParser = newSourceRssParser
     }
 
-    func addHtmlParser(newSource: Source, htmlParserJson: SourceHtmlParserJson) {
+    private func addHtmlParser(newSource: Source, htmlParserJson: SourceHtmlParserJson) {
         let backgroundContext = PersistenceController.shared.backgroundContext
 
         let newSourceHtmlParser = SourceHtmlParser(context: backgroundContext)
@@ -795,7 +795,7 @@ public class PluginManager: ObservableObject {
 
     // Adds a plugin list
     // Can move this to PersistenceController if needed
-    public func addPluginList(_ urlString: String, isSheet: Bool = false, existingPluginList: PluginList? = nil) async throws {
+    func addPluginList(_ urlString: String, isSheet: Bool = false, existingPluginList: PluginList? = nil) async throws {
         let backgroundContext = PersistenceController.shared.backgroundContext
 
         if urlString.isEmpty || !urlString.starts(with: "https://") && !urlString.starts(with: "http://") {

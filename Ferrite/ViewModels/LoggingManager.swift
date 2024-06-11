@@ -70,7 +70,7 @@ class LoggingManager: ObservableObject {
 
     // TODO: Maybe append to a constant logfile?
 
-    public func info(_ message: String,
+    func info(_ message: String,
                      description: String? = nil)
     {
         let log = Log(
@@ -88,7 +88,7 @@ class LoggingManager: ObservableObject {
         print("LOG: \(log.toMessage())")
     }
 
-    public func warn(_ message: String,
+    func warn(_ message: String,
                      description: String? = nil)
     {
         let log = Log(
@@ -106,7 +106,7 @@ class LoggingManager: ObservableObject {
         print("LOG: \(log.toMessage())")
     }
 
-    public func error(_ message: String,
+    func error(_ message: String,
                       description: String? = nil,
                       showToast: Bool = true)
     {
@@ -132,7 +132,7 @@ class LoggingManager: ObservableObject {
 
     // MARK: - Indeterminate functions
 
-    public func updateIndeterminateToast(_ description: String, cancelAction: (() -> Void)?) {
+    func updateIndeterminateToast(_ description: String, cancelAction: (() -> Void)?) {
         indeterminateToastDescription = description
 
         if let cancelAction {
@@ -144,13 +144,13 @@ class LoggingManager: ObservableObject {
         }
     }
 
-    public func hideIndeterminateToast() {
+    func hideIndeterminateToast() {
         showIndeterminateToast = false
         indeterminateToastDescription = ""
         indeterminateCancelAction = nil
     }
 
-    public func exportLogs() {
+    func exportLogs() {
         logFormatter.dateFormat = "yyyy-MM-dd-HHmmss"
         let logFileName = "ferrite_session_\(logFormatter.string(from: Date())).txt"
         let logFolderPath = FileManager.default.appDirectory.appendingPathComponent("Logs")

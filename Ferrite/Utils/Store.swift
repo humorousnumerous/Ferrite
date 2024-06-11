@@ -27,7 +27,7 @@ class ErasedObservableObject: ObservableObject {
     }
 }
 
-public protocol AnyObservableObject: AnyObject {
+protocol AnyObservableObject: AnyObject {
     var objectWillChange: ObservableObjectPublisher { get }
 }
 
@@ -59,14 +59,14 @@ public protocol AnyObservableObject: AnyObject {
 /// Not all injected objects need this property wrapper. See the example projects for examples each
 /// way.
 @propertyWrapper
-public struct Store<ObjectType> {
+struct Store<ObjectType> {
     /// The underlying object being stored.
-    public let wrappedValue: ObjectType
+    let wrappedValue: ObjectType
 
     // See https://github.com/Tiny-Home-Consulting/Dependiject/issues/38
     fileprivate var _observableObject: ObservedObject<ErasedObservableObject>
 
-    @MainActor internal var observableObject: ErasedObservableObject {
+    @MainActor var observableObject: ErasedObservableObject {
         _observableObject.wrappedValue
     }
 
@@ -83,14 +83,14 @@ public struct Store<ObjectType> {
     ///     }
     /// }
     /// ```
-    public var projectedValue: Wrapper {
+    var projectedValue: Wrapper {
         Wrapper(self)
     }
 
     /// Create a stored value on a custom scheduler.
     ///
     /// Use this init to schedule updates on a specific scheduler other than `DispatchQueue.main`.
-    public init<S: Scheduler>(wrappedValue: ObjectType,
+    init<S: Scheduler>(wrappedValue: ObjectType,
                               on scheduler: S,
                               schedulerOptions: S.SchedulerOptions? = nil)
     {
@@ -112,7 +112,7 @@ public struct Store<ObjectType> {
     /// Create a stored value which publishes on the main thread.
     ///
     /// To control when updates are published, see ``init(wrappedValue:on:schedulerOptions:)``.
-    public init(wrappedValue: ObjectType) {
+    init(wrappedValue: ObjectType) {
         self.init(wrappedValue: wrappedValue, on: DispatchQueue.main)
     }
 
@@ -120,15 +120,15 @@ public struct Store<ObjectType> {
     /// [`ObservedObject.Wrapper`](https://developer.apple.com/documentation/swiftui/observedobject/wrapper)
     /// type.
     @dynamicMemberLookup
-    public struct Wrapper {
+    struct Wrapper {
         private var store: Store
 
-        internal init(_ store: Store<ObjectType>) {
+        init(_ store: Store<ObjectType>) {
             self.store = store
         }
 
         /// Returns a binding to the resulting value of a given key path.
-        public subscript<Subject>(
+        subscript<Subject>(
             dynamicMember keyPath: ReferenceWritableKeyPath<ObjectType, Subject>
         ) -> Binding<Subject> {
             Binding {
@@ -141,7 +141,7 @@ public struct Store<ObjectType> {
 }
 
 extension Store: DynamicProperty {
-    public nonisolated mutating func update() {
+    nonisolated mutating func update() {
         _observableObject.update()
     }
 }

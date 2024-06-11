@@ -9,7 +9,7 @@
 
 import Foundation
 
-public class Application {
+class Application {
     static let shared = Application()
 
     // OS name for Plugins to read. Lowercase for ease of use

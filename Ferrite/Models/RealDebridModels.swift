@@ -8,7 +8,7 @@
 
 import Foundation
 
-public extension RealDebrid {
+extension RealDebrid {
     // MARK: - device code endpoint
 
     struct DeviceCodeResponse: Codable, Sendable {
@@ -58,7 +58,7 @@ public extension RealDebrid {
     struct InstantAvailabilityResponse: Codable, Sendable {
         var data: InstantAvailabilityData?
 
-        public init(from decoder: Decoder) throws {
+        init(from decoder: Decoder) throws {
             let container = try decoder.singleValueContainer()
 
             if let data = try? container.decode(InstantAvailabilityData.self) {

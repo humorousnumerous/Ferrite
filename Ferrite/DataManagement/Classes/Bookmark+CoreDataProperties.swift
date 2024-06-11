@@ -9,7 +9,7 @@
 import CoreData
 import Foundation
 
-public extension Bookmark {
+extension Bookmark {
     @nonobjc class func fetchRequest() -> NSFetchRequest<Bookmark> {
         NSFetchRequest<Bookmark>(entityName: "Bookmark")
     }

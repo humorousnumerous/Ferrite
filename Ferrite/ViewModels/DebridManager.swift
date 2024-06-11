@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 @MainActor
-public class DebridManager: ObservableObject {
+class DebridManager: ObservableObject {
     // Linked classes
     var logManager: LoggingManager?
     @Published var realDebrid: RealDebrid = .init()
@@ -40,7 +40,7 @@ public class DebridManager: ObservableObject {
     var selectedDebridFile: DebridIAFile?
 
     // TODO: Figure out a way to remove this var
-    var selectedOAuthDebridSource: OAuthDebridSource?
+    private var selectedOAuthDebridSource: OAuthDebridSource?
 
     @Published var filteredIAStatus: Set<IAStatus> = []
 
@@ -48,16 +48,7 @@ public class DebridManager: ObservableObject {
     var downloadUrl: String = ""
     var authUrl: URL?
 
-    // RealDebrid auth variables
-    var realDebridAuthProcessing: Bool = false
-
     @Published var showDeleteAlert: Bool = false
-
-    // AllDebrid auth variables
-    var allDebridAuthProcessing: Bool = false
-
-    // Premiumize auth variables
-    var premiumizeAuthProcessing: Bool = false
 
     init() {
         // Set the preferred service. Contains migration logic for earlier versions
@@ -83,7 +74,7 @@ public class DebridManager: ObservableObject {
 
     // TODO: Remove after v0.8.0
     // Function to migrate the preferred service to the new string ID format
-    public func migratePreferredService(_ idInt: Int) -> String? {
+    private func migratePreferredService(_ idInt: Int) -> String? {
         // Undo the EnabledDebrids key
         UserDefaults.standard.removeObject(forKey: "Debrid.EnabledArray")
 
@@ -92,7 +83,7 @@ public class DebridManager: ObservableObject {
 
     // Wrapper function to match error descriptions
     // Error can be suppressed to end user but must be printed in logs
-    func sendDebridError(
+    private func sendDebridError(
         _ error: Error,
         prefix: String,
         presentError: Bool = true,
@@ -119,20 +110,20 @@ public class DebridManager: ObservableObject {
     }
 
     // Cleans all cached IA values in the event of a full IA refresh
-    public func clearIAValues() {
+    func clearIAValues() {
         for debridSource in debridSources {
             debridSource.IAValues = []
         }
     }
 
     // Clears all selected files and items
-    public func clearSelectedDebridItems() {
+    func clearSelectedDebridItems() {
         selectedDebridItem = nil
         selectedDebridFile = nil
     }
 
     // Common function to populate hashes for debrid services
-    public func populateDebridIA(_ resultMagnets: [Magnet]) async {
+    func populateDebridIA(_ resultMagnets: [Magnet]) async {
         for debridSource in debridSources {
             if !debridSource.isLoggedIn {
                 continue
@@ -148,7 +139,7 @@ public class DebridManager: ObservableObject {
     }
 
     // Common function to match a magnet hash with a provided debrid service
-    public func matchMagnetHash(_ magnet: Magnet) -> IAStatus {
+    func matchMagnetHash(_ magnet: Magnet) -> IAStatus {
         guard let magnetHash = magnet.hash else {
             return .none
         }
@@ -162,7 +153,7 @@ public class DebridManager: ObservableObject {
         }
     }
 
-    public func selectDebridResult(magnet: Magnet) -> Bool {
+    func selectDebridResult(magnet: Magnet) -> Bool {
         guard let magnetHash = magnet.hash else {
             logManager?.error("DebridManager: Could not find the torrent magnet hash")
             return false
@@ -184,7 +175,7 @@ public class DebridManager: ObservableObject {
     // MARK: - Authentication UI linked functions
 
     // Common function to delegate what debrid service to authenticate with
-    public func authenticateDebrid(_ debridSource: some DebridSource, apiKey: String?) async {
+    func authenticateDebrid(_ debridSource: some DebridSource, apiKey: String?) async {
         defer {
             // Don't cancel processing if using OAuth
             if !(debridSource is OAuthDebridSource) {
@@ -253,7 +244,7 @@ public class DebridManager: ObservableObject {
     }
 
     // Wrapper function to validate and present an auth URL to the user
-    @discardableResult func validateAuthUrl(_ url: URL?, useAuthSession: Bool = false) -> Bool {
+    @discardableResult private func validateAuthUrl(_ url: URL?, useAuthSession: Bool = false) -> Bool {
         guard let url else {
             logManager?.error("DebridManager: Authentication: Invalid URL created: \(String(describing: url))")
             return false
@@ -270,7 +261,7 @@ public class DebridManager: ObservableObject {
     }
 
     // Currently handles Premiumize callback
-    public func handleAuthCallback(url: URL?, error: Error?) async {
+    func handleAuthCallback(url: URL?, error: Error?) async {
         defer {
             if enabledDebridCount == 1 {
                 selectedDebridSource = selectedOAuthDebridSource
@@ -300,7 +291,7 @@ public class DebridManager: ObservableObject {
 
     // MARK: - Logout UI functions
 
-    public func logout(_ debridSource: some DebridSource) async {
+    func logout(_ debridSource: some DebridSource) async {
         await debridSource.logout()
 
         if selectedDebridSource?.id == debridSource.id {
@@ -312,7 +303,7 @@ public class DebridManager: ObservableObject {
 
     // Common function to delegate what debrid service to fetch from
     // Cloudinfo is used for any extra information provided by debrid cloud
-    public func fetchDebridDownload(magnet: Magnet?, cloudInfo: String? = nil) async {
+    func fetchDebridDownload(magnet: Magnet?, cloudInfo: String? = nil) async {
         defer {
             currentDebridTask = nil
             logManager?.hideIndeterminateToast()
@@ -359,7 +350,7 @@ public class DebridManager: ObservableObject {
     }
 
     // Wrapper to handle cloud fetching
-    public func fetchDebridCloud(bypassTTL: Bool = false) async {
+    func fetchDebridCloud(bypassTTL: Bool = false) async {
         guard let selectedSource = selectedDebridSource else {
             return
         }
@@ -381,7 +372,7 @@ public class DebridManager: ObservableObject {
         }
     }
 
-    public func deleteCloudDownload(_ download: DebridCloudDownload) async {
+    func deleteCloudDownload(_ download: DebridCloudDownload) async {
         guard let selectedSource = selectedDebridSource else {
             return
         }
@@ -395,7 +386,7 @@ public class DebridManager: ObservableObject {
         }
     }
 
-    public func deleteCloudTorrent(_ torrent: DebridCloudTorrent) async {
+    func deleteCloudTorrent(_ torrent: DebridCloudTorrent) async {
         guard let selectedSource = selectedDebridSource else {
             return
         }

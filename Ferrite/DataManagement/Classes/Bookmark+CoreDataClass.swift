@@ -10,4 +10,4 @@ import CoreData
 import Foundation
 
 @objc(Bookmark)
-public class Bookmark: NSManagedObject {}
+class Bookmark: NSManagedObject {}

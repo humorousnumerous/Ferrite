@@ -8,7 +8,7 @@
 import Foundation
 
 // A raw search result structure displayed on the UI
-public struct SearchResult: Codable, Hashable, Sendable {
+struct SearchResult: Codable, Hashable, Sendable {
     let title: String?
     let source: String
     let size: String?

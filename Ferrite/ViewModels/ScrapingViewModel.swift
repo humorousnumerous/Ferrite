@@ -27,18 +27,18 @@ class ScrapingViewModel: ObservableObject {
 
     // Only add results with valid magnet hashes to the search results array
     @MainActor
-    func updateSearchResults(newResults: [SearchResult]) {
+    private func updateSearchResults(newResults: [SearchResult]) {
         searchResults += newResults
     }
 
     @MainActor
-    func clearSearchResults() {
+    private func clearSearchResults() {
         searchResults = []
     }
 
     @Published var currentSourceNames: Set<String> = []
     @MainActor
-    func updateCurrentSourceNames(_ newName: String) {
+    private func updateCurrentSourceNames(_ newName: String) {
         currentSourceNames.insert(newName)
         logManager?.updateIndeterminateToast(
             "Loading \(currentSourceNames.joined(separator: ", "))",
@@ -47,7 +47,7 @@ class ScrapingViewModel: ObservableObject {
     }
 
     @MainActor
-    func removeCurrentSourceName(_ removedName: String) {
+    private func removeCurrentSourceName(_ removedName: String) {
         currentSourceNames.remove(removedName)
         logManager?.updateIndeterminateToast(
             "Loading \(currentSourceNames.joined(separator: ", "))",
@@ -56,18 +56,18 @@ class ScrapingViewModel: ObservableObject {
     }
 
     @MainActor
-    func clearCurrentSourceNames() {
+    private func clearCurrentSourceNames() {
         currentSourceNames = []
         logManager?.updateIndeterminateToast("Loading sources", cancelAction: nil)
     }
 
     // Utility function to print source specific errors
-    func sendSourceError(_ description: String) async {
+    private func sendSourceError(_ description: String) async {
         await logManager?.error(description, showToast: false)
     }
 
     // Substitutes the given string with an arbitrary parameter dictionary
-    func substituteParams(_ input: String, with params: [String: String]) -> String {
+    private func substituteParams(_ input: String, with params: [String: String]) -> String {
         let replaced = params.reduce(input) { result, param -> String in
             result.replacingOccurrences(of: "{\(param.key)}", with: param.value)
         }
@@ -76,7 +76,7 @@ class ScrapingViewModel: ObservableObject {
     }
 
     // Cleans a SourceRequest's body and headers to be substituted
-    func cleanRequest(request: SourceRequest, params: [String: String]) -> SourceRequest {
+    private func cleanRequest(request: SourceRequest, params: [String: String]) -> SourceRequest {
         if let body = request.body {
             request.body = substituteParams(body, with: params)
         }
@@ -88,7 +88,7 @@ class ScrapingViewModel: ObservableObject {
         return request
     }
 
-    public func scanSources(sources: [Source], searchText: String, debridManager: DebridManager) async {
+    func scanSources(sources: [Source], searchText: String, debridManager: DebridManager) async {
         await logManager?.info("Started scanning sources for query \"\(searchText)\"")
 
         if sources.isEmpty {
@@ -166,7 +166,7 @@ class ScrapingViewModel: ObservableObject {
         }
     }
 
-    func executeParser(source: Source) async -> SearchRequestResult? {
+    private func executeParser(source: Source) async -> SearchRequestResult? {
         guard let website = source.website else {
             await logManager?.error("Scraping: The base URL could not be found for source \(source.name)")
 
@@ -294,7 +294,7 @@ class ScrapingViewModel: ObservableObject {
     }
 
     // Checks the base URL for any website data then iterates through the fallback URLs
-    func handleUrls(website: String, replacedSearchUrl: String?, fallbackUrls: [String]?, sourceName: String, requestParams: SourceRequest?) async -> Data? {
+    private func handleUrls(website: String, replacedSearchUrl: String?, fallbackUrls: [String]?, sourceName: String, requestParams: SourceRequest?) async -> Data? {
         let fetchUrl = website + (replacedSearchUrl.map { $0 } ?? "")
         if let data = await fetchWebsiteData(urlString: fetchUrl, sourceName: sourceName, requestParams: requestParams) {
             return data
@@ -312,7 +312,7 @@ class ScrapingViewModel: ObservableObject {
         return nil
     }
 
-    public func handleApiCredential(_ credential: SourceApiCredential,
+    private func handleApiCredential(_ credential: SourceApiCredential,
                                     replacement: String,
                                     searchUrl: String,
                                     apiUrl: String?,
@@ -353,7 +353,7 @@ class ScrapingViewModel: ObservableObject {
         return nil
     }
 
-    public func fetchApiCredential(urlString: String,
+    private func fetchApiCredential(urlString: String,
                                    credential: SourceApiCredential,
                                    sourceName: String) async -> String?
     {
@@ -399,7 +399,7 @@ class ScrapingViewModel: ObservableObject {
     }
 
     // Fetches the data for a URL
-    public func fetchWebsiteData(urlString: String, sourceName: String, requestParams: SourceRequest?) async -> Data? {
+    private func fetchWebsiteData(urlString: String, sourceName: String, requestParams: SourceRequest?) async -> Data? {
         guard let url = URL(string: urlString.trimmingCharacters(in: .whitespacesAndNewlines)) else {
             await sendSourceError("\(sourceName): Source doesn't contain a valid URL, contact the source dev!")
 
@@ -446,7 +446,7 @@ class ScrapingViewModel: ObservableObject {
         }
     }
 
-    public func scrapeJson(source: Source, jsonData: Data) async -> SearchRequestResult? {
+    private func scrapeJson(source: Source, jsonData: Data) async -> SearchRequestResult? {
         guard let jsonParser = source.jsonParser else {
             return nil
         }
@@ -521,7 +521,7 @@ class ScrapingViewModel: ObservableObject {
     }
 
     // TODO: Add regex parsing for API
-    public func parseJsonResult(_ result: JSON,
+    private func parseJsonResult(_ result: JSON,
                                 jsonParser: SourceJsonParser,
                                 source: Source,
                                 existingSearchResult: SearchResult? = nil) -> SearchResult?
@@ -615,7 +615,7 @@ class ScrapingViewModel: ObservableObject {
     }
 
     // RSS feed scraper
-    public func scrapeRss(source: Source, rss: String) async -> SearchRequestResult? {
+    private func scrapeRss(source: Source, rss: String) async -> SearchRequestResult? {
         guard let rssParser = source.rssParser else {
             return nil
         }
@@ -750,7 +750,7 @@ class ScrapingViewModel: ObservableObject {
     }
 
     // Complex query parsing for RSS scraping
-    func runRssComplexQuery(item: Element,
+    private func runRssComplexQuery(item: Element,
                             query: String,
                             attribute: String,
                             discriminator: String?,
@@ -783,7 +783,7 @@ class ScrapingViewModel: ObservableObject {
     }
 
     // HTML scraper
-    public func scrapeHtml(source: Source, website: String, html: String) async -> SearchRequestResult? {
+    private func scrapeHtml(source: Source, website: String, html: String) async -> SearchRequestResult? {
         guard let htmlParser = source.htmlParser else {
             return nil
         }
@@ -955,7 +955,7 @@ class ScrapingViewModel: ObservableObject {
     }
 
     // Complex query parsing for HTML scraping
-    func runHtmlComplexQuery(row: Element,
+    private func runHtmlComplexQuery(row: Element,
                              query: String,
                              attribute: String,
                              regexString: String?) throws -> String?
@@ -980,7 +980,7 @@ class ScrapingViewModel: ObservableObject {
         }
     }
 
-    func runRegex(parsedValue: String, regexString: String) -> String? {
+    private func runRegex(parsedValue: String, regexString: String) -> String? {
         // TODO: Maybe dynamically parse flags
         let replacedRegexString = regexString
             .replacingOccurrences(of: "{query}", with: cleanedSearchText)
@@ -1003,7 +1003,7 @@ class ScrapingViewModel: ObservableObject {
         }
     }
 
-    func parseSizeString(sizeString: String) -> String? {
+    private func parseSizeString(sizeString: String) -> String? {
         // Test if the string can be a full integer
         guard let size = Int(sizeString) else {
             return nil
@@ -1025,7 +1025,7 @@ class ScrapingViewModel: ObservableObject {
         }
     }
 
-    func cleanApiCreds(api: SourceApi, sourceName: String) async {
+    private func cleanApiCreds(api: SourceApi, sourceName: String) async {
         let backgroundContext = PersistenceController.shared.backgroundContext
 
         let hasCredentials = api.clientId != nil || api.clientSecret != nil

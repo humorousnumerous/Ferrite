@@ -7,14 +7,14 @@
 
 import Foundation
 
-public struct DebridIA: Hashable, Sendable {
+struct DebridIA: Hashable, Sendable {
     let magnet: Magnet
     let source: String
     let expiryTimeStamp: Double
     var files: [DebridIAFile]
 }
 
-public struct DebridIAFile: Hashable, Sendable {
+struct DebridIAFile: Hashable, Sendable {
     let fileId: Int
     let name: String
     let streamUrlString: String?
@@ -28,14 +28,14 @@ public struct DebridIAFile: Hashable, Sendable {
     }
 }
 
-public struct DebridCloudDownload: Hashable, Sendable {
+struct DebridCloudDownload: Hashable, Sendable {
     let downloadId: String
     let source: String
     let fileName: String
     let link: String
 }
 
-public struct DebridCloudTorrent: Hashable, Sendable {
+struct DebridCloudTorrent: Hashable, Sendable {
     let torrentId: String
     let source: String
     let fileName: String
@@ -44,7 +44,7 @@ public struct DebridCloudTorrent: Hashable, Sendable {
     let links: [String]
 }
 
-public enum DebridError: Error {
+enum DebridError: Error {
     case InvalidUrl
     case InvalidPostBody
     case InvalidResponse

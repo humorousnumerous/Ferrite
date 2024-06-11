@@ -8,12 +8,12 @@
 import SwiftUI
 
 @MainActor
-public class NavigationViewModel: ObservableObject {
+class NavigationViewModel: ObservableObject {
     var logManager: LoggingManager?
 
     // Used between SearchResultsView and MagnetChoiceView
-    public enum ChoiceSheetType: Identifiable {
-        public var id: Int {
+    enum ChoiceSheetType: Identifiable {
+        var id: Int {
             hashValue
         }
 
@@ -53,7 +53,7 @@ public class NavigationViewModel: ObservableObject {
     @Published var currentSortFilter: SortFilter?
     @Published var currentSortOrder: SortOrder = .forward
 
-    public func compareSearchResult(lhs: SearchResult, rhs: SearchResult) -> Bool {
+    func compareSearchResult(lhs: SearchResult, rhs: SearchResult) -> Bool {
         switch currentSortFilter {
         case .leechers:
             guard let lhsLeechers = lhs.leechers, let rhsLeechers = rhs.leechers else {
@@ -97,7 +97,7 @@ public class NavigationViewModel: ObservableObject {
 
     @Published var searchPrompt: String = "Search"
     @Published var lastSearchPromptIndex: Int = -1
-    let searchBarTextArray: [String] = [
+    private let searchBarTextArray: [String] = [
         "What's on your mind?",
         "Discover something interesting",
         "Find an engaging show",
