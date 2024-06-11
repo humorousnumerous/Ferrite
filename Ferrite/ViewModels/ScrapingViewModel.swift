@@ -185,7 +185,8 @@ class ScrapingViewModel: ObservableObject {
         // Initial params dict to reference
         // More params are added here as needed
         var params: [String: String] = [
-            "query": encodedQuery
+            "query": encodedQuery,
+            "queryFirstLetter": encodedQuery.first.map { String($0).lowercased() } ?? ""
         ]
 
         switch preferredParser {
