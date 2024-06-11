@@ -21,12 +21,17 @@ protocol DebridSource: AnyObservableObject {
     // Manual API key
     var manualToken: String? { get }
 
+    // Instant availability variables
+    var IAValues: [DebridIA] { get set }
+
+    // Cloud variables
+    var cloudDownloads: [DebridCloudDownload] { get set }
+    var cloudTorrents: [DebridCloudTorrent] { get set }
+    var cloudTTL: Double { get set }
+
     // Common authentication functions
     func setApiKey(_ key: String)
     func logout() async
-
-    // Instant availability variables
-    var IAValues: [DebridIA] { get set }
 
     // Instant availability functions
     func instantAvailability(magnets: [Magnet]) async throws
@@ -35,11 +40,6 @@ protocol DebridSource: AnyObservableObject {
     // Include the instant availability information with the args
     // Torrents also checked here
     func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String
-
-    // Cloud variables
-    var cloudDownloads: [DebridCloudDownload] { get set }
-    var cloudTorrents: [DebridCloudTorrent] { get set }
-    var cloudTTL: Double { get set }
 
     // User downloads functions
     func getUserDownloads() async throws
