@@ -570,6 +570,7 @@ public class PluginManager: ObservableObject {
         newSource.api = newSourceApi
     }
 
+    // TODO: Migrate parser addition to a common protocol
     func addJsonParser(newSource: Source, jsonParserJson: SourceJsonParserJson) {
         let backgroundContext = PersistenceController.shared.backgroundContext
 
@@ -577,6 +578,13 @@ public class PluginManager: ObservableObject {
         newSourceJsonParser.searchUrl = jsonParserJson.searchUrl
         newSourceJsonParser.results = jsonParserJson.results
         newSourceJsonParser.subResults = jsonParserJson.subResults
+
+        if let requestJson = newSourceJsonParser.request {
+            let newParserRequest = SourceRequest(context: backgroundContext)
+            newParserRequest.method = requestJson.method
+            newParserRequest.headers = requestJson.headers
+            newParserRequest.body = requestJson.body
+        }
 
         // Tune these complex queries to the final JSON parser format
         if let magnetLinkJson = jsonParserJson.magnetLink {
@@ -645,6 +653,13 @@ public class PluginManager: ObservableObject {
         newSourceRssParser.rssUrl = rssParserJson.rssUrl
         newSourceRssParser.searchUrl = rssParserJson.searchUrl
         newSourceRssParser.items = rssParserJson.items
+
+        if let requestJson = newSourceRssParser.request {
+            let newParserRequest = SourceRequest(context: backgroundContext)
+            newParserRequest.method = requestJson.method
+            newParserRequest.headers = requestJson.headers
+            newParserRequest.body = requestJson.body
+        }
 
         if let magnetLinkJson = rssParserJson.magnetLink {
             let newSourceMagnetLink = SourceMagnetLink(context: backgroundContext)
@@ -724,6 +739,16 @@ public class PluginManager: ObservableObject {
             newSourceSubName.regex = subNameJson.regex
 
             newSourceHtmlParser.subName = newSourceSubName
+        }
+
+        if let requestJson = htmlParserJson.request {
+            print(requestJson)
+            let newParserRequest = SourceRequest(context: backgroundContext)
+            newParserRequest.method = requestJson.method
+            newParserRequest.headers = requestJson.headers
+            newParserRequest.body = requestJson.body
+
+            newSourceHtmlParser.request = newParserRequest
         }
 
         // Adds a title complex query

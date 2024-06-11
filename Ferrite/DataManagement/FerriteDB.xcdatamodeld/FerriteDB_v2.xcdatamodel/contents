@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21513" systemVersion="22D49" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Action" representedClassName="Action" syncable="YES">
         <attribute name="about" optional="YES" attributeType="String"/>
         <attribute name="author" attributeType="String" defaultValueString=""/>
@@ -106,6 +106,7 @@
         <relationship name="magnetHash" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="SourceMagnetHash" inverseName="parentHtmlParser" inverseEntity="SourceMagnetHash"/>
         <relationship name="magnetLink" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="SourceMagnetLink" inverseName="parentHtmlParser" inverseEntity="SourceMagnetLink"/>
         <relationship name="parentSource" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Source" inverseName="htmlParser" inverseEntity="Source"/>
+        <relationship name="request" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SourceRequest" inverseName="parentHtmlParser" inverseEntity="SourceRequest"/>
         <relationship name="seedLeech" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="SourceSeedLeech" inverseName="parentHtmlParser" inverseEntity="SourceSeedLeech"/>
         <relationship name="size" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="SourceSize" inverseName="parentHtmlParser" inverseEntity="SourceSize"/>
         <relationship name="subName" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SourceSubName" inverseName="parentHtmlParser" inverseEntity="SourceSubName"/>
@@ -118,6 +119,7 @@
         <relationship name="magnetHash" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="SourceMagnetHash" inverseName="parentJsonParser" inverseEntity="SourceMagnetHash"/>
         <relationship name="magnetLink" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="SourceMagnetLink" inverseName="parentJsonParser" inverseEntity="SourceMagnetLink"/>
         <relationship name="parentSource" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Source" inverseName="jsonParser" inverseEntity="Source"/>
+        <relationship name="request" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SourceRequest" inverseName="parentJsonParser" inverseEntity="SourceRequest"/>
         <relationship name="seedLeech" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="SourceSeedLeech" inverseName="parentJsonParser" inverseEntity="SourceSeedLeech"/>
         <relationship name="size" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="SourceSize" inverseName="parentJsonParser" inverseEntity="SourceSize"/>
         <relationship name="subName" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SourceSubName" inverseName="parentJsonParser" inverseEntity="SourceSubName"/>
@@ -134,6 +136,14 @@
         <relationship name="parentJsonParser" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SourceJsonParser" inverseName="magnetLink" inverseEntity="SourceJsonParser"/>
         <relationship name="parentRssParser" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SourceRssParser" inverseName="magnetLink" inverseEntity="SourceRssParser"/>
     </entity>
+    <entity name="SourceRequest" representedClassName="SourceRequest" syncable="YES">
+        <attribute name="body" optional="YES" attributeType="String" valueTransformerName="NSSecureUnarchiveFromData"/>
+        <attribute name="headers" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="[String: String]"/>
+        <attribute name="method" optional="YES" attributeType="String"/>
+        <relationship name="parentHtmlParser" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SourceHtmlParser" inverseName="request" inverseEntity="SourceHtmlParser"/>
+        <relationship name="parentJsonParser" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SourceJsonParser" inverseName="request" inverseEntity="SourceJsonParser"/>
+        <relationship name="parentRssParser" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SourceRssParser" inverseName="request" inverseEntity="SourceRssParser"/>
+    </entity>
     <entity name="SourceRssParser" representedClassName="SourceRssParser" syncable="YES">
         <attribute name="items" attributeType="String" defaultValueString=""/>
         <attribute name="rssUrl" optional="YES" attributeType="String"/>
@@ -141,6 +151,7 @@
         <relationship name="magnetHash" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="SourceMagnetHash" inverseName="parentRssParser" inverseEntity="SourceMagnetHash"/>
         <relationship name="magnetLink" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="SourceMagnetLink" inverseName="parentRssParser" inverseEntity="SourceMagnetLink"/>
         <relationship name="parentSource" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Source" inverseName="rssParser" inverseEntity="Source"/>
+        <relationship name="request" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SourceRequest" inverseName="parentRssParser" inverseEntity="SourceRequest"/>
         <relationship name="seedLeech" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="SourceSeedLeech" inverseName="parentRssParser" inverseEntity="SourceSeedLeech"/>
         <relationship name="size" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="SourceSize" inverseName="parentRssParser" inverseEntity="SourceSize"/>
         <relationship name="subName" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SourceSubName" inverseName="parentRssParser" inverseEntity="SourceSubName"/>

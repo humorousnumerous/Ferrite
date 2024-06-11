@@ -62,6 +62,7 @@ public struct SourceApiCredentialJson: Codable, Hashable, Sendable {
 
 public struct SourceJsonParserJson: Codable, Hashable, Sendable {
     let searchUrl: String
+    let request: SourceRequestJson?
     let results: String?
     let subResults: String?
     let title: SourceComplexQueryJson
@@ -75,6 +76,7 @@ public struct SourceJsonParserJson: Codable, Hashable, Sendable {
 public struct SourceRssParserJson: Codable, Hashable, Sendable {
     let rssUrl: String?
     let searchUrl: String
+    let request: SourceRequestJson?
     let items: String
     let title: SourceComplexQueryJson
     let magnetHash: SourceComplexQueryJson?
@@ -86,6 +88,7 @@ public struct SourceRssParserJson: Codable, Hashable, Sendable {
 
 public struct SourceHtmlParserJson: Codable, Hashable, Sendable {
     let searchUrl: String?
+    let request: SourceRequestJson?
     let rows: String
     let title: SourceComplexQueryJson
     let magnet: SourceMagnetJson
@@ -116,4 +119,10 @@ public struct SourceSLJson: Codable, Hashable, Sendable {
     let discriminator: String?
     let seederRegex: String?
     let leecherRegex: String?
+}
+
+public struct SourceRequestJson: Codable, Hashable, Sendable {
+    let method: String?
+    let headers: [String: String]?
+    let body: String?
 }

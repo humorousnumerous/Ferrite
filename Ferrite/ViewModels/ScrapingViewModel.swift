@@ -66,6 +66,28 @@ class ScrapingViewModel: ObservableObject {
         await logManager?.error(description, showToast: false)
     }
 
+    // Substitutes the given string with an arbitrary parameter dictionary
+    func substituteParams(_ input: String, with params: [String: String]) -> String {
+        let replaced = params.reduce(input) { result, param -> String in
+            result.replacingOccurrences(of: "{\(param.key)}", with: param.value)
+        }
+
+        return replaced
+    }
+
+    // Cleans a SourceRequest's body and headers to be substituted
+    func cleanRequest(request: SourceRequest, params: [String: String]) -> SourceRequest {
+        if let body = request.body {
+            request.body = substituteParams(body, with: params)
+        }
+
+        if let headers = request.headers {
+            request.headers = headers.mapValues { substituteParams($0, with: params) }
+        }
+
+        return request
+    }
+
     public func scanSources(sources: [Source], searchText: String, debridManager: DebridManager) async {
         await logManager?.info("Started scanning sources for query \"\(searchText)\"")
 
@@ -160,19 +182,25 @@ class ScrapingViewModel: ObservableObject {
             return nil
         }
 
+        // Initial params dict to reference
+        // More params are added here as needed
+        var params: [String: String] = [
+            "query": encodedQuery
+        ]
+
         switch preferredParser {
         case .scraping:
             if let htmlParser = source.htmlParser {
                 let replacedSearchUrl = htmlParser.searchUrl.map {
-                    $0
-                        .replacingOccurrences(of: "{query}", with: encodedQuery)
+                    substituteParams($0, with: params)
                 }
 
                 let data = await handleUrls(
                     website: website,
                     replacedSearchUrl: replacedSearchUrl,
                     fallbackUrls: source.fallbackUrls,
-                    sourceName: source.name
+                    sourceName: source.name,
+                    requestParams: htmlParser.request.map { cleanRequest(request: $0, params: params) }
                 )
 
                 if let data,
@@ -183,23 +211,25 @@ class ScrapingViewModel: ObservableObject {
             }
         case .rss:
             if let rssParser = source.rssParser {
-                let replacedSearchUrl = rssParser.searchUrl
-                    .replacingOccurrences(of: "{secret}", with: source.api?.clientSecret?.value ?? "")
-                    .replacingOccurrences(of: "{query}", with: encodedQuery)
+                params.updateValue(source.api?.clientSecret?.value ?? "", forKey: "secret")
+
+                let replacedSearchUrl = substituteParams(rssParser.searchUrl, with: params)
 
                 // Do not use fallback URLs if the base URL isn't used
                 let data: Data?
                 if let rssUrl = rssParser.rssUrl {
                     data = await fetchWebsiteData(
                         urlString: rssUrl + replacedSearchUrl,
-                        sourceName: source.name
+                        sourceName: source.name,
+                        requestParams: rssParser.request
                     )
                 } else {
                     data = await handleUrls(
                         website: website,
                         replacedSearchUrl: replacedSearchUrl,
                         fallbackUrls: source.fallbackUrls,
-                        sourceName: source.name
+                        sourceName: source.name,
+                        requestParams: rssParser.request
                     )
                 }
 
@@ -211,8 +241,7 @@ class ScrapingViewModel: ObservableObject {
             }
         case .siteApi:
             if let jsonParser = source.jsonParser {
-                var replacedSearchUrl = jsonParser.searchUrl
-                    .replacingOccurrences(of: "{query}", with: encodedQuery)
+                var replacedSearchUrl = substituteParams(jsonParser.searchUrl, with: params)
 
                 // Handle anything API related including tokens, client IDs, and appending the API URL
                 // The source API key is for APIs that require extra credentials or use a different URL
@@ -248,7 +277,8 @@ class ScrapingViewModel: ObservableObject {
                     website: passedUrl,
                     replacedSearchUrl: replacedSearchUrl,
                     fallbackUrls: source.fallbackUrls,
-                    sourceName: source.name
+                    sourceName: source.name,
+                    requestParams: jsonParser.request
                 )
 
                 if let data {
@@ -263,16 +293,16 @@ class ScrapingViewModel: ObservableObject {
     }
 
     // Checks the base URL for any website data then iterates through the fallback URLs
-    func handleUrls(website: String, replacedSearchUrl: String?, fallbackUrls: [String]?, sourceName: String) async -> Data? {
+    func handleUrls(website: String, replacedSearchUrl: String?, fallbackUrls: [String]?, sourceName: String, requestParams: SourceRequest?) async -> Data? {
         let fetchUrl = website + (replacedSearchUrl.map { $0 } ?? "")
-        if let data = await fetchWebsiteData(urlString: fetchUrl, sourceName: sourceName) {
+        if let data = await fetchWebsiteData(urlString: fetchUrl, sourceName: sourceName, requestParams: requestParams) {
             return data
         }
 
         if let fallbackUrls {
             for fallbackUrl in fallbackUrls {
                 let fetchUrl = fallbackUrl + (replacedSearchUrl.map { $0 } ?? "")
-                if let data = await fetchWebsiteData(urlString: fetchUrl, sourceName: sourceName) {
+                if let data = await fetchWebsiteData(urlString: fetchUrl, sourceName: sourceName, requestParams: requestParams) {
                     return data
                 }
             }
@@ -298,8 +328,7 @@ class ScrapingViewModel: ObservableObject {
 
         // Fetch a new credential if it's expired or doesn't exist yet
         if let value = credential.value, !isExpired {
-            return searchUrl
-                .replacingOccurrences(of: replacement, with: value)
+            return substituteParams(searchUrl, with: [replacement: value])
         } else if
             credential.value == nil || isExpired,
             let credentialUrl = credential.urlString,
@@ -369,7 +398,7 @@ class ScrapingViewModel: ObservableObject {
     }
 
     // Fetches the data for a URL
-    public func fetchWebsiteData(urlString: String, sourceName: String) async -> Data? {
+    public func fetchWebsiteData(urlString: String, sourceName: String, requestParams: SourceRequest?) async -> Data? {
         guard let url = URL(string: urlString.trimmingCharacters(in: .whitespacesAndNewlines)) else {
             await sendSourceError("\(sourceName): Source doesn't contain a valid URL, contact the source dev!")
 
@@ -388,7 +417,12 @@ class ScrapingViewModel: ObservableObject {
             }
         }
 
-        let request = URLRequest(url: url, timeoutInterval: timeout)
+        var request = URLRequest(url: url, timeoutInterval: timeout)
+        request.httpMethod = requestParams?.method
+        request.httpBody = requestParams?.body?.data(using: .utf8)
+        requestParams?.headers?.forEach { field, value in
+            request.addValue(value, forHTTPHeaderField: field)
+        }
 
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
@@ -800,7 +834,7 @@ class ScrapingViewModel: ObservableObject {
 
                     let replacedMagnetUrl = externalMagnetUrl.starts(with: "/") ? website + externalMagnetUrl : externalMagnetUrl
                     guard
-                        let data = await fetchWebsiteData(urlString: replacedMagnetUrl, sourceName: source.name),
+                        let data = await fetchWebsiteData(urlString: replacedMagnetUrl, sourceName: source.name, requestParams: htmlParser.request),
                         let magnetHtml = String(data: data, encoding: .utf8)
                     else {
                         continue

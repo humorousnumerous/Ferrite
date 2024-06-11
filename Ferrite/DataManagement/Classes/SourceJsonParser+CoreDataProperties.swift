@@ -17,6 +17,7 @@ public extension SourceJsonParser {
     @NSManaged var results: String?
     @NSManaged var subResults: String?
     @NSManaged var searchUrl: String
+    @NSManaged var request: SourceRequest?
     @NSManaged var magnetHash: SourceMagnetHash?
     @NSManaged var magnetLink: SourceMagnetLink?
     @NSManaged var parentSource: Source?

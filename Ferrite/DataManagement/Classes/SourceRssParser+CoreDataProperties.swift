@@ -17,6 +17,7 @@ public extension SourceRssParser {
     @NSManaged var items: String
     @NSManaged var rssUrl: String?
     @NSManaged var searchUrl: String
+    @NSManaged var request: SourceRequest?
     @NSManaged var magnetHash: SourceMagnetHash?
     @NSManaged var magnetLink: SourceMagnetLink?
     @NSManaged var parentSource: Source?
