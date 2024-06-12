@@ -46,6 +46,13 @@ struct SettingsDebridInfoView: View {
                     )
                     .foregroundColor(debridSource.isLoggedIn ? .red : .blue)
                 }
+                .alert("Invalid web login", isPresented: $debridManager.showWebLoginAlert) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text(
+                        "\(debridSource.id) does not have a login portal. Please use an API key to login."
+                    )
+                }
             }
 
             Section(

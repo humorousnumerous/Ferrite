@@ -15,8 +15,9 @@ class DebridManager: ObservableObject {
     @Published var realDebrid: RealDebrid = .init()
     @Published var allDebrid: AllDebrid = .init()
     @Published var premiumize: Premiumize = .init()
+    @Published var torbox: TorBox = .init()
 
-    lazy var debridSources: [DebridSource] = [realDebrid, allDebrid, premiumize]
+    lazy var debridSources: [DebridSource] = [realDebrid, allDebrid, premiumize, torbox]
 
     // UI Variables
     @Published var showWebView: Bool = false
@@ -49,6 +50,7 @@ class DebridManager: ObservableObject {
     var authUrl: URL?
 
     @Published var showDeleteAlert: Bool = false
+    @Published var showWebLoginAlert: Bool = false
 
     init() {
         // Set the preferred service. Contains migration logic for earlier versions
@@ -220,8 +222,12 @@ class DebridManager: ObservableObject {
                 await sendDebridError(error, prefix: "\(debridSource.id) authentication error")
             }
         } else {
+            // Let the user know that a traditional auth method doesn't exist
+            showWebLoginAlert.toggle()
+
             logManager?.error(
-                "DebridManager: Auth: Could not figure out the authentication type for \(debridSource.id). Is this configured properly?"
+                "DebridManager: Auth: \(debridSource.id) does not have a login portal.",
+                showToast: false
             )
 
             return
