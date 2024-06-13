@@ -13,6 +13,8 @@
 		0C0755C6293424A200ECA142 /* DebridLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C0755C5293424A200ECA142 /* DebridLabelView.swift */; };
 		0C0755C8293425B500ECA142 /* DebridManagerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C0755C7293425B500ECA142 /* DebridManagerModels.swift */; };
 		0C07C6042C1A859B00808A46 /* FormDataBody.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C07C6032C1A859B00808A46 /* FormDataBody.swift */; };
+		0C07C6062C1B2F7600808A46 /* OffCloudModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C07C6052C1B2F7600808A46 /* OffCloudModels.swift */; };
+		0C07C6082C1B2F8000808A46 /* OffCloudWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C07C6072C1B2F8000808A46 /* OffCloudWrapper.swift */; };
 		0C0974B029CCAAAF006DE7A3 /* OperatingSystemVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C0974AF29CCAAAF006DE7A3 /* OperatingSystemVersion.swift */; };
 		0C0D50E5288DFE7F0035ECC8 /* SourceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C0D50E4288DFE7F0035ECC8 /* SourceModels.swift */; };
 		0C0D50E7288DFF850035ECC8 /* PluginAggregateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C0D50E6288DFF850035ECC8 /* PluginAggregateView.swift */; };
@@ -171,6 +173,8 @@
 		0C0755C5293424A200ECA142 /* DebridLabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebridLabelView.swift; sourceTree = "<group>"; };
 		0C0755C7293425B500ECA142 /* DebridManagerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebridManagerModels.swift; sourceTree = "<group>"; };
 		0C07C6032C1A859B00808A46 /* FormDataBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormDataBody.swift; sourceTree = "<group>"; };
+		0C07C6052C1B2F7600808A46 /* OffCloudModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OffCloudModels.swift; sourceTree = "<group>"; };
+		0C07C6072C1B2F8000808A46 /* OffCloudWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OffCloudWrapper.swift; sourceTree = "<group>"; };
 		0C0974AF29CCAAAF006DE7A3 /* OperatingSystemVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperatingSystemVersion.swift; sourceTree = "<group>"; };
 		0C0D50E4288DFE7F0035ECC8 /* SourceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceModels.swift; sourceTree = "<group>"; };
 		0C0D50E6288DFF850035ECC8 /* PluginAggregateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginAggregateView.swift; sourceTree = "<group>"; };
@@ -417,6 +421,7 @@
 				0C6771F929B3D1AE005D38D2 /* KodiModels.swift */,
 				0C1A3E5129C8A7F500DA9730 /* SettingsModels.swift */,
 				0C890E4A2C188FA7003B17B5 /* TorBoxModels.swift */,
+				0C07C6052C1B2F7600808A46 /* OffCloudModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -670,6 +675,7 @@
 				0CA148D0288903F000DE2211 /* RealDebridWrapper.swift */,
 				0C6771F329B3B4FD005D38D2 /* KodiWrapper.swift */,
 				0C890E482C188808003B17B5 /* TorBoxWrapper.swift */,
+				0C07C6072C1B2F8000808A46 /* OffCloudWrapper.swift */,
 			);
 			path = API;
 			sourceTree = "<group>";
@@ -937,6 +943,7 @@
 				0C84FCE929E5ADEF00B0DFE4 /* FilterAmountLabelView.swift in Sources */,
 				0C10848B28BD9A38008F0BA6 /* SettingsAppVersionView.swift in Sources */,
 				0CA05457288EE58200850554 /* SettingsPluginListView.swift in Sources */,
+				0C07C6062C1B2F7600808A46 /* OffCloudModels.swift in Sources */,
 				0C78041D28BFB3EA001E8CA3 /* String.swift in Sources */,
 				0C31133C28B1ABFA004DCB0D /* SourceJsonParser+CoreDataClass.swift in Sources */,
 				0CBC76FF288DAAD00054BE44 /* NavigationViewModel.swift in Sources */,
@@ -946,6 +953,7 @@
 				0CEE11B12C1743E0004C8BB2 /* SourceRequest+CoreDataClass.swift in Sources */,
 				0CEE11B22C1743E0004C8BB2 /* SourceRequest+CoreDataProperties.swift in Sources */,
 				0CC2CA7429E24F63000A8585 /* ExpandedSearchable.swift in Sources */,
+				0C07C6082C1B2F8000808A46 /* OffCloudWrapper.swift in Sources */,
 				0CF1ABE22C0C3D2F009F6C26 /* DebridModels.swift in Sources */,
 				0C6771F429B3B4FD005D38D2 /* KodiWrapper.swift in Sources */,
 				0C3E00D0296F4DB200ECECB2 /* ActionModels.swift in Sources */,

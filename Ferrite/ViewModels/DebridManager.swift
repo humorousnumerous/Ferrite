@@ -16,8 +16,9 @@ class DebridManager: ObservableObject {
     @Published var allDebrid: AllDebrid = .init()
     @Published var premiumize: Premiumize = .init()
     @Published var torbox: TorBox = .init()
+    @Published var offcloud: OffCloud = .init()
 
-    lazy var debridSources: [DebridSource] = [realDebrid, allDebrid, premiumize, torbox]
+    lazy var debridSources: [DebridSource] = [realDebrid, allDebrid, premiumize, torbox, offcloud]
 
     // UI Variables
     @Published var showWebView: Bool = false
@@ -52,6 +53,8 @@ class DebridManager: ObservableObject {
 
     @Published var showDeleteAlert: Bool = false
     @Published var showWebLoginAlert: Bool = false
+    @Published var showNotImplementedAlert: Bool = false
+    @Published var notImplementedMessage: String = ""
 
     init() {
         // Set the preferred service. Contains migration logic for earlier versions
@@ -343,6 +346,10 @@ class DebridManager: ObservableObject {
 
                 // Indicate that a link needs to be selected (batch)
                 if let newIA {
+                    if newIA.files.isEmpty {
+                        throw DebridError.EmptyData
+                    }
+
                     selectedDebridItem = newIA
                     requiresUnrestrict = true
 
@@ -431,7 +438,19 @@ class DebridManager: ObservableObject {
 
             await fetchDebridCloud(bypassTTL: true)
         } catch {
-            await sendDebridError(error, prefix: "\(selectedSource.id) download delete error")
+            switch error {
+            case DebridError.NotImplemented:
+                let message = "Download deletion for \(selectedSource.id) is not implemented. Please delete from the service's website."
+
+                notImplementedMessage = message
+                showNotImplementedAlert.toggle()
+                logManager?.error(
+                    "DebridManager: \(message)",
+                    showToast: false
+                )
+            default:
+                await sendDebridError(error, prefix: "\(selectedSource.id) download delete error")
+            }
         }
     }
 
@@ -445,7 +464,19 @@ class DebridManager: ObservableObject {
 
             await fetchDebridCloud(bypassTTL: true)
         } catch {
-            await sendDebridError(error, prefix: "\(selectedSource.id) torrent delete error")
+            switch error {
+            case DebridError.NotImplemented:
+                let message = "Torrent deletion for \(selectedSource.id) is not implemented. Please use the service's website."
+
+                notImplementedMessage = message
+                showNotImplementedAlert.toggle()
+                logManager?.error(
+                    "DebridManager: \(message)",
+                    showToast: false
+                )
+            default:
+                await sendDebridError(error, prefix: "\(selectedSource.id) torrent delete error")
+            }
         }
     }
 }

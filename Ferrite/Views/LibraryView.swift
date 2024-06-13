@@ -96,6 +96,11 @@ struct LibraryView: View {
             .esAutocapitalization(autocorrectSearch ? .sentences : .none)
             .environment(\.editMode, $editMode)
         }
+        .alert("Not implemented", isPresented: $debridManager.showNotImplementedAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(debridManager.notImplementedMessage)
+        }
         .onChange(of: navModel.libraryPickerSelection) { _ in
             editMode = .inactive
         }

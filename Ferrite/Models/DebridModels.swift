@@ -54,4 +54,5 @@ enum DebridError: Error {
     case IsCaching
     case FailedRequest(description: String)
     case AuthQuery(description: String)
+    case NotImplemented
 }
