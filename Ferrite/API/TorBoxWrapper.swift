@@ -20,7 +20,7 @@ class TorBox: DebridSource, ObservableObject {
 
     @Published var authProcessing: Bool = false
     var isLoggedIn: Bool {
-        return getToken() != nil
+        getToken() != nil
     }
 
     var manualToken: String? {
@@ -117,7 +117,7 @@ class TorBox: DebridSource, ObservableObject {
         let rawResponse = try jsonDecoder.decode(TBResponse<InstantAvailabilityData>.self, from: data)
 
         // If the data is a failure, return
-        guard case .links(let iaObjects) = rawResponse.data else {
+        guard case let .links(iaObjects) = rawResponse.data else {
             return
         }
 
@@ -230,18 +230,14 @@ class TorBox: DebridSource, ObservableObject {
     // MARK: - Cloud methods
 
     // Unused
-    func getUserDownloads() async throws {
-        return
-    }
-    
+    func getUserDownloads() async throws {}
+
     func checkUserDownloads(link: String) async throws -> String? {
-        return nil
+        nil
     }
-    
-    func deleteDownload(downloadId: String) async throws {
-        return
-    }
-    
+
+    func deleteDownload(downloadId: String) async throws {}
+
     func getUserTorrents() async throws {
         let torrentList = try await myTorrentList()
         cloudTorrents = torrentList.map { torrent in

@@ -313,11 +313,11 @@ class ScrapingViewModel: ObservableObject {
     }
 
     private func handleApiCredential(_ credential: SourceApiCredential,
-                                    replacement: String,
-                                    searchUrl: String,
-                                    apiUrl: String?,
-                                    website: String,
-                                    sourceName: String) async -> String?
+                                     replacement: String,
+                                     searchUrl: String,
+                                     apiUrl: String?,
+                                     website: String,
+                                     sourceName: String) async -> String?
     {
         // Is the credential expired
         var isExpired = false
@@ -354,8 +354,8 @@ class ScrapingViewModel: ObservableObject {
     }
 
     private func fetchApiCredential(urlString: String,
-                                   credential: SourceApiCredential,
-                                   sourceName: String) async -> String?
+                                    credential: SourceApiCredential,
+                                    sourceName: String) async -> String?
     {
         guard let url = URL(string: urlString) else {
             await sendSourceError("\(sourceName): Token URL \(urlString) is invalid.")
@@ -522,9 +522,9 @@ class ScrapingViewModel: ObservableObject {
 
     // TODO: Add regex parsing for API
     private func parseJsonResult(_ result: JSON,
-                                jsonParser: SourceJsonParser,
-                                source: Source,
-                                existingSearchResult: SearchResult? = nil) -> SearchResult?
+                                 jsonParser: SourceJsonParser,
+                                 source: Source,
+                                 existingSearchResult: SearchResult? = nil) -> SearchResult?
     {
         // Enforce these parsers
         guard let titleParser = jsonParser.title else {
@@ -751,10 +751,10 @@ class ScrapingViewModel: ObservableObject {
 
     // Complex query parsing for RSS scraping
     private func runRssComplexQuery(item: Element,
-                            query: String,
-                            attribute: String,
-                            discriminator: String?,
-                            regexString: String?) throws -> String?
+                                    query: String,
+                                    attribute: String,
+                                    discriminator: String?,
+                                    regexString: String?) throws -> String?
     {
         var parsedValue: String?
 
@@ -956,9 +956,9 @@ class ScrapingViewModel: ObservableObject {
 
     // Complex query parsing for HTML scraping
     private func runHtmlComplexQuery(row: Element,
-                             query: String,
-                             attribute: String,
-                             regexString: String?) throws -> String?
+                                     query: String,
+                                     attribute: String,
+                                     regexString: String?) throws -> String?
     {
         var parsedValue: String?
 

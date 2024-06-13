@@ -91,8 +91,8 @@ struct Store<ObjectType> {
     ///
     /// Use this init to schedule updates on a specific scheduler other than `DispatchQueue.main`.
     init<S: Scheduler>(wrappedValue: ObjectType,
-                              on scheduler: S,
-                              schedulerOptions: S.SchedulerOptions? = nil)
+                       on scheduler: S,
+                       schedulerOptions: S.SchedulerOptions? = nil)
     {
         self.wrappedValue = wrappedValue
 

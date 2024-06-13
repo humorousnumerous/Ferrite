@@ -21,16 +21,16 @@ struct ActionJson: Codable, Hashable, PluginJson {
     let tags: [PluginTagJson]?
 
     init(name: String,
-                version: Int16,
-                minVersion: String?,
-                about: String?,
-                website: String?,
-                requires: [ActionRequirement],
-                deeplink: [DeeplinkActionJson]?,
-                author: String?,
-                listId: UUID?,
-                listName: String?,
-                tags: [PluginTagJson]?)
+         version: Int16,
+         minVersion: String?,
+         about: String?,
+         website: String?,
+         requires: [ActionRequirement],
+         deeplink: [DeeplinkActionJson]?,
+         author: String?,
+         listId: UUID?,
+         listName: String?,
+         tags: [PluginTagJson]?)
     {
         self.name = name
         self.version = version

@@ -12,10 +12,10 @@ class Kodi {
 
     // Used to add server to CoreData. Not part of API
     func addServer(urlString: String,
-                          friendlyName: String?,
-                          username: String?,
-                          password: String?,
-                          existingServer: KodiServer? = nil) throws
+                   friendlyName: String?,
+                   username: String?,
+                   password: String?,
+                   existingServer: KodiServer? = nil) throws
     {
         let backgroundContext = PersistenceController.shared.backgroundContext
 

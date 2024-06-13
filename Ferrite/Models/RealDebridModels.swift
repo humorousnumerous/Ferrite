@@ -67,11 +67,11 @@ extension RealDebrid {
         }
     }
 
-    internal struct InstantAvailabilityData: Codable, Sendable {
+    struct InstantAvailabilityData: Codable, Sendable {
         var rd: [[String: InstantAvailabilityInfo]]
     }
 
-    internal struct InstantAvailabilityInfo: Codable, Sendable {
+    struct InstantAvailabilityInfo: Codable, Sendable {
         var filename: String
         var filesize: Int
     }
@@ -96,7 +96,7 @@ extension RealDebrid {
 
     // MARK: - torrentInfo endpoint
 
-    internal struct TorrentInfoResponse: Codable, Sendable {
+    struct TorrentInfoResponse: Codable, Sendable {
         let id, filename, originalFilename, hash: String
         let bytes, originalBytes: Int
         let host: String
@@ -117,7 +117,7 @@ extension RealDebrid {
         }
     }
 
-    internal struct TorrentInfoFile: Codable, Sendable {
+    struct TorrentInfoFile: Codable, Sendable {
         let id: Int
         let path: String
         let bytes, selected: Int
@@ -136,7 +136,7 @@ extension RealDebrid {
 
     // MARK: - unrestrictLink endpoint
 
-    internal struct UnrestrictLinkResponse: Codable, Sendable {
+    struct UnrestrictLinkResponse: Codable, Sendable {
         let id, filename: String
         let mimeType: String?
         let filesize: Int

@@ -71,7 +71,7 @@ class LoggingManager: ObservableObject {
     // TODO: Maybe append to a constant logfile?
 
     func info(_ message: String,
-                     description: String? = nil)
+              description: String? = nil)
     {
         let log = Log(
             level: .info,
@@ -89,7 +89,7 @@ class LoggingManager: ObservableObject {
     }
 
     func warn(_ message: String,
-                     description: String? = nil)
+              description: String? = nil)
     {
         let log = Log(
             level: .warn,
@@ -107,8 +107,8 @@ class LoggingManager: ObservableObject {
     }
 
     func error(_ message: String,
-                      description: String? = nil,
-                      showToast: Bool = true)
+               description: String? = nil,
+               showToast: Bool = true)
     {
         let log = Log(
             level: .error,

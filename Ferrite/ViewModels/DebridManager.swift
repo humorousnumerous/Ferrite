@@ -369,8 +369,6 @@ class DebridManager: ObservableObject {
                 await sendDebridError(error, prefix: "\(debridSource.id) download error", cancelString: "Download cancelled")
             }
         }
-
-        return
     }
 
     func unrestrictDownload() async {

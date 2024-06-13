@@ -53,7 +53,7 @@ extension AllDebrid {
 
     // MARK: - AddMagnetData
 
-    internal struct AddMagnetData: Codable {
+    struct AddMagnetData: Codable {
         let magnet, hash, name, filenameOriginal: String
         let size: Int
         let ready: Bool
@@ -103,7 +103,7 @@ extension AllDebrid {
     // MARK: - MagnetStatusLink
 
     // Abridged for required parameters
-    internal struct MagnetStatusLink: Codable {
+    struct MagnetStatusLink: Codable {
         let link: String
         let filename: String
         let size: Int
@@ -137,7 +137,7 @@ extension AllDebrid {
 
     // MARK: - IAMagnetResponse
 
-    internal struct InstantAvailabilityMagnet: Codable {
+    struct InstantAvailabilityMagnet: Codable {
         let magnet, hash: String
         let instant: Bool
         let files: [InstantAvailabilityFile]?
@@ -145,7 +145,7 @@ extension AllDebrid {
 
     // MARK: - IAFileResponse
 
-    internal struct InstantAvailabilityFile: Codable {
+    struct InstantAvailabilityFile: Codable {
         let name: String
 
         enum CodingKeys: String, CodingKey {

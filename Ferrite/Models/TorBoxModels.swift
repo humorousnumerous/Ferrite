@@ -15,6 +15,7 @@ extension TorBox {
     }
 
     // MARK: - InstantAvailability
+
     enum InstantAvailabilityData: Codable {
         case links([InstantAvailabilityDataObject])
         case failure(InstantAvailabilityDataFailure)
@@ -34,9 +35,9 @@ extension TorBox {
         func encode(to encoder: Encoder) throws {
             var container = encoder.singleValueContainer()
             switch self {
-            case .links(let array):
+            case let .links(array):
                 try container.encode(array)
-            case .failure(let value):
+            case let .failure(value):
                 try container.encode(value)
             }
         }
