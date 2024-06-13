@@ -32,17 +32,23 @@ struct SearchResultButtonView: View {
                 case .full:
                     if debridManager.selectDebridResult(magnet: result.magnet) {
                         debridManager.currentDebridTask = Task {
+                            let historyEntry = HistoryEntryJson(
+                                name: result.title,
+                                url: debridManager.downloadUrl,
+                                source: result.source
+                            )
                             await debridManager.fetchDebridDownload(magnet: result.magnet)
 
+                            // Bump to batch
+                            if debridManager.requiresUnrestrict {
+                                navModel.selectedHistoryInfo = historyEntry
+                                navModel.currentChoiceSheet = .batch
+
+                                return
+                            }
+
                             if !debridManager.downloadUrl.isEmpty {
-                                PersistenceController.shared.createHistory(
-                                    HistoryEntryJson(
-                                        name: result.title,
-                                        url: debridManager.downloadUrl,
-                                        source: result.source
-                                    ),
-                                    performSave: true
-                                )
+                                PersistenceController.shared.createHistory(historyEntry, performSave: true)
 
                                 pluginManager.runDefaultAction(
                                     urlString: debridManager.downloadUrl,
@@ -133,9 +139,9 @@ struct SearchResultButtonView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(
-                "\(String(describing: debridManager.selectedDebridSource?.id)) is currently caching this file. " +
+                "\(debridManager.selectedDebridSource?.id ?? "Unknown Debrid") is currently caching this file. " +
                     "Would you like to delete it? \n\n" +
-                    "Progress can be checked on the RealDebrid website."
+                    "Progress can be checked on the \(debridManager.selectedDebridSource?.id ?? "Unknown Debrid") website."
             )
         }
         .onReceive(NotificationCenter.default.publisher(for: .didDeleteBookmark)) { notification in

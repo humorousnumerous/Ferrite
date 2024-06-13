@@ -39,7 +39,10 @@ protocol DebridSource: AnyObservableObject {
     // Fetches a download link from a source
     // Include the instant availability information with the args
     // Torrents also checked here
-    func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String
+    func getRestrictedFile(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> (restrictedFile: DebridIAFile?, newIA: DebridIA?)
+
+    // Unrestricts a locked file
+    func unrestrictFile(_ restrictedFile: DebridIAFile) async throws -> String
 
     // User downloads functions
     func getUserDownloads() async throws

@@ -277,18 +277,25 @@ class Premiumize: OAuthDebridSource, ObservableObject {
 
     // MARK: - Downloading
 
-    // Wrapper function to fetch a DDL link from the API
-    func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
+    func getRestrictedFile(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> (restrictedFile: DebridIAFile?, newIA: DebridIA?) {
         // Store the item in PM cloud for later use
         try await createTransfer(magnet: magnet)
 
-        if let iaFile, let streamUrlString = iaFile.streamUrlString {
-            return streamUrlString
-        } else if let premiumizeItem = ia, let firstFile = premiumizeItem.files[safe: 0], let streamUrlString = firstFile.streamUrlString {
-            return streamUrlString
+        if let iaFile {
+            return (iaFile, nil)
+        } else if let premiumizeItem = ia, let firstFile = premiumizeItem.files[safe: 0] {
+            return (firstFile, nil)
         } else {
             throw DebridError.FailedRequest(description: "Could not fetch your file from the Premiumize API")
         }
+    }
+
+    func unrestrictFile(_ restrictedFile: DebridIAFile) async throws -> String {
+        guard let streamUrlString = restrictedFile.streamUrlString else {
+            throw DebridError.FailedRequest(description: "Could not get a streaming URL from the Premiumize API")
+        }
+
+        return streamUrlString
     }
 
     private func createTransfer(magnet: Magnet) async throws {

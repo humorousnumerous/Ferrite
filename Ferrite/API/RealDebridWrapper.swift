@@ -273,62 +273,50 @@ class RealDebrid: PollingDebridSource, ObservableObject {
                 continue
             }
 
-            // Is this a batch?
-            if data.rd.count > 1 || data.rd[0].count > 1 {
-                // Batch array
-                let batches = data.rd.map { fileDict in
-                    let batchFiles: [RealDebrid.IABatchFile] = fileDict.map { key, value in
-                        // Force unwrapped ID. Is safe because ID is guaranteed on a successful response
-                        RealDebrid.IABatchFile(id: Int(key)!, fileName: value.filename)
-                    }.sorted(by: { $0.id < $1.id })
+            // Handle files array
+            let batches = data.rd.map { fileDict in
+                let batchFiles: [RealDebrid.IABatchFile] = fileDict.map { key, value in
+                    // Force unwrapped ID. Is safe because ID is guaranteed on a successful response
+                    RealDebrid.IABatchFile(id: Int(key)!, fileName: value.filename)
+                }.sorted(by: { $0.id < $1.id })
 
-                    return RealDebrid.IABatch(files: batchFiles)
-                }
+                return RealDebrid.IABatch(files: batchFiles)
+            }
 
-                var files: [DebridIAFile] = []
+            var files: [DebridIAFile] = []
 
-                for batch in batches {
-                    let batchFileIds = batch.files.map(\.id)
+            for batch in batches {
+                let batchFileIds = batch.files.map(\.id)
 
-                    for batchFile in batch.files {
-                        if !files.contains(where: { $0.fileId == batchFile.id }) {
-                            files.append(
-                                DebridIAFile(
-                                    fileId: batchFile.id,
-                                    name: batchFile.fileName,
-                                    batchIds: batchFileIds
-                                )
+                for batchFile in batch.files {
+                    if !files.contains(where: { $0.fileId == batchFile.id }) {
+                        files.append(
+                            DebridIAFile(
+                                fileId: batchFile.id,
+                                name: batchFile.fileName,
+                                batchIds: batchFileIds
                             )
-                        }
+                        )
                     }
                 }
-
-                // TTL: 5 minutes
-                IAValues.append(
-                    DebridIA(
-                        magnet: Magnet(hash: hash, link: nil),
-                        source: id,
-                        expiryTimeStamp: Date().timeIntervalSince1970 + 300,
-                        files: files
-                    )
-                )
-            } else {
-                IAValues.append(
-                    DebridIA(
-                        magnet: Magnet(hash: hash, link: nil),
-                        source: id,
-                        expiryTimeStamp: Date().timeIntervalSince1970 + 300,
-                        files: []
-                    )
-                )
             }
+
+            // TTL: 5 minutes
+            IAValues.append(
+                DebridIA(
+                    magnet: Magnet(hash: hash, link: nil),
+                    source: id,
+                    expiryTimeStamp: Date().timeIntervalSince1970 + 300,
+                    files: files
+                )
+            )
         }
     }
 
     // MARK: - Downloading
 
     // Wrapper function to fetch a download link from the API
-    func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
+    func getRestrictedFile(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> (restrictedFile: DebridIAFile?, newIA: DebridIA?) {
         var selectedMagnetId = ""
 
         do {
@@ -342,13 +330,12 @@ class RealDebrid: PollingDebridSource, ObservableObject {
             }
 
             // RealDebrid has 1 as the first ID for a file
-            let torrentLink = try await torrentInfo(
+            let torrentFile = try await torrentInfo(
                 debridID: selectedMagnetId,
                 selectedFileId: iaFile?.fileId ?? 1
             )
-            let downloadLink = try await unrestrictLink(debridDownloadLink: torrentLink)
 
-            return downloadLink
+            return (torrentFile, nil)
         } catch {
             if case DebridError.EmptyTorrents = error, !selectedMagnetId.isEmpty {
                 try? await deleteTorrent(torrentId: selectedMagnetId)
@@ -401,7 +388,7 @@ class RealDebrid: PollingDebridSource, ObservableObject {
     }
 
     // Gets the info of a torrent from a given ID
-    func torrentInfo(debridID: String, selectedFileId: Int?) async throws -> String {
+    func torrentInfo(debridID: String, selectedFileId: Int?) async throws -> DebridIAFile {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents/info/\(debridID)")!)
 
         let data = try await performRequest(request: &request, requestName: #function)
@@ -411,7 +398,11 @@ class RealDebrid: PollingDebridSource, ObservableObject {
 
         // Let the user know if a torrent is downloading
         if let torrentLink = rawResponse.links[safe: linkIndex ?? -1], rawResponse.status == "downloaded" {
-            return torrentLink
+            return DebridIAFile(
+                fileId: 0,
+                name: rawResponse.filename,
+                streamUrlString: torrentLink
+            )
         } else if rawResponse.status == "downloading" || rawResponse.status == "queued" {
             throw DebridError.IsCaching
         } else {
@@ -420,13 +411,13 @@ class RealDebrid: PollingDebridSource, ObservableObject {
     }
 
     // Downloads link from selectFiles for playback
-    func unrestrictLink(debridDownloadLink: String) async throws -> String {
+    func unrestrictFile(_ restrictedFile: DebridIAFile) async throws -> String {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/unrestrict/link")!)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
 
         var bodyComponents = URLComponents()
-        bodyComponents.queryItems = [URLQueryItem(name: "link", value: debridDownloadLink)]
+        bodyComponents.queryItems = [URLQueryItem(name: "link", value: restrictedFile.streamUrlString)]
 
         request.httpBody = bodyComponents.query?.data(using: .utf8)
 

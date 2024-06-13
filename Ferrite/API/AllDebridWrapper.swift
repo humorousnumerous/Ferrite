@@ -214,7 +214,7 @@ class AllDebrid: PollingDebridSource, ObservableObject {
     // MARK: - Downloading
 
     // Wrapper function to fetch a download link from the API
-    func getDownloadLink(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> String {
+    func getRestrictedFile(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> (restrictedFile: DebridIAFile?, newIA: DebridIA?) {
         let selectedMagnetId: String
 
         if let existingMagnet = cloudTorrents.first(where: { $0.hash == magnet.hash && $0.status == "Ready" }) {
@@ -229,10 +229,7 @@ class AllDebrid: PollingDebridSource, ObservableObject {
             selectedIndex: iaFile?.fileId ?? 0
         )
 
-        try await saveLink(link: lockedLink)
-        let downloadUrl = try await unlockLink(lockedLink: lockedLink)
-
-        return downloadUrl
+        return (lockedLink, nil)
     }
 
     // Adds a magnet link to the user's AD account
@@ -262,7 +259,7 @@ class AllDebrid: PollingDebridSource, ObservableObject {
         }
     }
 
-    func fetchMagnetStatus(magnetId: String, selectedIndex: Int?) async throws -> String {
+    func fetchMagnetStatus(magnetId: String, selectedIndex: Int?) async throws -> DebridIAFile {
         let queryItems = [
             URLQueryItem(name: "id", value: magnetId)
         ]
@@ -272,20 +269,21 @@ class AllDebrid: PollingDebridSource, ObservableObject {
         let rawResponse = try jsonDecoder.decode(ADResponse<MagnetStatusResponse>.self, from: data).data
 
         // Better to fetch no link at all than the wrong link
-        if let linkWrapper = rawResponse.magnets[safe: 0]?.links[safe: selectedIndex ?? -1] {
-            return linkWrapper.link
+        if let torrentFile = rawResponse.magnets[safe: 0]?.links[safe: selectedIndex ?? -1] {
+            return DebridIAFile(fileId: 0, name: torrentFile.filename, streamUrlString: torrentFile.link)
         } else {
             throw DebridError.EmptyTorrents
         }
     }
 
-    func unlockLink(lockedLink: String) async throws -> String {
+    // Known as unlockLink in AD's API
+    func unrestrictFile(_ restrictedFile: DebridIAFile) async throws -> String {
         let queryItems = [
-            URLQueryItem(name: "link", value: lockedLink)
+            URLQueryItem(name: "link", value: restrictedFile.streamUrlString)
         ]
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/link/unlock", queryItems: queryItems))
 
-        let data = try await performRequest(request: &request, requestName: #function)
+        let data = try await performRequest(request: &request, requestName: "unlockLink")
         let rawResponse = try jsonDecoder.decode(ADResponse<UnlockLinkResponse>.self, from: data).data
 
         return rawResponse.link

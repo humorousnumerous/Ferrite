@@ -40,6 +40,14 @@ struct CloudTorrentView: View {
                                 if cloudTorrent.links.count == 1 {
                                     await debridManager.fetchDebridDownload(magnet: magnet)
 
+                                    // Bump to batch
+                                    if debridManager.requiresUnrestrict {
+                                        navModel.selectedHistoryInfo = historyInfo
+                                        navModel.currentChoiceSheet = .batch
+
+                                        return
+                                    }
+
                                     if !debridManager.downloadUrl.isEmpty {
                                         historyInfo.url = debridManager.downloadUrl
                                         PersistenceController.shared.createHistory(historyInfo, performSave: true)

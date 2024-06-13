@@ -60,7 +60,11 @@ struct BatchChoiceView: View {
     // Common function to communicate betwen VMs and queue/display a download
     func queueCommonDownload(fileName: String) {
         debridManager.currentDebridTask = Task {
-            await debridManager.fetchDebridDownload(magnet: navModel.selectedMagnet)
+            if debridManager.requiresUnrestrict {
+                await debridManager.unrestrictDownload()
+            } else {
+                await debridManager.fetchDebridDownload(magnet: navModel.selectedMagnet)
+            }
 
             if !debridManager.downloadUrl.isEmpty {
                 try? await Task.sleep(seconds: 1)

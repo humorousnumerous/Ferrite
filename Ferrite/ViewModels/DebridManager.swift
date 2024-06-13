@@ -39,6 +39,7 @@ class DebridManager: ObservableObject {
 
     var selectedDebridItem: DebridIA?
     var selectedDebridFile: DebridIAFile?
+    var requiresUnrestrict: Bool = false
 
     // TODO: Figure out a way to remove this var
     private var selectedOAuthDebridSource: OAuthDebridSource?
@@ -167,6 +168,11 @@ class DebridManager: ObservableObject {
 
         if let IAItem = selectedSource.IAValues.first(where: { magnetHash == $0.magnet.hash }) {
             selectedDebridItem = IAItem
+
+            if IAItem.files.count == 1 {
+                selectedDebridFile = IAItem.files[safe: 0]
+            }
+
             return true
         } else {
             logManager?.error("DebridManager: Could not find the associated \(selectedSource.id) entry for magnet hash \(magnetHash)")
@@ -311,8 +317,8 @@ class DebridManager: ObservableObject {
     // Cloudinfo is used for any extra information provided by debrid cloud
     func fetchDebridDownload(magnet: Magnet?, cloudInfo: String? = nil) async {
         defer {
-            currentDebridTask = nil
             logManager?.hideIndeterminateToast()
+            currentDebridTask = nil
         }
 
         logManager?.updateIndeterminateToast("Loading content", cancelAction: {
@@ -331,12 +337,24 @@ class DebridManager: ObservableObject {
             }
 
             if let magnet {
-                let downloadLink = try await debridSource.getDownloadLink(
+                let (restrictedFile, newIA) = try await debridSource.getRestrictedFile(
                     magnet: magnet, ia: selectedDebridItem, iaFile: selectedDebridFile
                 )
 
+                // Indicate that a link needs to be selected (batch)
+                if let newIA {
+                    selectedDebridItem = newIA
+                    requiresUnrestrict = true
+
+                    return
+                }
+
+                guard let restrictedFile else {
+                    throw DebridError.FailedRequest(description: "No files found for your request")
+                }
+
                 // Update the UI
-                downloadUrl = downloadLink
+                downloadUrl = try await debridSource.unrestrictFile(restrictedFile)
             } else {
                 throw DebridError.FailedRequest(description: "Could not fetch your file from \(debridSource.id)'s cache or API")
             }
@@ -350,8 +368,34 @@ class DebridManager: ObservableObject {
             default:
                 await sendDebridError(error, prefix: "\(debridSource.id) download error", cancelString: "Download cancelled")
             }
+        }
 
+        return
+    }
+
+    func unrestrictDownload() async {
+        defer {
             logManager?.hideIndeterminateToast()
+            requiresUnrestrict = false
+        }
+
+        logManager?.updateIndeterminateToast("Loading content", cancelAction: {
+            self.currentDebridTask?.cancel()
+            self.currentDebridTask = nil
+        })
+
+        guard let debridFile = selectedDebridFile, let debridSource = selectedDebridSource else {
+            logManager?.error("DebridManager: Could not unrestrict the selected debrid file.")
+
+            return
+        }
+
+        do {
+            let downloadLink = try await debridSource.unrestrictFile(debridFile)
+
+            downloadUrl = downloadLink
+        } catch {
+            await sendDebridError(error, prefix: "\(debridSource.id) unrestrict error", cancelString: "Unrestrict cancelled")
         }
     }
 
