@@ -375,6 +375,7 @@ class DebridManager: ObservableObject {
         defer {
             logManager?.hideIndeterminateToast()
             requiresUnrestrict = false
+            currentDebridTask = nil
         }
 
         logManager?.updateIndeterminateToast("Loading content", cancelAction: {

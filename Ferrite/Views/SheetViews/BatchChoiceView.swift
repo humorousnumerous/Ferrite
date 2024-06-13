@@ -50,6 +50,7 @@ struct BatchChoiceView: View {
                             try? await Task.sleep(seconds: 1)
 
                             debridManager.clearSelectedDebridItems()
+                            debridManager.requiresUnrestrict = false
                         }
                     }
                 }
