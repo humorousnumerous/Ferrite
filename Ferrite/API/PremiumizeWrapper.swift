@@ -11,7 +11,7 @@ class Premiumize: OAuthDebridSource, ObservableObject {
     let id = "Premiumize"
     let abbreviation = "PM"
     let website = "https://premiumize.me"
-    let description = "Premiumize is a debrid service that is used for downloads and media playback with seeding. " +
+    let description: String? = "Premiumize is a debrid service that is used for downloads and media playback with seeding. " +
         "You must pay to access the service."
 
     @Published var authProcessing: Bool = false
@@ -369,7 +369,7 @@ class Premiumize: OAuthDebridSource, ObservableObject {
     }
 
     // No user torrents for Premiumize
-    func getUserTorrents() async throws {}
+    func getUserTorrents() {}
 
-    func deleteTorrent(torrentId: String?) async throws {}
+    func deleteTorrent(torrentId: String?) {}
 }

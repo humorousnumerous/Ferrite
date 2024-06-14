@@ -347,8 +347,8 @@ class AllDebrid: PollingDebridSource, ObservableObject {
     }
 
     // Not used
-    func checkUserDownloads(link: String) async throws -> String? {
-        nil
+    func checkUserDownloads(link: String) -> String? {
+        link
     }
 
     // The downloadId is actually the download link

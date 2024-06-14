@@ -17,9 +17,8 @@ class TorBox: DebridSource, ObservableObject {
     let id = "TorBox"
     let abbreviation = "TB"
     let website = "https://torbox.app"
-    let description = "TorBox is a debrid service that is used for downloads and media playback with seeding. " +
-        "Both free and paid plans are available. \n\n" +
-        "This service does not inform if a torrent is a batch before downloading."
+    let description: String? = "TorBox is a debrid service that is used for downloads and media playback with seeding. " +
+        "Both free and paid plans are available."
 
     @Published var authProcessing: Bool = false
     var isLoggedIn: Bool {
@@ -109,6 +108,7 @@ class TorBox: DebridSource, ObservableObject {
         var components = URLComponents(string: "\(baseApiUrl)/torrents/checkcached")!
         components.queryItems = sendMagnets.map { URLQueryItem(name: "hash", value: $0.hash) }
         components.queryItems?.append(URLQueryItem(name: "format", value: "list"))
+        components.queryItems?.append(URLQueryItem(name: "list_files", value: "true"))
 
         guard let url = components.url else {
             throw DebridError.InvalidUrl
@@ -124,12 +124,21 @@ class TorBox: DebridSource, ObservableObject {
             return
         }
 
-        let availableHashes = iaObjects.map {
+        let availableHashes = iaObjects.map { iaObject in
             DebridIA(
-                magnet: Magnet(hash: $0.hash, link: nil),
+                magnet: Magnet(hash: iaObject.hash, link: nil),
                 source: self.id,
                 expiryTimeStamp: Date().timeIntervalSince1970 + 300,
-                files: []
+                files: iaObject.files.enumerated().compactMap { index, iaFile in
+                    guard let fileName = iaFile.name.split(separator: "/").last else {
+                        return nil
+                    }
+
+                    return DebridIAFile(
+                        fileId: index,
+                        name: String(fileName)
+                    )
+                }
             )
         }
 
@@ -150,25 +159,12 @@ class TorBox: DebridSource, ObservableObject {
             throw DebridError.IsCaching
         }
 
-        if filteredTorrent.files.count > 1 {
-            var copiedIA = ia
-
-            copiedIA?.files = filteredTorrent.files.map { torrentFile in
-                DebridIAFile(
-                    fileId: torrentFile.id,
-                    name: torrentFile.shortName,
-                    streamUrlString: String(torrentId)
-                )
-            }
-
-            return (nil, copiedIA)
-        } else if let torrentFile = filteredTorrent.files.first {
-            let restrictedFile = DebridIAFile(fileId: torrentFile.id, name: torrentFile.name, streamUrlString: String(torrentId))
-
-            return (restrictedFile, nil)
-        } else {
-            return (nil, nil)
+        guard let torrentFile = filteredTorrent.files[safe: iaFile?.fileId ?? 0] else {
+            throw DebridError.EmptyTorrents
         }
+
+        let restrictedFile = DebridIAFile(fileId: torrentFile.id, name: torrentFile.name, streamUrlString: String(torrentId))
+        return (restrictedFile, nil)
     }
 
     private func createTorrent(magnet: Magnet) async throws -> Int {
@@ -233,13 +229,13 @@ class TorBox: DebridSource, ObservableObject {
     // MARK: - Cloud methods
 
     // Unused
-    func getUserDownloads() async throws {}
+    func getUserDownloads() {}
 
-    func checkUserDownloads(link: String) async throws -> String? {
-        nil
+    func checkUserDownloads(link: String) -> String? {
+        link
     }
 
-    func deleteDownload(downloadId: String) async throws {}
+    func deleteDownload(downloadId: String) {}
 
     func getUserTorrents() async throws {
         let torrentList = try await myTorrentList()
@@ -252,7 +248,7 @@ class TorBox: DebridSource, ObservableObject {
                 fileName: torrent.name,
                 status: torrent.downloadState == "cached" || torrent.downloadState == "completed" ? "downloaded" : torrent.downloadState,
                 hash: torrent.hash,
-                links: [String(torrent.id)]
+                links: torrent.files.map { String($0.id) }
             )
         }
     }

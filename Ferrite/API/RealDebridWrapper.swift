@@ -483,7 +483,7 @@ class RealDebrid: PollingDebridSource, ObservableObject {
 
     // Not used
     func checkUserDownloads(link: String) -> String? {
-        nil
+        link
     }
 
     func deleteDownload(downloadId: String) async throws {

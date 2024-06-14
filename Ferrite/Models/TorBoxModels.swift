@@ -47,6 +47,12 @@ extension TorBox {
         let name: String
         let size: Int
         let hash: String
+        let files: [InstantAvailabilityFile]
+    }
+
+    struct InstantAvailabilityFile: Codable, Sendable {
+        let name: String
+        let size: Int
     }
 
     struct InstantAvailabilityDataFailure: Codable, Sendable {

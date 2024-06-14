@@ -17,7 +17,7 @@ class OffCloud: DebridSource, ObservableObject {
     let id = "OffCloud"
     let abbreviation = "OC"
     let website = "https://offcloud.com"
-    let description = "OffCloud is a debrid service that is used for downloads and media playback. " +
+    let description: String? = "OffCloud is a debrid service that is used for downloads and media playback. " +
         "You must pay to access this service. \n\n" +
         "This service does not inform if a torrent is a batch before downloading."
 
@@ -229,13 +229,13 @@ class OffCloud: DebridSource, ObservableObject {
         return streamUrlString
     }
 
-    func getUserDownloads() async throws {}
+    func getUserDownloads() {}
 
-    func checkUserDownloads(link: String) async throws -> String? {
-        nil
+    func checkUserDownloads(link: String) -> String? {
+        link
     }
 
-    func deleteDownload(downloadId: String) async throws {}
+    func deleteDownload(downloadId: String) {}
 
     func getUserTorrents() async throws {
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/cloud/history"))

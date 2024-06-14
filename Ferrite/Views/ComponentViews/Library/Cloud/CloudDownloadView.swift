@@ -24,21 +24,24 @@ struct CloudDownloadView: View {
                 Button(cloudDownload.fileName) {
                     navModel.resultFromCloud = true
                     navModel.selectedTitle = cloudDownload.fileName
-                    debridManager.downloadUrl = cloudDownload.link
-
-                    PersistenceController.shared.createHistory(
-                        HistoryEntryJson(
-                            name: cloudDownload.fileName,
-                            url: cloudDownload.link,
-                            source: debridSource.id
-                        ),
-                        performSave: true
+                    var historyEntry = HistoryEntryJson(
+                        name: cloudDownload.fileName,
+                        source: debridSource.id
                     )
 
-                    pluginManager.runDefaultAction(
-                        urlString: debridManager.downloadUrl,
-                        navModel: navModel
-                    )
+                    debridManager.currentDebridTask = Task {
+                        await debridManager.fetchDebridDownload(magnet: nil, cloudInfo: cloudDownload.link)
+
+                        if !debridManager.downloadUrl.isEmpty {
+                            historyEntry.url = debridManager.downloadUrl
+                            PersistenceController.shared.createHistory(historyEntry, performSave: true)
+
+                            pluginManager.runDefaultAction(
+                                urlString: debridManager.downloadUrl,
+                                navModel: navModel
+                            )
+                        }
+                    }
                 }
                 .disabledAppearance(navModel.currentChoiceSheet != nil, dimmedOpacity: 0.7, animation: .easeOut(duration: 0.2))
                 .tint(.primary)

@@ -20,7 +20,6 @@ extension Premiumize {
     struct DDLResponse: Codable {
         let status: String
         let content: [DDLData]?
-        let location: String
         let filename: String
         let filesize: Int
     }
