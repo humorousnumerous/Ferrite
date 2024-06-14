@@ -307,10 +307,6 @@ class AllDebrid: PollingDebridSource, ObservableObject {
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode(ADResponse<MagnetStatusResponse>.self, from: data).data
 
-        if rawResponse.magnets.isEmpty {
-            throw DebridError.EmptyData
-        }
-
         cloudTorrents = rawResponse.magnets.map { magnetResponse in
             DebridCloudTorrent(
                 torrentId: String(magnetResponse.id),
@@ -341,10 +337,6 @@ class AllDebrid: PollingDebridSource, ObservableObject {
 
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode(ADResponse<SavedLinksResponse>.self, from: data).data
-
-        if rawResponse.links.isEmpty {
-            throw DebridError.EmptyData
-        }
 
         // The link is also the ID
         cloudDownloads = rawResponse.links.map { link in

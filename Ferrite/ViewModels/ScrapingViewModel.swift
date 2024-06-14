@@ -920,7 +920,7 @@ class ScrapingViewModel: ObservableObject {
                             )
                         }
 
-                        if let leecherQuery = seederLeecher.seeders {
+                        if let leecherQuery = seederLeecher.leechers {
                             leechers = try? runHtmlComplexQuery(
                                 row: row,
                                 query: leecherQuery,

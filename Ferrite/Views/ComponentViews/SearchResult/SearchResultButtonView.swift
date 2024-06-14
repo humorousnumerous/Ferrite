@@ -28,15 +28,15 @@ struct SearchResultButtonView: View {
                 navModel.selectedTitle = result.title ?? ""
                 navModel.resultFromCloud = false
 
+                var historyEntry = HistoryEntryJson(
+                    name: result.title,
+                    source: result.source
+                )
+
                 switch debridIAStatus ?? debridManager.matchMagnetHash(result.magnet) {
                 case .full:
                     if debridManager.selectDebridResult(magnet: result.magnet) {
                         debridManager.currentDebridTask = Task {
-                            let historyEntry = HistoryEntryJson(
-                                name: result.title,
-                                url: debridManager.downloadUrl,
-                                source: result.source
-                            )
                             await debridManager.fetchDebridDownload(magnet: result.magnet)
 
                             // Bump to batch
@@ -48,6 +48,7 @@ struct SearchResultButtonView: View {
                             }
 
                             if !debridManager.downloadUrl.isEmpty {
+                                historyEntry.url = debridManager.downloadUrl
                                 PersistenceController.shared.createHistory(historyEntry, performSave: true)
 
                                 pluginManager.runDefaultAction(
@@ -63,21 +64,12 @@ struct SearchResultButtonView: View {
                     }
                 case .partial:
                     if debridManager.selectDebridResult(magnet: result.magnet) {
-                        navModel.selectedHistoryInfo = HistoryEntryJson(
-                            name: result.title,
-                            source: result.source
-                        )
+                        navModel.selectedHistoryInfo = historyEntry
                         navModel.currentChoiceSheet = .batch
                     }
                 case .none:
-                    PersistenceController.shared.createHistory(
-                        HistoryEntryJson(
-                            name: result.title,
-                            url: result.magnet.link,
-                            source: result.source
-                        ),
-                        performSave: true
-                    )
+                    historyEntry.url = result.magnet.link
+                    PersistenceController.shared.createHistory(historyEntry, performSave: true)
 
                     pluginManager.runDefaultAction(
                         urlString: result.magnet.link,
