@@ -5,7 +5,7 @@
         <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Donate on Ko-Fi">
     </a>
     <img src="https://img.shields.io/badge/Swift-5.10-orange.svg" alt="Swift 5.2"/>
-    <img src="https://img.shields.io/badge/platform-iOS%20%7C%20macCatalyst-lightgrey" alt="Platform: iOS | iPadOS"/>
+    <img src="https://img.shields.io/badge/platform-iOS%20%7C%20iPadOS-lightgrey" alt="Platform: iOS | iPadOS"/>
     <a href="/LICENSE">
         <img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"/>
     </a>
