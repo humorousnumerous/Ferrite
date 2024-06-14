@@ -11,6 +11,8 @@ class Premiumize: OAuthDebridSource, ObservableObject {
     let id = "Premiumize"
     let abbreviation = "PM"
     let website = "https://premiumize.me"
+    let description = "Premiumize is a debrid service that is used for downloads and media playback with seeding. " +
+        "You must pay to access the service."
 
     @Published var authProcessing: Bool = false
     var isLoggedIn: Bool {

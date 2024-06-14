@@ -14,9 +14,12 @@ import Foundation
 // Unrestrict: /torrents/requestdl
 
 class TorBox: DebridSource, ObservableObject {
-    var id: String = "TorBox"
-    var abbreviation: String = "TB"
-    var website: String = "https://torbox.app"
+    let id = "TorBox"
+    let abbreviation = "TB"
+    let website = "https://torbox.app"
+    let description = "TorBox is a debrid service that is used for downloads and media playback with seeding. " +
+        "Both free and paid plans are available. \n\n" +
+        "This service does not inform if a torrent is a batch before downloading."
 
     @Published var authProcessing: Bool = false
     var isLoggedIn: Bool {

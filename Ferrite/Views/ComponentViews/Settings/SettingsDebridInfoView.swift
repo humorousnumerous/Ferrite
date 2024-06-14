@@ -18,7 +18,9 @@ struct SettingsDebridInfoView: View {
         List {
             Section(header: InlineHeader("Description")) {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("\(debridSource.id) is a debrid service that is used for unrestricting downloads and media playback. You must pay to access the service.")
+                    Text(debridSource.description ??
+                        "\(debridSource.id) is a debrid service that is used for downloads and media playback. You must pay to access the service."
+                    )
 
                     Link("Website", destination: URL(string: debridSource.website) ?? URL(string: "https://kingbri.dev/ferrite")!)
                 }

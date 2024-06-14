@@ -13,6 +13,7 @@ protocol DebridSource: AnyObservableObject {
     var id: String { get }
     var abbreviation: String { get }
     var website: String { get }
+    var description: String? { get }
 
     // Auth variables
     var authProcessing: Bool { get set }
@@ -52,6 +53,12 @@ protocol DebridSource: AnyObservableObject {
     // User torrent functions
     func getUserTorrents() async throws
     func deleteTorrent(torrentId: String?) async throws
+}
+
+extension DebridSource {
+    var description: String? {
+        nil
+    }
 }
 
 protocol PollingDebridSource: DebridSource {

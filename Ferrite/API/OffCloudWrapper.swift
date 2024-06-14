@@ -14,9 +14,12 @@ import Foundation
 // Delete torrent (website URL, not API URL): /cloud/remove/\(torrentId)
 
 class OffCloud: DebridSource, ObservableObject {
-    var id: String = "OffCloud"
-    var abbreviation: String = "OC"
-    var website: String = "https://offcloud.com"
+    let id = "OffCloud"
+    let abbreviation = "OC"
+    let website = "https://offcloud.com"
+    let description = "OffCloud is a debrid service that is used for downloads and media playback. " +
+        "You must pay to access this service. \n\n" +
+        "This service does not inform if a torrent is a batch before downloading."
 
     @Published var authProcessing: Bool = false
     var isLoggedIn: Bool {
