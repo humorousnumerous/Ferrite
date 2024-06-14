@@ -1,13 +1,13 @@
 # Ferrite
 
 <p align="left">
-    <a href="https://ko-fi.com/I2I3BDTSW">
-        <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Donate on Ko-Fi">
-    </a>
     <img src="https://img.shields.io/badge/Swift-5.10-orange.svg" alt="Swift 5.2"/>
     <img src="https://img.shields.io/badge/platform-iOS%20%7C%20iPadOS-lightgrey" alt="Platform: iOS | iPadOS"/>
     <a href="/LICENSE">
         <img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"/>
+    </a>
+    <a href="https://github.com/Ferrite-iOS/Ferrite/releases">
+        <img alt="GitHub all releases" src="https://img.shields.io/github/downloads/Ferrite-iOS/Ferrite/total?label=Downloads">
     </a>
 </p>
 
@@ -20,7 +20,41 @@
     </a>
 </p>
 
+<p align="left">
+    <a href="http://real-debrid.com/?id=8109785">
+        <img src="https://img.shields.io/badge/Refer_on_RealDebrid-98ceeb?style=for-the-badge" alt="Refer on RealDebrid">
+    </a>
+    <a href="Misc/Referrals/TorBox.md">
+        <img src="https://img.shields.io/badge/Refer_on_TorBox-52a153?style=for-the-badge" alt="Refer on TorBox">
+    </a>
+    <a href="https://ko-fi.com/I2I3BDTSW">
+        <img src="https://img.shields.io/badge/Support_on_Ko--fi-FF5E5B?logo=ko-fi&style=for-the-badge&logoColor=white" alt="Support on Ko-Fi">
+    </a>
+</p>
+
 A media search engine for iOS with a plugin API to extend its functionality.
+
+## Screenshots
+
+### Dark Mode
+
+| Search | Bookmarks | History |
+| ------------- | -------- | -------- |
+| ![1](Misc/Media/Demo/Dark/Search.png) | ![2](Misc/Media/Demo/Dark/Bookmarks.png) | ![3](Misc/Media/Demo/Dark/History.png) |
+
+| Debrid Cloud | Plugins |
+| ----------- | -------------------- |
+| ![4](Misc/Media/Demo/Dark/Cloud.png) | ![5](Misc/Media/Demo/Dark/Plugins.png) |
+
+### Light Mode
+
+| Search | Bookmarks | History |
+| ------------- | -------- | -------- |
+| ![1](Misc/Media/Demo/Light/Search.png) | ![2](Misc/Media/Demo/Light/Bookmarks.png) | ![3](Misc/Media/Demo/Light/History.png) |
+
+| Debrid Cloud | Plugins |
+| ----------- | -------------------- |
+| ![4](Misc/Media/Demo/Light/Cloud.png) | ![5](Misc/Media/Demo/Light/Plugins.png) |
 
 ## Disclaimer
 
@@ -131,25 +165,3 @@ Developer Website: [kingbri.dev](https://kingbri.dev)
 Developer Discord: kingbri#6666
 
 Join the support discord here: [Ferrite Discord](https://discord.gg/sYQxnuD7Fj)
-
-## Screenshots
-
-### Dark Mode
-
-| Search | Bookmarks | History |
-| ------------- | -------- | -------- |
-| ![1](Misc/Media/Demo/Dark/Search.png) | ![2](Misc/Media/Demo/Dark/Bookmarks.png) | ![3](Misc/Media/Demo/Dark/History.png) |
-
-| Debrid Cloud | Plugins |
-| ----------- | -------------------- |
-| ![4](Misc/Media/Demo/Dark/Cloud.png) | ![5](Misc/Media/Demo/Dark/Plugins.png) |
-
-### Light Mode
-
-| Search | Bookmarks | History |
-| ------------- | -------- | -------- |
-| ![1](Misc/Media/Demo/Light/Search.png) | ![2](Misc/Media/Demo/Light/Bookmarks.png) | ![3](Misc/Media/Demo/Light/History.png) |
-
-| Debrid Cloud | Plugins |
-| ----------- | -------------------- |
-| ![4](Misc/Media/Demo/Light/Cloud.png) | ![5](Misc/Media/Demo/Light/Plugins.png) |
