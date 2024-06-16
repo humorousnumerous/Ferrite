@@ -51,7 +51,7 @@ class DebridManager: ObservableObject {
 
     init() {
         // Update the UI for debrid services that are enabled
-        enabledDebrids = debridSources.filter { $0.isLoggedIn }
+        enabledDebrids = debridSources.filter(\.isLoggedIn)
 
         // Set the preferred service. Contains migration logic for earlier versions
         if let rawPreferredService = UserDefaults.standard.string(forKey: "Debrid.PreferredService") {
@@ -436,7 +436,7 @@ class DebridManager: ObservableObject {
         }
 
         do {
-            try await selectedSource.deleteUserDownload(downloadId: download.downloadId)
+            try await selectedSource.deleteUserDownload(downloadId: download.id)
 
             await fetchDebridCloud(bypassTTL: true)
         } catch {
@@ -462,7 +462,7 @@ class DebridManager: ObservableObject {
         }
 
         do {
-            try await selectedSource.deleteUserMagnet(cloudMagnetId: cloudMagnet.cloudMagnetId)
+            try await selectedSource.deleteUserMagnet(cloudMagnetId: cloudMagnet.id)
 
             await fetchDebridCloud(bypassTTL: true)
         } catch {

@@ -211,7 +211,7 @@ class Premiumize: OAuthDebridSource, ObservableObject {
         if !content.isEmpty {
             let files = content.map { file in
                 DebridIAFile(
-                    fileId: 0,
+                    id: 0,
                     name: file.path.split(separator: "/").last.flatMap { String($0) } ?? file.path,
                     streamUrlString: file.link
                 )
@@ -219,7 +219,6 @@ class Premiumize: OAuthDebridSource, ObservableObject {
 
             return DebridIA(
                 magnet: magnet,
-                source: id,
                 expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                 files: files
             )
@@ -331,7 +330,7 @@ class Premiumize: OAuthDebridSource, ObservableObject {
 
         // The "link" is the ID for Premiumize
         cloudDownloads = rawResponse.files.map { file in
-            DebridCloudDownload(downloadId: file.id, source: self.id, fileName: file.name, link: file.id)
+            DebridCloudDownload(id: file.id, fileName: file.name, link: file.id)
         }
     }
 

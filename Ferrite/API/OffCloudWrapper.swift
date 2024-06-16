@@ -123,7 +123,6 @@ class OffCloud: DebridSource, ObservableObject {
         let availableHashes = rawResponse.cachedItems.map {
             DebridIA(
                 magnet: Magnet(hash: $0, link: nil),
-                source: self.id,
                 expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                 files: []
             )
@@ -147,8 +146,7 @@ class OffCloud: DebridSource, ObservableObject {
             }
 
             selectedMagnet = DebridCloudMagnet(
-                cloudMagnetId: cloudDownloadResponse.requestId,
-                source: id,
+                id: cloudDownloadResponse.requestId,
                 fileName: cloudDownloadResponse.fileName,
                 status: cloudDownloadResponse.status,
                 hash: "",
@@ -156,7 +154,7 @@ class OffCloud: DebridSource, ObservableObject {
             )
         }
 
-        let cloudExploreLinks = try await cloudExplore(requestId: selectedMagnet.cloudMagnetId)
+        let cloudExploreLinks = try await cloudExplore(requestId: selectedMagnet.id)
 
         if cloudExploreLinks.count > 1 {
             var copiedIA = ia
@@ -167,7 +165,7 @@ class OffCloud: DebridSource, ObservableObject {
                 }
 
                 return DebridIAFile(
-                    fileId: index,
+                    id: index,
                     name: exploreURL.lastPathComponent,
                     streamUrlString: exploreLink.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
                 )
@@ -176,7 +174,7 @@ class OffCloud: DebridSource, ObservableObject {
             return (nil, copiedIA)
         } else if let exploreLink = cloudExploreLinks.first {
             let restrictedFile = DebridIAFile(
-                fileId: 0,
+                id: 0,
                 name: selectedMagnet.fileName,
                 streamUrlString: exploreLink
             )
@@ -243,8 +241,7 @@ class OffCloud: DebridSource, ObservableObject {
             }
 
             return DebridCloudMagnet(
-                cloudMagnetId: cloudHistory.requestId,
-                source: self.id,
+                id: cloudHistory.requestId,
                 fileName: cloudHistory.fileName,
                 status: cloudHistory.status,
                 hash: magnetHash,

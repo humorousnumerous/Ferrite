@@ -9,19 +9,18 @@ import Foundation
 
 struct DebridIA: Hashable, Sendable {
     let magnet: Magnet
-    let source: String
     let expiryTimeStamp: Double
     var files: [DebridIAFile]
 }
 
 struct DebridIAFile: Hashable, Sendable {
-    let fileId: Int
+    let id: Int
     let name: String
     let streamUrlString: String?
     let batchIds: [Int]
 
-    init(fileId: Int, name: String, streamUrlString: String? = nil, batchIds: [Int] = []) {
-        self.fileId = fileId
+    init(id: Int, name: String, streamUrlString: String? = nil, batchIds: [Int] = []) {
+        self.id = id
         self.name = name
         self.streamUrlString = streamUrlString
         self.batchIds = batchIds
@@ -29,15 +28,13 @@ struct DebridIAFile: Hashable, Sendable {
 }
 
 struct DebridCloudDownload: Hashable, Sendable {
-    let downloadId: String
-    let source: String
+    let id: String
     let fileName: String
     let link: String
 }
 
 struct DebridCloudMagnet: Hashable, Sendable {
-    let cloudMagnetId: String
-    let source: String
+    let id: String
     let fileName: String
     let status: String
     let hash: String

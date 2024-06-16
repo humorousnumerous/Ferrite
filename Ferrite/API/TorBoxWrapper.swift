@@ -121,7 +121,6 @@ class TorBox: DebridSource, ObservableObject {
         let availableHashes = iaObjects.map { iaObject in
             DebridIA(
                 magnet: Magnet(hash: iaObject.hash, link: nil),
-                source: self.id,
                 expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                 files: iaObject.files.enumerated().compactMap { index, iaFile in
                     guard let fileName = iaFile.name.split(separator: "/").last else {
@@ -129,7 +128,7 @@ class TorBox: DebridSource, ObservableObject {
                     }
 
                     return DebridIAFile(
-                        fileId: index,
+                        id: index,
                         name: String(fileName)
                     )
                 }
@@ -153,11 +152,11 @@ class TorBox: DebridSource, ObservableObject {
             throw DebridError.IsCaching
         }
 
-        guard let cloudMagnetFile = filteredCloudMagnet.files[safe: iaFile?.fileId ?? 0] else {
+        guard let cloudMagnetFile = filteredCloudMagnet.files[safe: iaFile?.id ?? 0] else {
             throw DebridError.EmptyUserMagnets
         }
 
-        let restrictedFile = DebridIAFile(fileId: cloudMagnetFile.id, name: cloudMagnetFile.name, streamUrlString: String(cloudMagnetId))
+        let restrictedFile = DebridIAFile(id: cloudMagnetFile.id, name: cloudMagnetFile.name, streamUrlString: String(cloudMagnetId))
         return (restrictedFile, nil)
     }
 
@@ -201,7 +200,7 @@ class TorBox: DebridSource, ObservableObject {
         components.queryItems = [
             URLQueryItem(name: "token", value: getToken()),
             URLQueryItem(name: "torrent_id", value: restrictedFile.streamUrlString),
-            URLQueryItem(name: "file_id", value: String(restrictedFile.fileId))
+            URLQueryItem(name: "file_id", value: String(restrictedFile.id))
         ]
 
         guard let url = components.url else {
@@ -237,8 +236,7 @@ class TorBox: DebridSource, ObservableObject {
 
             // Only need one link to force a green badge
             DebridCloudMagnet(
-                cloudMagnetId: String(cloudMagnet.id),
-                source: self.id,
+                id: String(cloudMagnet.id),
                 fileName: cloudMagnet.name,
                 status: cloudMagnet.downloadState == "cached" || cloudMagnet.downloadState == "completed" ? "downloaded" : cloudMagnet.downloadState,
                 hash: cloudMagnet.hash,

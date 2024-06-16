@@ -288,10 +288,10 @@ class RealDebrid: PollingDebridSource, ObservableObject {
                 let batchFileIds = batch.files.map(\.id)
 
                 for batchFile in batch.files {
-                    if !files.contains(where: { $0.fileId == batchFile.id }) {
+                    if !files.contains(where: { $0.id == batchFile.id }) {
                         files.append(
                             DebridIAFile(
-                                fileId: batchFile.id,
+                                id: batchFile.id,
                                 name: batchFile.fileName,
                                 batchIds: batchFileIds
                             )
@@ -304,7 +304,6 @@ class RealDebrid: PollingDebridSource, ObservableObject {
             IAValues.append(
                 DebridIA(
                     magnet: Magnet(hash: hash, link: nil),
-                    source: id,
                     expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                     files: files
                 )
@@ -321,7 +320,7 @@ class RealDebrid: PollingDebridSource, ObservableObject {
         do {
             // Don't queue a new job if the magnet already exists in the user's library
             if let existingCloudMagnet = cloudMagnets.first(where: { $0.hash == magnet.hash && $0.status == "downloaded" }) {
-                selectedMagnetId = existingCloudMagnet.cloudMagnetId
+                selectedMagnetId = existingCloudMagnet.id
             } else {
                 selectedMagnetId = try await addMagnet(magnet: magnet)
 
@@ -331,7 +330,7 @@ class RealDebrid: PollingDebridSource, ObservableObject {
             // RealDebrid has 1 as the first ID for a file
             let restrictedFile = try await torrentInfo(
                 debridID: selectedMagnetId,
-                selectedFileId: iaFile?.fileId ?? 1
+                selectedFileId: iaFile?.id ?? 1
             )
 
             return (restrictedFile, nil)
@@ -398,7 +397,7 @@ class RealDebrid: PollingDebridSource, ObservableObject {
         // Let the user know if a magnet is downloading
         if let cloudMagnetLink = rawResponse.links[safe: linkIndex ?? -1], rawResponse.status == "downloaded" {
             return DebridIAFile(
-                fileId: 0,
+                id: 0,
                 name: rawResponse.filename,
                 streamUrlString: cloudMagnetLink
             )
@@ -436,8 +435,7 @@ class RealDebrid: PollingDebridSource, ObservableObject {
         let rawResponse = try jsonDecoder.decode([UserTorrentsResponse].self, from: data)
         cloudMagnets = rawResponse.map { response in
             DebridCloudMagnet(
-                cloudMagnetId: response.id,
-                source: self.id,
+                id: response.id,
                 fileName: response.filename,
                 status: response.status,
                 hash: response.hash,
@@ -460,7 +458,7 @@ class RealDebrid: PollingDebridSource, ObservableObject {
                 throw DebridError.EmptyUserMagnets
             }
 
-            deleteId = firstCloudMagnet.cloudMagnetId
+            deleteId = firstCloudMagnet.id
         }
 
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents/delete/\(deleteId)")!)
@@ -476,7 +474,7 @@ class RealDebrid: PollingDebridSource, ObservableObject {
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode([UserDownloadsResponse].self, from: data)
         cloudDownloads = rawResponse.map { response in
-            DebridCloudDownload(downloadId: response.id, source: self.id, fileName: response.filename, link: response.download)
+            DebridCloudDownload(id: response.id, fileName: response.filename, link: response.download)
         }
     }
 

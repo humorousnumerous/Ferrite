@@ -197,12 +197,11 @@ class AllDebrid: PollingDebridSource, ObservableObject {
         let availableHashes = filteredMagnets.map { magnetResp in
             // Force unwrap is OK here since the filter caught any nil values
             let files = magnetResp.files!.enumerated().map { index, magnetFile in
-                DebridIAFile(fileId: index, name: magnetFile.name)
+                DebridIAFile(id: index, name: magnetFile.name)
             }
 
             return DebridIA(
                 magnet: Magnet(hash: magnetResp.hash, link: magnetResp.magnet),
-                source: self.id,
                 expiryTimeStamp: Date().timeIntervalSince1970 + 300,
                 files: files
             )
@@ -218,7 +217,7 @@ class AllDebrid: PollingDebridSource, ObservableObject {
         let selectedMagnetId: String
 
         if let existingMagnet = cloudMagnets.first(where: { $0.hash == magnet.hash && $0.status == "Ready" }) {
-            selectedMagnetId = existingMagnet.cloudMagnetId
+            selectedMagnetId = existingMagnet.id
         } else {
             let magnetId = try await addMagnet(magnet: magnet)
             selectedMagnetId = String(magnetId)
@@ -226,7 +225,7 @@ class AllDebrid: PollingDebridSource, ObservableObject {
 
         let lockedLink = try await fetchMagnetStatus(
             magnetId: selectedMagnetId,
-            selectedIndex: iaFile?.fileId ?? 0
+            selectedIndex: iaFile?.id ?? 0
         )
 
         return (lockedLink, nil)
@@ -270,7 +269,7 @@ class AllDebrid: PollingDebridSource, ObservableObject {
 
         // Better to fetch no link at all than the wrong link
         if let cloudMagnetFile = rawResponse.magnets[safe: 0]?.links[safe: selectedIndex ?? -1] {
-            return DebridIAFile(fileId: 0, name: cloudMagnetFile.filename, streamUrlString: cloudMagnetFile.link)
+            return DebridIAFile(id: 0, name: cloudMagnetFile.filename, streamUrlString: cloudMagnetFile.link)
         } else {
             throw DebridError.EmptyUserMagnets
         }
@@ -308,8 +307,7 @@ class AllDebrid: PollingDebridSource, ObservableObject {
 
         cloudMagnets = rawResponse.magnets.map { magnetResponse in
             DebridCloudMagnet(
-                cloudMagnetId: String(magnetResponse.id),
-                source: self.id,
+                id: String(magnetResponse.id),
                 fileName: magnetResponse.filename,
                 status: magnetResponse.status == "Ready" ? "downloaded" : magnetResponse.status,
                 hash: magnetResponse.hash,
@@ -340,7 +338,7 @@ class AllDebrid: PollingDebridSource, ObservableObject {
         // The link is also the ID
         cloudDownloads = rawResponse.links.map { link in
             DebridCloudDownload(
-                downloadId: link.link, source: self.id, fileName: link.filename, link: link.link
+                id: link.link, fileName: link.filename, link: link.link
             )
         }
     }
