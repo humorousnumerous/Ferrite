@@ -23,14 +23,7 @@ class DebridManager: ObservableObject {
     // UI Variables
     @Published var showWebView: Bool = false
     @Published var showAuthSession: Bool = false
-
-    var hasEnabledDebrids: Bool {
-        debridSources.contains { $0.isLoggedIn }
-    }
-
-    var enabledDebridCount: Int {
-        debridSources.filter(\.isLoggedIn).count
-    }
+    @Published var enabledDebrids: [DebridSource] = []
 
     @Published var selectedDebridSource: DebridSource? {
         didSet {
@@ -57,6 +50,9 @@ class DebridManager: ObservableObject {
     @Published var notImplementedMessage: String = ""
 
     init() {
+        // Update the UI for debrid services that are enabled
+        enabledDebrids = debridSources.filter { $0.isLoggedIn }
+
         // Set the preferred service. Contains migration logic for earlier versions
         if let rawPreferredService = UserDefaults.standard.string(forKey: "Debrid.PreferredService") {
             let debridServiceId: String?
@@ -193,7 +189,7 @@ class DebridManager: ObservableObject {
                 debridSource.authProcessing = false
             }
 
-            if enabledDebridCount == 1 {
+            if enabledDebrids.count == 1 {
                 selectedDebridSource = debridSource
             }
         }
@@ -201,6 +197,8 @@ class DebridManager: ObservableObject {
         // Set an API key if manually provided
         if let apiKey {
             debridSource.setApiKey(apiKey)
+            enabledDebrids.append(debridSource)
+
             return
         }
 
@@ -213,6 +211,7 @@ class DebridManager: ObservableObject {
 
                 if validateAuthUrl(authUrl) {
                     try await pollingSource.authTask?.value
+                    enabledDebrids.append(debridSource)
                 } else {
                     throw DebridError.AuthQuery(description: "The authentication URL was invalid")
                 }
@@ -278,7 +277,7 @@ class DebridManager: ObservableObject {
     // Currently handles Premiumize callback
     func handleAuthCallback(url: URL?, error: Error?) async {
         defer {
-            if enabledDebridCount == 1 {
+            if enabledDebrids.count == 1 {
                 selectedDebridSource = selectedOAuthDebridSource
             }
 
@@ -296,6 +295,7 @@ class DebridManager: ObservableObject {
 
             if let callbackUrl = url {
                 try oauthDebridSource.handleAuthCallback(url: callbackUrl)
+                enabledDebrids.append(oauthDebridSource)
             } else {
                 throw DebridError.AuthQuery(description: "The callback URL was invalid")
             }
@@ -312,6 +312,8 @@ class DebridManager: ObservableObject {
         if selectedDebridSource?.id == debridSource.id {
             selectedDebridSource = nil
         }
+
+        enabledDebrids.removeAll { $0.id == debridSource.id }
     }
 
     // MARK: - Debrid fetch UI linked functions

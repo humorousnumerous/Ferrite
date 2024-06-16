@@ -60,7 +60,7 @@ struct SearchFilterHeaderView: View {
 
                 // MARK: - Cache status picker
 
-                if debridManager.hasEnabledDebrids {
+                if !debridManager.enabledDebrids.isEmpty {
                     IAFilterView()
                 }
 

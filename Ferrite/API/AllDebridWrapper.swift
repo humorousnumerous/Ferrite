@@ -13,7 +13,7 @@ class AllDebrid: PollingDebridSource, ObservableObject {
     let website = "https://alldebrid.com"
     var authTask: Task<Void, Error>?
 
-    var authProcessing: Bool = false
+    @Published var authProcessing: Bool = false
     var isLoggedIn: Bool {
         getToken() != nil
     }

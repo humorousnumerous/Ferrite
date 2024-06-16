@@ -102,7 +102,7 @@ class ScrapingViewModel: ObservableObject {
 
         cleanedSearchText = searchText.lowercased()
 
-        if await !debridManager.hasEnabledDebrids {
+        if await !debridManager.enabledDebrids.isEmpty {
             await debridManager.clearIAValues()
         }
 
@@ -136,7 +136,7 @@ class ScrapingViewModel: ObservableObject {
             var failedSourceNames: [String] = []
             for await (requestResult, sourceName) in group {
                 if let requestResult {
-                    if await debridManager.hasEnabledDebrids {
+                    if await !debridManager.enabledDebrids.isEmpty {
                         await debridManager.populateDebridIA(requestResult.magnets)
                     }
 

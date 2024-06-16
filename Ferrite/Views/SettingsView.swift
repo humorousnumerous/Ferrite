@@ -128,7 +128,7 @@ struct SettingsView: View {
                 }
 
                 Section(header: InlineHeader("Default actions")) {
-                    if debridManager.hasEnabledDebrids {
+                    if !debridManager.enabledDebrids.isEmpty {
                         NavigationLink {
                             DefaultActionPickerView(
                                 actionRequirement: .debrid,
