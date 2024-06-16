@@ -7,19 +7,13 @@
 
 import Foundation
 
-// Torrents: /cloud/history
-// IA: /cache (JSON array of hashes)
-// Add Magnet: /cloud (URL param in JSON body)
-// Get files/unrestrict: /cloud/explore/\(requestId)
-// Delete torrent (website URL, not API URL): /cloud/remove/\(torrentId)
-
 class OffCloud: DebridSource, ObservableObject {
     let id = "OffCloud"
     let abbreviation = "OC"
     let website = "https://offcloud.com"
     let description: String? = "OffCloud is a debrid service that is used for downloads and media playback. " +
         "You must pay to access this service. \n\n" +
-        "This service does not inform if a torrent is a batch before downloading."
+        "This service does not inform if a magnet link is a batch before downloading."
 
     @Published var authProcessing: Bool = false
     var isLoggedIn: Bool {
@@ -36,7 +30,7 @@ class OffCloud: DebridSource, ObservableObject {
 
     @Published var IAValues: [DebridIA] = []
     @Published var cloudDownloads: [DebridCloudDownload] = []
-    @Published var cloudTorrents: [DebridCloudTorrent] = []
+    @Published var cloudMagnets: [DebridCloudMagnet] = []
     var cloudTTL: Double = 0.0
 
     private let baseApiUrl = "https://offcloud.com/api"
@@ -140,11 +134,11 @@ class OffCloud: DebridSource, ObservableObject {
 
     // Cloud in OffCloud's API
     func getRestrictedFile(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> (restrictedFile: DebridIAFile?, newIA: DebridIA?) {
-        let selectedTorrent: DebridCloudTorrent
+        let selectedMagnet: DebridCloudMagnet
 
-        // Don't queue a new job if the torrent already exists
-        if let existingTorrent = cloudTorrents.first(where: { $0.hash == magnet.hash && $0.status == "downloaded" }) {
-            selectedTorrent = existingTorrent
+        // Don't queue a new job if the magnet already exists in the user's account
+        if let existingCloudMagnet = cloudMagnets.first(where: { $0.hash == magnet.hash && $0.status == "downloaded" }) {
+            selectedMagnet = existingCloudMagnet
         } else {
             let cloudDownloadResponse = try await offcloudDownload(magnet: magnet)
 
@@ -152,8 +146,8 @@ class OffCloud: DebridSource, ObservableObject {
                 throw DebridError.IsCaching
             }
 
-            selectedTorrent = DebridCloudTorrent(
-                torrentId: cloudDownloadResponse.requestId,
+            selectedMagnet = DebridCloudMagnet(
+                cloudMagnetId: cloudDownloadResponse.requestId,
                 source: id,
                 fileName: cloudDownloadResponse.fileName,
                 status: cloudDownloadResponse.status,
@@ -162,7 +156,7 @@ class OffCloud: DebridSource, ObservableObject {
             )
         }
 
-        let cloudExploreLinks = try await cloudExplore(requestId: selectedTorrent.torrentId)
+        let cloudExploreLinks = try await cloudExplore(requestId: selectedMagnet.cloudMagnetId)
 
         if cloudExploreLinks.count > 1 {
             var copiedIA = ia
@@ -183,7 +177,7 @@ class OffCloud: DebridSource, ObservableObject {
         } else if let exploreLink = cloudExploreLinks.first {
             let restrictedFile = DebridIAFile(
                 fileId: 0,
-                name: selectedTorrent.fileName,
+                name: selectedMagnet.fileName,
                 streamUrlString: exploreLink
             )
 
@@ -235,21 +229,21 @@ class OffCloud: DebridSource, ObservableObject {
         link
     }
 
-    func deleteDownload(downloadId: String) {}
+    func deleteUserDownload(downloadId: String) {}
 
-    func getUserTorrents() async throws {
+    func getUserMagnets() async throws {
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/cloud/history"))
 
         let data = try await performRequest(request: &request, requestName: "cloudHistory")
         let rawResponse = try jsonDecoder.decode([CloudHistoryResponse].self, from: data)
 
-        cloudTorrents = rawResponse.compactMap { cloudHistory in
+        cloudMagnets = rawResponse.compactMap { cloudHistory in
             guard let magnetHash = Magnet(hash: nil, link: cloudHistory.originalLink).hash else {
                 return nil
             }
 
-            return DebridCloudTorrent(
-                torrentId: cloudHistory.requestId,
+            return DebridCloudMagnet(
+                cloudMagnetId: cloudHistory.requestId,
                 source: self.id,
                 fileName: cloudHistory.fileName,
                 status: cloudHistory.status,
@@ -260,12 +254,12 @@ class OffCloud: DebridSource, ObservableObject {
     }
 
     // Uses the base website because this isn't present in the API path but still works like the API?
-    func deleteTorrent(torrentId: String?) async throws {
-        guard let torrentId else {
+    func deleteUserMagnet(cloudMagnetId: String?) async throws {
+        guard let cloudMagnetId else {
             throw DebridError.InvalidPostBody
         }
 
-        var request = URLRequest(url: try buildRequestURL(urlString: "\(website)/cloud/remove/\(torrentId)"))
+        var request = URLRequest(url: try buildRequestURL(urlString: "\(website)/cloud/remove/\(cloudMagnetId)"))
         try await performRequest(request: &request, requestName: "cloudRemove")
     }
 }

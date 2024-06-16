@@ -29,7 +29,7 @@ class Premiumize: OAuthDebridSource, ObservableObject {
 
     @Published var IAValues: [DebridIA] = []
     @Published var cloudDownloads: [DebridCloudDownload] = []
-    @Published var cloudTorrents: [DebridCloudTorrent] = []
+    @Published var cloudMagnets: [DebridCloudMagnet] = []
     var cloudTTL: Double = 0.0
 
     private let baseAuthUrl = "https://www.premiumize.me/authorize"
@@ -355,7 +355,7 @@ class Premiumize: OAuthDebridSource, ObservableObject {
         try await itemDetails(itemID: link).link
     }
 
-    func deleteDownload(downloadId: String) async throws {
+    func deleteUserDownload(downloadId: String) async throws {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/item/delete")!)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -368,8 +368,8 @@ class Premiumize: OAuthDebridSource, ObservableObject {
         try await performRequest(request: &request, requestName: #function)
     }
 
-    // No user torrents for Premiumize
-    func getUserTorrents() {}
+    // No user magnets for Premiumize
+    func getUserMagnets() {}
 
-    func deleteTorrent(torrentId: String?) {}
+    func deleteUserMagnet(cloudMagnetId: String?) {}
 }

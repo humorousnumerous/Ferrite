@@ -157,7 +157,7 @@ class DebridManager: ObservableObject {
 
     func selectDebridResult(magnet: Magnet) -> Bool {
         guard let magnetHash = magnet.hash else {
-            logManager?.error("DebridManager: Could not find the torrent magnet hash")
+            logManager?.error("DebridManager: Could not find the magnet hash")
             return false
         }
 
@@ -415,9 +415,9 @@ class DebridManager: ObservableObject {
 
         if bypassTTL || Date().timeIntervalSince1970 > selectedSource.cloudTTL {
             do {
-                // Populates the inner downloads and torrent arrays
+                // Populates the inner downloads and magnet arrays
                 try await selectedSource.getUserDownloads()
-                try await selectedSource.getUserTorrents()
+                try await selectedSource.getUserMagnets()
 
                 // Update the TTL to 5 minutes from now
                 selectedSource.cloudTTL = Date().timeIntervalSince1970 + 300
@@ -436,7 +436,7 @@ class DebridManager: ObservableObject {
         }
 
         do {
-            try await selectedSource.deleteDownload(downloadId: download.downloadId)
+            try await selectedSource.deleteUserDownload(downloadId: download.downloadId)
 
             await fetchDebridCloud(bypassTTL: true)
         } catch {
@@ -456,19 +456,19 @@ class DebridManager: ObservableObject {
         }
     }
 
-    func deleteCloudTorrent(_ torrent: DebridCloudTorrent) async {
+    func deleteUserMagnet(_ cloudMagnet: DebridCloudMagnet) async {
         guard let selectedSource = selectedDebridSource else {
             return
         }
 
         do {
-            try await selectedSource.deleteTorrent(torrentId: torrent.torrentId)
+            try await selectedSource.deleteUserMagnet(cloudMagnetId: cloudMagnet.cloudMagnetId)
 
             await fetchDebridCloud(bypassTTL: true)
         } catch {
             switch error {
             case DebridError.NotImplemented:
-                let message = "Torrent deletion for \(selectedSource.id) is not implemented. Please use the service's website."
+                let message = "Magnet deletion for \(selectedSource.id) is not implemented. Please use the service's website."
 
                 notImplementedMessage = message
                 showNotImplementedAlert.toggle()
@@ -477,7 +477,7 @@ class DebridManager: ObservableObject {
                     showToast: false
                 )
             default:
-                await sendDebridError(error, prefix: "\(selectedSource.id) torrent delete error")
+                await sendDebridError(error, prefix: "\(selectedSource.id) magnet delete error")
             }
         }
     }

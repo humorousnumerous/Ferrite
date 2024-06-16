@@ -20,8 +20,8 @@ struct DebridCloudView: View {
                 CloudDownloadView(debridSource: debridSource, searchText: $searchText)
             }
 
-            if !debridSource.cloudTorrents.isEmpty {
-                CloudTorrentView(debridSource: debridSource, searchText: $searchText)
+            if !debridSource.cloudMagnets.isEmpty {
+                CloudMagnetView(debridSource: debridSource, searchText: $searchText)
             }
         }
         .listStyle(.plain)

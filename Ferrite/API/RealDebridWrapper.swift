@@ -30,7 +30,7 @@ class RealDebrid: PollingDebridSource, ObservableObject {
 
     @Published var IAValues: [DebridIA] = []
     @Published var cloudDownloads: [DebridCloudDownload] = []
-    @Published var cloudTorrents: [DebridCloudTorrent] = []
+    @Published var cloudMagnets: [DebridCloudMagnet] = []
     var cloudTTL: Double = 0.0
 
     private let baseAuthUrl = "https://api.real-debrid.com/oauth/v2"
@@ -261,7 +261,6 @@ class RealDebrid: PollingDebridSource, ObservableObject {
 
         let data = try await performRequest(request: &request, requestName: #function)
 
-        // Does not account for torrent packs at the moment
         let rawResponseDict = try jsonDecoder.decode([String: InstantAvailabilityResponse].self, from: data)
 
         for (hash, response) in rawResponseDict {
@@ -320,9 +319,9 @@ class RealDebrid: PollingDebridSource, ObservableObject {
         var selectedMagnetId = ""
 
         do {
-            // Don't queue a new job if the torrent already exists
-            if let existingTorrent = cloudTorrents.first(where: { $0.hash == magnet.hash && $0.status == "downloaded" }) {
-                selectedMagnetId = existingTorrent.torrentId
+            // Don't queue a new job if the magnet already exists in the user's library
+            if let existingCloudMagnet = cloudMagnets.first(where: { $0.hash == magnet.hash && $0.status == "downloaded" }) {
+                selectedMagnetId = existingCloudMagnet.cloudMagnetId
             } else {
                 selectedMagnetId = try await addMagnet(magnet: magnet)
 
@@ -330,15 +329,15 @@ class RealDebrid: PollingDebridSource, ObservableObject {
             }
 
             // RealDebrid has 1 as the first ID for a file
-            let torrentFile = try await torrentInfo(
+            let restrictedFile = try await torrentInfo(
                 debridID: selectedMagnetId,
                 selectedFileId: iaFile?.fileId ?? 1
             )
 
-            return (torrentFile, nil)
+            return (restrictedFile, nil)
         } catch {
-            if case DebridError.EmptyTorrents = error, !selectedMagnetId.isEmpty {
-                try? await deleteTorrent(torrentId: selectedMagnetId)
+            if case DebridError.EmptyUserMagnets = error, !selectedMagnetId.isEmpty {
+                try? await deleteUserMagnet(cloudMagnetId: selectedMagnetId)
             }
 
             // Re-raise the error to the calling function
@@ -396,17 +395,17 @@ class RealDebrid: PollingDebridSource, ObservableObject {
         let filteredFiles = rawResponse.files.filter { $0.selected == 1 }
         let linkIndex = filteredFiles.firstIndex(where: { $0.id == selectedFileId })
 
-        // Let the user know if a torrent is downloading
-        if let torrentLink = rawResponse.links[safe: linkIndex ?? -1], rawResponse.status == "downloaded" {
+        // Let the user know if a magnet is downloading
+        if let cloudMagnetLink = rawResponse.links[safe: linkIndex ?? -1], rawResponse.status == "downloaded" {
             return DebridIAFile(
                 fileId: 0,
                 name: rawResponse.filename,
-                streamUrlString: torrentLink
+                streamUrlString: cloudMagnetLink
             )
         } else if rawResponse.status == "downloading" || rawResponse.status == "queued" {
             throw DebridError.IsCaching
         } else {
-            throw DebridError.EmptyTorrents
+            throw DebridError.EmptyUserMagnets
         }
     }
 
@@ -429,15 +428,15 @@ class RealDebrid: PollingDebridSource, ObservableObject {
 
     // MARK: - Cloud methods
 
-    // Gets the user's torrent library
-    func getUserTorrents() async throws {
+    // Gets the user's cloud magnet library
+    func getUserMagnets() async throws {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents")!)
 
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode([UserTorrentsResponse].self, from: data)
-        cloudTorrents = rawResponse.map { response in
-            DebridCloudTorrent(
-                torrentId: response.id,
+        cloudMagnets = rawResponse.map { response in
+            DebridCloudMagnet(
+                cloudMagnetId: response.id,
                 source: self.id,
                 fileName: response.filename,
                 status: response.status,
@@ -447,21 +446,21 @@ class RealDebrid: PollingDebridSource, ObservableObject {
         }
     }
 
-    // Deletes a torrent download from RD
-    func deleteTorrent(torrentId: String?) async throws {
+    // Deletes a magnet download from RD
+    func deleteUserMagnet(cloudMagnetId: String?) async throws {
         let deleteId: String
 
-        if let torrentId {
-            deleteId = torrentId
+        if let cloudMagnetId {
+            deleteId = cloudMagnetId
         } else {
-            // Refresh the torrent cloud
+            // Refresh the user magnet list
             // The first file is the currently caching one
-            let _ = try await getUserTorrents()
-            guard let firstTorrent = cloudTorrents[safe: -1] else {
-                throw DebridError.EmptyTorrents
+            let _ = try await getUserMagnets()
+            guard let firstCloudMagnet = cloudMagnets[safe: -1] else {
+                throw DebridError.EmptyUserMagnets
             }
 
-            deleteId = firstTorrent.torrentId
+            deleteId = firstCloudMagnet.cloudMagnetId
         }
 
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents/delete/\(deleteId)")!)
@@ -486,7 +485,7 @@ class RealDebrid: PollingDebridSource, ObservableObject {
         link
     }
 
-    func deleteDownload(downloadId: String) async throws {
+    func deleteUserDownload(downloadId: String) async throws {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/downloads/delete/\(downloadId)")!)
         request.httpMethod = "DELETE"
 

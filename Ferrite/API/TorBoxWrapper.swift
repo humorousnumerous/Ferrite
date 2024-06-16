@@ -7,12 +7,6 @@
 
 import Foundation
 
-// Torrents: /torrents/mylist
-// IA: /torrents/checkcached
-// Add Magnet: /torrents/createtorrent
-// Delete torrent: /torrents/controltorrent
-// Unrestrict: /torrents/requestdl
-
 class TorBox: DebridSource, ObservableObject {
     let id = "TorBox"
     let abbreviation = "TB"
@@ -35,7 +29,7 @@ class TorBox: DebridSource, ObservableObject {
 
     @Published var IAValues: [DebridIA] = []
     @Published var cloudDownloads: [DebridCloudDownload] = []
-    @Published var cloudTorrents: [DebridCloudTorrent] = []
+    @Published var cloudMagnets: [DebridCloudMagnet] = []
     var cloudTTL: Double = 0.0
 
     private let baseApiUrl = "https://api.torbox.app/v1/api"
@@ -148,22 +142,22 @@ class TorBox: DebridSource, ObservableObject {
     // MARK: - Downloading
 
     func getRestrictedFile(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> (restrictedFile: DebridIAFile?, newIA: DebridIA?) {
-        let torrentId = try await createTorrent(magnet: magnet)
-        let torrentList = try await myTorrentList()
-        guard let filteredTorrent = torrentList.first(where: { $0.id == torrentId }) else {
-            throw DebridError.FailedRequest(description: "A torrent wasn't found. Are you sure it's cached?")
+        let cloudMagnetId = try await createTorrent(magnet: magnet)
+        let cloudMagnetList = try await myTorrentList()
+        guard let filteredCloudMagnet = cloudMagnetList.first(where: { $0.id == cloudMagnetId }) else {
+            throw DebridError.FailedRequest(description: "Could not find a cached magnet. Are you sure it's cached?")
         }
 
-        // If the torrent isn't saved, it's considered as caching
-        guard filteredTorrent.downloadState == "cached" || filteredTorrent.downloadState == "completed" else {
+        // If the user magnet isn't saved, it's considered as caching
+        guard filteredCloudMagnet.downloadState == "cached" || filteredCloudMagnet.downloadState == "completed" else {
             throw DebridError.IsCaching
         }
 
-        guard let torrentFile = filteredTorrent.files[safe: iaFile?.fileId ?? 0] else {
-            throw DebridError.EmptyTorrents
+        guard let cloudMagnetFile = filteredCloudMagnet.files[safe: iaFile?.fileId ?? 0] else {
+            throw DebridError.EmptyUserMagnets
         }
 
-        let restrictedFile = DebridIAFile(fileId: torrentFile.id, name: torrentFile.name, streamUrlString: String(torrentId))
+        let restrictedFile = DebridIAFile(fileId: cloudMagnetFile.id, name: cloudMagnetFile.name, streamUrlString: String(cloudMagnetId))
         return (restrictedFile, nil)
     }
 
@@ -235,26 +229,26 @@ class TorBox: DebridSource, ObservableObject {
         link
     }
 
-    func deleteDownload(downloadId: String) {}
+    func deleteUserDownload(downloadId: String) {}
 
-    func getUserTorrents() async throws {
-        let torrentList = try await myTorrentList()
-        cloudTorrents = torrentList.map { torrent in
+    func getUserMagnets() async throws {
+        let cloudMagnetList = try await myTorrentList()
+        cloudMagnets = cloudMagnetList.map { cloudMagnet in
 
             // Only need one link to force a green badge
-            DebridCloudTorrent(
-                torrentId: String(torrent.id),
+            DebridCloudMagnet(
+                cloudMagnetId: String(cloudMagnet.id),
                 source: self.id,
-                fileName: torrent.name,
-                status: torrent.downloadState == "cached" || torrent.downloadState == "completed" ? "downloaded" : torrent.downloadState,
-                hash: torrent.hash,
-                links: torrent.files.map { String($0.id) }
+                fileName: cloudMagnet.name,
+                status: cloudMagnet.downloadState == "cached" || cloudMagnet.downloadState == "completed" ? "downloaded" : cloudMagnet.downloadState,
+                hash: cloudMagnet.hash,
+                links: cloudMagnet.files.map { String($0.id) }
             )
         }
     }
 
-    func deleteTorrent(torrentId: String?) async throws {
-        guard let torrentId else {
+    func deleteUserMagnet(cloudMagnetId: String?) async throws {
+        guard let cloudMagnetId else {
             throw DebridError.InvalidPostBody
         }
 
@@ -262,7 +256,7 @@ class TorBox: DebridSource, ObservableObject {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let body = ControlTorrentRequest(torrentId: torrentId, operation: "Delete")
+        let body = ControlTorrentRequest(torrentId: cloudMagnetId, operation: "Delete")
         request.httpBody = try jsonEncoder.encode(body)
 
         try await performRequest(request: &request, requestName: "controltorrent")

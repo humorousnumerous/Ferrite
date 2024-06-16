@@ -35,8 +35,8 @@ struct DebridCloudDownload: Hashable, Sendable {
     let link: String
 }
 
-struct DebridCloudTorrent: Hashable, Sendable {
-    let torrentId: String
+struct DebridCloudMagnet: Hashable, Sendable {
+    let cloudMagnetId: String
     let source: String
     let fileName: String
     let status: String
@@ -50,7 +50,7 @@ enum DebridError: Error {
     case InvalidResponse
     case InvalidToken
     case EmptyData
-    case EmptyTorrents
+    case EmptyUserMagnets
     case IsCaching
     case FailedRequest(description: String)
     case AuthQuery(description: String)

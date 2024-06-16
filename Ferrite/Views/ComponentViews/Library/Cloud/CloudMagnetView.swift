@@ -1,5 +1,5 @@
 //
-//  CloudTorrentView.swift
+//  CloudMagnetView.swift
 //  Ferrite
 //
 //  Created by Brian Dashore on 6/6/24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CloudTorrentView: View {
+struct CloudMagnetView: View {
     @EnvironmentObject var navModel: NavigationViewModel
     @EnvironmentObject var debridManager: DebridManager
     @EnvironmentObject var pluginManager: PluginManager
@@ -17,27 +17,27 @@ struct CloudTorrentView: View {
     @Binding var searchText: String
 
     var body: some View {
-        DisclosureGroup("Torrents") {
-            ForEach(debridSource.cloudTorrents.filter {
+        DisclosureGroup("Magnets") {
+            ForEach(debridSource.cloudMagnets.filter {
                 searchText.isEmpty ? true : $0.fileName.lowercased().contains(searchText.lowercased())
-            }, id: \.self) { cloudTorrent in
+            }, id: \.self) { cloudMagnet in
                 Button {
-                    if cloudTorrent.status == "downloaded", !cloudTorrent.links.isEmpty {
+                    if cloudMagnet.status == "downloaded", !cloudMagnet.links.isEmpty {
                         navModel.resultFromCloud = true
-                        navModel.selectedTitle = cloudTorrent.fileName
+                        navModel.selectedTitle = cloudMagnet.fileName
 
                         var historyInfo = HistoryEntryJson(
-                            name: cloudTorrent.fileName,
+                            name: cloudMagnet.fileName,
                             source: debridSource.id
                         )
 
                         Task {
-                            let magnet = Magnet(hash: cloudTorrent.hash, link: nil)
+                            let magnet = Magnet(hash: cloudMagnet.hash, link: nil)
                             await debridManager.populateDebridIA([magnet])
                             if debridManager.selectDebridResult(magnet: magnet) {
                                 // Is this a batch?
 
-                                if cloudTorrent.links.count == 1 {
+                                if cloudMagnet.links.count == 1 {
                                     await debridManager.fetchDebridDownload(magnet: magnet)
 
                                     // Bump to batch
@@ -67,15 +67,15 @@ struct CloudTorrentView: View {
                     }
                 } label: {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text(cloudTorrent.fileName)
+                        Text(cloudMagnet.fileName)
                             .font(.callout)
                             .fixedSize(horizontal: false, vertical: true)
                             .lineLimit(4)
 
                         HStack {
-                            Text(cloudTorrent.status.capitalizingFirstLetter())
+                            Text(cloudMagnet.status.capitalizingFirstLetter())
                             Spacer()
-                            DebridLabelView(debridSource: debridSource, cloudLinks: cloudTorrent.links)
+                            DebridLabelView(debridSource: debridSource, cloudLinks: cloudMagnet.links)
                         }
                         .font(.caption)
                     }
@@ -85,9 +85,9 @@ struct CloudTorrentView: View {
             }
             .onDelete { offsets in
                 for index in offsets {
-                    if let cloudTorrent = debridSource.cloudTorrents[safe: index] {
+                    if let cloudMagnet = debridSource.cloudMagnets[safe: index] {
                         Task {
-                            await debridManager.deleteCloudTorrent(cloudTorrent)
+                            await debridManager.deleteUserMagnet(cloudMagnet)
                         }
                     }
                 }

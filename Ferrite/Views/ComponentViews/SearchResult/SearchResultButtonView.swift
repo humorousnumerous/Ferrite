@@ -125,7 +125,7 @@ struct SearchResultButtonView: View {
         .alert("Caching file", isPresented: $debridManager.showDeleteAlert) {
             Button("Yes", role: .destructive) {
                 Task {
-                    try? await debridManager.selectedDebridSource?.deleteTorrent(torrentId: nil)
+                    try? await debridManager.selectedDebridSource?.deleteUserMagnet(cloudMagnetId: nil)
                 }
             }
             Button("Cancel", role: .cancel) {}

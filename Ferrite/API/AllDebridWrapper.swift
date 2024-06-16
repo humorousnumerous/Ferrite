@@ -28,7 +28,7 @@ class AllDebrid: PollingDebridSource, ObservableObject {
 
     @Published var IAValues: [DebridIA] = []
     @Published var cloudDownloads: [DebridCloudDownload] = []
-    @Published var cloudTorrents: [DebridCloudTorrent] = []
+    @Published var cloudMagnets: [DebridCloudMagnet] = []
     var cloudTTL: Double = 0.0
 
     private let baseApiUrl = "https://api.alldebrid.com/v4"
@@ -217,8 +217,8 @@ class AllDebrid: PollingDebridSource, ObservableObject {
     func getRestrictedFile(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> (restrictedFile: DebridIAFile?, newIA: DebridIA?) {
         let selectedMagnetId: String
 
-        if let existingMagnet = cloudTorrents.first(where: { $0.hash == magnet.hash && $0.status == "Ready" }) {
-            selectedMagnetId = existingMagnet.torrentId
+        if let existingMagnet = cloudMagnets.first(where: { $0.hash == magnet.hash && $0.status == "Ready" }) {
+            selectedMagnetId = existingMagnet.cloudMagnetId
         } else {
             let magnetId = try await addMagnet(magnet: magnet)
             selectedMagnetId = String(magnetId)
@@ -269,10 +269,10 @@ class AllDebrid: PollingDebridSource, ObservableObject {
         let rawResponse = try jsonDecoder.decode(ADResponse<MagnetStatusResponse>.self, from: data).data
 
         // Better to fetch no link at all than the wrong link
-        if let torrentFile = rawResponse.magnets[safe: 0]?.links[safe: selectedIndex ?? -1] {
-            return DebridIAFile(fileId: 0, name: torrentFile.filename, streamUrlString: torrentFile.link)
+        if let cloudMagnetFile = rawResponse.magnets[safe: 0]?.links[safe: selectedIndex ?? -1] {
+            return DebridIAFile(fileId: 0, name: cloudMagnetFile.filename, streamUrlString: cloudMagnetFile.link)
         } else {
-            throw DebridError.EmptyTorrents
+            throw DebridError.EmptyUserMagnets
         }
     }
 
@@ -300,32 +300,31 @@ class AllDebrid: PollingDebridSource, ObservableObject {
 
     // MARK: - Cloud methods
 
-    // Referred to as "User magnets" in AllDebrid's API
-    func getUserTorrents() async throws {
+    func getUserMagnets() async throws {
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/status"))
 
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode(ADResponse<MagnetStatusResponse>.self, from: data).data
 
-        cloudTorrents = rawResponse.magnets.map { magnetResponse in
-            DebridCloudTorrent(
-                torrentId: String(magnetResponse.id),
+        cloudMagnets = rawResponse.magnets.map { magnetResponse in
+            DebridCloudMagnet(
+                cloudMagnetId: String(magnetResponse.id),
                 source: self.id,
                 fileName: magnetResponse.filename,
-                status: magnetResponse.status,
+                status: magnetResponse.status == "Ready" ? "downloaded" : magnetResponse.status,
                 hash: magnetResponse.hash,
                 links: magnetResponse.links.map(\.link)
             )
         }
     }
 
-    func deleteTorrent(torrentId: String?) async throws {
-        guard let torrentId else {
-            throw DebridError.FailedRequest(description: "The torrentID \(String(describing: torrentId)) is invalid")
+    func deleteUserMagnet(cloudMagnetId: String?) async throws {
+        guard let cloudMagnetId else {
+            throw DebridError.FailedRequest(description: "The cloud magnetID \(String(describing: cloudMagnetId)) is invalid")
         }
 
         let queryItems = [
-            URLQueryItem(name: "id", value: torrentId)
+            URLQueryItem(name: "id", value: cloudMagnetId)
         ]
         var request = URLRequest(url: try buildRequestURL(urlString: "\(baseApiUrl)/magnet/delete", queryItems: queryItems))
 
@@ -352,7 +351,7 @@ class AllDebrid: PollingDebridSource, ObservableObject {
     }
 
     // The downloadId is actually the download link
-    func deleteDownload(downloadId: String) async throws {
+    func deleteUserDownload(downloadId: String) async throws {
         let queryItems = [
             URLQueryItem(name: "link", value: downloadId)
         ]

@@ -27,7 +27,7 @@ protocol DebridSource: AnyObservableObject {
 
     // Cloud variables
     var cloudDownloads: [DebridCloudDownload] { get set }
-    var cloudTorrents: [DebridCloudTorrent] { get set }
+    var cloudMagnets: [DebridCloudMagnet] { get set }
     var cloudTTL: Double { get set }
 
     // Common authentication functions
@@ -39,7 +39,7 @@ protocol DebridSource: AnyObservableObject {
 
     // Fetches a download link from a source
     // Include the instant availability information with the args
-    // Torrents also checked here
+    // Cloud magnets also checked here
     func getRestrictedFile(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> (restrictedFile: DebridIAFile?, newIA: DebridIA?)
 
     // Unrestricts a locked file
@@ -48,11 +48,11 @@ protocol DebridSource: AnyObservableObject {
     // User downloads functions
     func getUserDownloads() async throws
     func checkUserDownloads(link: String) async throws -> String?
-    func deleteDownload(downloadId: String) async throws
+    func deleteUserDownload(downloadId: String) async throws
 
-    // User torrent functions
-    func getUserTorrents() async throws
-    func deleteTorrent(torrentId: String?) async throws
+    // User magnet functions
+    func getUserMagnets() async throws
+    func deleteUserMagnet(cloudMagnetId: String?) async throws
 }
 
 extension DebridSource {
