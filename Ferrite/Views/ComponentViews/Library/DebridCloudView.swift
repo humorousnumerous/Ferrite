@@ -16,13 +16,8 @@ struct DebridCloudView: View {
 
     var body: some View {
         List {
-            if !debridSource.cloudDownloads.isEmpty {
-                CloudDownloadView(debridSource: debridSource, searchText: $searchText)
-            }
-
-            if !debridSource.cloudMagnets.isEmpty {
-                CloudMagnetView(debridSource: debridSource, searchText: $searchText)
-            }
+            CloudDownloadView(debridSource: debridSource, searchText: $searchText)
+            CloudMagnetView(debridSource: debridSource, searchText: $searchText)
         }
         .listStyle(.plain)
         .task {

@@ -22,7 +22,7 @@ struct CloudMagnetView: View {
                 searchText.isEmpty ? true : $0.fileName.lowercased().contains(searchText.lowercased())
             }, id: \.self) { cloudMagnet in
                 Button {
-                    if cloudMagnet.status == "downloaded", !cloudMagnet.links.isEmpty {
+                    if debridSource.cachedStatus.contains(cloudMagnet.status), !cloudMagnet.links.isEmpty {
                         navModel.resultFromCloud = true
                         navModel.selectedTitle = cloudMagnet.fileName
 

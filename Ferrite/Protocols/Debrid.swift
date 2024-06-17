@@ -14,6 +14,7 @@ protocol DebridSource: AnyObservableObject {
     var abbreviation: String { get }
     var website: String { get }
     var description: String? { get }
+    var cachedStatus: [String] { get }
 
     // Auth variables
     var authProcessing: Bool { get set }
@@ -58,6 +59,10 @@ protocol DebridSource: AnyObservableObject {
 extension DebridSource {
     var description: String? {
         nil
+    }
+
+    var cachedStatus: [String] {
+        []
     }
 }
 

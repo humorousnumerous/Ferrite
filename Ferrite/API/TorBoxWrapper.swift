@@ -13,6 +13,7 @@ class TorBox: DebridSource, ObservableObject {
     let website = "https://torbox.app"
     let description: String? = "TorBox is a debrid service that is used for downloads and media playback with seeding. " +
         "Both free and paid plans are available."
+    let cachedStatus: [String] = ["cached", "completed"]
 
     @Published var authProcessing: Bool = false
     var isLoggedIn: Bool {
@@ -155,7 +156,7 @@ class TorBox: DebridSource, ObservableObject {
         }
 
         // If the user magnet isn't saved, it's considered as caching
-        guard filteredCloudMagnet.downloadState == "cached" || filteredCloudMagnet.downloadState == "completed" else {
+        guard cachedStatus.contains(filteredCloudMagnet.downloadState) else {
             throw DebridError.IsCaching
         }
 
@@ -245,7 +246,7 @@ class TorBox: DebridSource, ObservableObject {
             DebridCloudMagnet(
                 id: String(cloudMagnet.id),
                 fileName: cloudMagnet.name,
-                status: cloudMagnet.downloadState == "cached" || cloudMagnet.downloadState == "completed" ? "downloaded" : cloudMagnet.downloadState,
+                status: cloudMagnet.downloadState,
                 hash: cloudMagnet.hash,
                 links: cloudMagnet.files.map { String($0.id) }
             )

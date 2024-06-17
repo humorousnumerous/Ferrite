@@ -11,6 +11,7 @@ class RealDebrid: PollingDebridSource, ObservableObject {
     let id = "RealDebrid"
     let abbreviation = "RD"
     let website = "https://real-debrid.com"
+    let cachedStatus: [String] = ["downloaded"]
     var authTask: Task<Void, Error>?
 
     @Published var authProcessing: Bool = false

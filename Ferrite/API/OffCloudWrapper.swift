@@ -14,6 +14,7 @@ class OffCloud: DebridSource, ObservableObject {
     let description: String? = "OffCloud is a debrid service that is used for downloads and media playback. " +
         "You must pay to access this service. \n\n" +
         "This service does not inform if a magnet link is a batch before downloading."
+    let cachedStatus: [String] = ["downloaded"]
 
     @Published var authProcessing: Bool = false
     var isLoggedIn: Bool {
@@ -143,12 +144,12 @@ class OffCloud: DebridSource, ObservableObject {
         let selectedCloudMagnet: DebridCloudMagnet
 
         // Don't queue a new job if the magnet already exists in the user's account
-        if let existingCloudMagnet = cloudMagnets.first(where: { $0.hash == magnet.hash && $0.status == "downloaded" }) {
+        if let existingCloudMagnet = cloudMagnets.first(where: { $0.hash == magnet.hash && cachedStatus.contains($0.status) }) {
             selectedCloudMagnet = existingCloudMagnet
         } else {
             let cloudDownloadResponse = try await offcloudDownload(magnet: magnet)
 
-            guard cloudDownloadResponse.status == "downloaded" else {
+            guard cachedStatus.contains(cloudDownloadResponse.status) else {
                 throw DebridError.IsCaching
             }
 

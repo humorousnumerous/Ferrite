@@ -11,6 +11,7 @@ class AllDebrid: PollingDebridSource, ObservableObject {
     let id = "AllDebrid"
     let abbreviation = "AD"
     let website = "https://alldebrid.com"
+    let cachedStatus: [String] = ["Ready"]
     var authTask: Task<Void, Error>?
 
     @Published var authProcessing: Bool = false
@@ -224,7 +225,7 @@ class AllDebrid: PollingDebridSource, ObservableObject {
     func getRestrictedFile(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> (restrictedFile: DebridIAFile?, newIA: DebridIA?) {
         let selectedMagnetId: String
 
-        if let existingMagnet = cloudMagnets.first(where: { $0.hash == magnet.hash && $0.status == "Ready" }) {
+        if let existingMagnet = cloudMagnets.first(where: { $0.hash == magnet.hash && cachedStatus.contains($0.status) }) {
             selectedMagnetId = existingMagnet.id
         } else {
             let magnetId = try await addMagnet(magnet: magnet)
@@ -317,7 +318,7 @@ class AllDebrid: PollingDebridSource, ObservableObject {
             DebridCloudMagnet(
                 id: String(magnetResponse.id),
                 fileName: magnetResponse.filename,
-                status: magnetResponse.status == "Ready" ? "downloaded" : magnetResponse.status,
+                status: magnetResponse.status,
                 hash: magnetResponse.hash,
                 links: magnetResponse.links.map(\.link)
             )
