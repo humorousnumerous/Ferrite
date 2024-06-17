@@ -37,6 +37,13 @@ class OffCloud: DebridSource, ObservableObject {
     private let jsonDecoder = JSONDecoder()
     private let jsonEncoder = JSONEncoder()
 
+    init() {
+        // Populate user downloads and magnets
+        Task {
+            try? await getUserMagnets()
+        }
+    }
+
     func setApiKey(_ key: String) {
         FerriteKeychain.shared.set(key, forKey: "OffCloud.ApiKey")
         UserDefaults.standard.set(true, forKey: "OffCloud.UseManualKey")
@@ -133,11 +140,11 @@ class OffCloud: DebridSource, ObservableObject {
 
     // Cloud in OffCloud's API
     func getRestrictedFile(magnet: Magnet, ia: DebridIA?, iaFile: DebridIAFile?) async throws -> (restrictedFile: DebridIAFile?, newIA: DebridIA?) {
-        let selectedMagnet: DebridCloudMagnet
+        let selectedCloudMagnet: DebridCloudMagnet
 
         // Don't queue a new job if the magnet already exists in the user's account
         if let existingCloudMagnet = cloudMagnets.first(where: { $0.hash == magnet.hash && $0.status == "downloaded" }) {
-            selectedMagnet = existingCloudMagnet
+            selectedCloudMagnet = existingCloudMagnet
         } else {
             let cloudDownloadResponse = try await offcloudDownload(magnet: magnet)
 
@@ -145,18 +152,19 @@ class OffCloud: DebridSource, ObservableObject {
                 throw DebridError.IsCaching
             }
 
-            selectedMagnet = DebridCloudMagnet(
+            selectedCloudMagnet = DebridCloudMagnet(
                 id: cloudDownloadResponse.requestId,
                 fileName: cloudDownloadResponse.fileName,
                 status: cloudDownloadResponse.status,
                 hash: "",
-                links: []
+                links: [cloudDownloadResponse.url]
             )
         }
 
-        let cloudExploreLinks = try await cloudExplore(requestId: selectedMagnet.id)
+        let cloudExploreResponse = try await cloudExplore(requestId: selectedCloudMagnet.id)
 
-        if cloudExploreLinks.count > 1 {
+        // Request will error if the file isn't a batch
+        if case let .links(cloudExploreLinks) = cloudExploreResponse {
             var copiedIA = ia
 
             copiedIA?.files = cloudExploreLinks.enumerated().compactMap { index, exploreLink in
@@ -172,11 +180,17 @@ class OffCloud: DebridSource, ObservableObject {
             }
 
             return (nil, copiedIA)
-        } else if let exploreLink = cloudExploreLinks.first {
+        } else if case let .error(cloudExploreError) = cloudExploreResponse,
+                  cloudExploreError.error.lowercased() == "bad archive"
+        {
+            guard let selectedCloudLink = selectedCloudMagnet.links[safe: 0] else {
+                throw DebridError.EmptyUserMagnets
+            }
+
             let restrictedFile = DebridIAFile(
                 id: 0,
-                name: selectedMagnet.fileName,
-                streamUrlString: exploreLink
+                name: selectedCloudMagnet.fileName,
+                streamUrlString: "\(selectedCloudLink)/\(selectedCloudMagnet.fileName)"
             )
 
             return (restrictedFile, nil)

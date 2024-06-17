@@ -36,6 +36,13 @@ class TorBox: DebridSource, ObservableObject {
     private let jsonDecoder = JSONDecoder()
     private let jsonEncoder = JSONEncoder()
 
+    init() {
+        // Populate user downloads and magnets
+        Task {
+            try? await getUserMagnets()
+        }
+    }
+
     // MARK: - Auth
 
     func setApiKey(_ key: String) {

@@ -55,12 +55,14 @@ struct Magnet: Codable, Hashable, Sendable {
         if let hash, link == nil {
             self.hash = parseHash(hash)
             self.link = generateLink(hash: hash, title: title, trackers: trackers)
-        } else if let parsedLink = parseLink(link), hash == nil {
-            self.link = parsedLink
-            self.hash = parseHash(extractHash(link: parsedLink))
+        } else if let link, hash == nil {
+            let (link, hash) = parseLink(link)
+
+            self.link = link
+            self.hash = hash
         } else {
             self.hash = parseHash(hash)
-            self.link = parseLink(link)
+            self.link = parseLink(link).link
         }
     }
 
@@ -108,19 +110,35 @@ struct Magnet: Codable, Hashable, Sendable {
         }
     }
 
-    func parseLink(_ link: String?) -> String? {
-        if let decodedLink = link?.removingPercentEncoding {
-            let separator = "magnet:?xt=urn:btih:"
-            if decodedLink.starts(with: separator) {
-                return decodedLink
-            } else if decodedLink.contains(separator) {
-                let splitLink = decodedLink.components(separatedBy: separator)
-                return splitLink.last.map { separator + $0 } ?? nil
-            } else {
-                return nil
-            }
+    func parseLink(_ link: String?, withHash: Bool = false) -> (link: String?, hash: String?) {
+        let separator = "magnet:?xt=urn:btih:"
+
+        // Remove percent encoding from the link and ensure it's a magnet
+        guard let decodedLink = link?.removingPercentEncoding, decodedLink.contains(separator) else {
+            return (nil, nil)
+        }
+
+        // Isolate the magnet link if it's bundled with another protocol
+        let isolatedLink: String?
+        if decodedLink.starts(with: separator) {
+            isolatedLink = decodedLink
         } else {
-            return nil
+            let splitLink = decodedLink.components(separatedBy: separator)
+            isolatedLink = splitLink.last.map { separator + $0 }
+        }
+
+        guard let isolatedLink else {
+            return (nil, nil)
+        }
+
+        // If the hash can be extracted, decrypt it if necessary and return the revised link + hash
+        if let originalHash = extractHash(link: isolatedLink),
+           let parsedHash = parseHash(originalHash)
+        {
+            let replacedLink = isolatedLink.replacingOccurrences(of: originalHash, with: parsedHash)
+            return (replacedLink, parsedHash)
+        } else {
+            return (decodedLink, nil)
         }
     }
 }

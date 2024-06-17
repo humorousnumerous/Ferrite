@@ -49,6 +49,14 @@ class RealDebrid: PollingDebridSource, ObservableObject {
         UserDefaults.standard.removeObject(forKey: forKey)
     }
 
+    init() {
+        // Populate user downloads and magnets
+        Task {
+            try? await getUserDownloads()
+            try? await getUserMagnets()
+        }
+    }
+
     // MARK: - Auth
 
     // Fetches the device code from RD

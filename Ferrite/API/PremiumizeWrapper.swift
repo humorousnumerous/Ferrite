@@ -38,6 +38,13 @@ class Premiumize: OAuthDebridSource, ObservableObject {
 
     private let jsonDecoder = JSONDecoder()
 
+    init() {
+        // Populate user downloads and magnets
+        Task {
+            try? await getUserDownloads()
+        }
+    }
+
     // MARK: - Auth
 
     func getAuthUrl() throws -> URL {

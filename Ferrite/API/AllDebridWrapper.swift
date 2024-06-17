@@ -36,6 +36,14 @@ class AllDebrid: PollingDebridSource, ObservableObject {
 
     private let jsonDecoder = JSONDecoder()
 
+    init() {
+        // Populate user downloads and magnets
+        Task {
+            try? await getUserDownloads()
+            try? await getUserMagnets()
+        }
+    }
+
     // MARK: - Auth
 
     // Fetches information for PIN auth
