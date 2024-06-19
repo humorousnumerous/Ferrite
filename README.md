@@ -32,6 +32,10 @@
     </a>
 </p>
 
+<p align="left">
+    <a href="https://testflight.apple.com/join/YohgCnC4"><img src="https://i.imgur.com/A5Kpowu.png" width="200"></a>
+</p>
+
 A media search engine for iOS with a plugin API to extend its functionality.
 
 ## Screenshots
