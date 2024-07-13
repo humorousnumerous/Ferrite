@@ -24,7 +24,7 @@
 			<string>Ferrite</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>ferrite://</string>
+				<string>ferrite</string>
 			</array>
 		</dict>
 	</array>
