@@ -323,6 +323,11 @@ class DebridManager: ObservableObject {
     func fetchDebridDownload(magnet: Magnet?, cloudInfo: String? = nil) async {
         defer {
             logManager?.hideIndeterminateToast()
+
+            if !requiresUnrestrict {
+                clearSelectedDebridItems()
+            }
+
             currentDebridTask = nil
         }
 
@@ -336,6 +341,9 @@ class DebridManager: ObservableObject {
         }
 
         do {
+            // Cleanup beforehand
+            requiresUnrestrict = false
+
             if let cloudInfo {
                 downloadUrl = try await debridSource.checkUserDownloads(link: cloudInfo) ?? ""
                 return
@@ -384,6 +392,7 @@ class DebridManager: ObservableObject {
         defer {
             logManager?.hideIndeterminateToast()
             requiresUnrestrict = false
+            clearSelectedDebridItems()
             currentDebridTask = nil
         }
 

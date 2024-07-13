@@ -39,6 +39,10 @@ struct BatchChoiceView: View {
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
             .autocorrectionDisabled(!autocorrectSearch)
             .textInputAutocapitalization(autocorrectSearch ? .sentences : .never)
+            .onDisappear {
+                debridManager.clearSelectedDebridItems()
+                debridManager.requiresUnrestrict = false
+            }
             .navigationTitle("Select a file")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

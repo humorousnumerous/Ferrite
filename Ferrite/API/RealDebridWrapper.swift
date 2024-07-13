@@ -11,6 +11,9 @@ class RealDebrid: PollingDebridSource, ObservableObject {
     let id = "RealDebrid"
     let abbreviation = "RD"
     let website = "https://real-debrid.com"
+    let description: String? = "RealDebrid is a debrid service that is used for downloads and media playback. " +
+        "You must pay to access this service. \n\n" +
+        "This service does not inform if a magnet link in a user's cloud library is a batch before downloading."
     let cachedStatus: [String] = ["downloaded"]
     var authTask: Task<Void, Error>?
 
@@ -336,12 +339,34 @@ class RealDebrid: PollingDebridSource, ObservableObject {
                 try await selectFiles(debridID: selectedMagnetId, fileIds: iaFile?.batchIds ?? [])
             }
 
-            // RealDebrid has 1 as the first ID for a file
-            let restrictedFile = try await torrentInfo(
-                debridID: selectedMagnetId,
-                selectedFileId: iaFile?.id ?? 1
-            )
+            let response = try await torrentInfo(debridID: selectedMagnetId)
+            let filteredFiles = response.files.filter { $0.selected == 1 }
 
+            if filteredFiles.count > 1, iaFile == nil {
+                // Need to return this to the user
+
+                var copiedIA = ia
+
+                copiedIA?.files = response.files.enumerated().compactMap { index, file in
+                    DebridIAFile(
+                        id: index,
+                        name: file.path,
+                        streamUrlString: response.links[safe: index]
+                    )
+                }
+
+                return (nil, copiedIA)
+            }
+
+            // RealDebrid has 1 as the first ID for a file
+            let selectedFileId = iaFile?.id ?? 1
+            let linkIndex = filteredFiles.firstIndex(where: { $0.id == selectedFileId })
+
+            guard let cloudMagnetLink = response.links[safe: linkIndex ?? -1] else {
+                throw DebridError.EmptyUserMagnets
+            }
+
+            let restrictedFile = DebridIAFile(id: 0, name: response.filename, streamUrlString: cloudMagnetLink)
             return (restrictedFile, nil)
         } catch {
             if case DebridError.EmptyUserMagnets = error, !selectedMagnetId.isEmpty {
@@ -395,26 +420,37 @@ class RealDebrid: PollingDebridSource, ObservableObject {
     }
 
     // Gets the info of a torrent from a given ID
-    func torrentInfo(debridID: String, selectedFileId: Int?) async throws -> DebridIAFile {
+    func torrentInfo(debridID: String) async throws -> TorrentInfoResponse {
         var request = URLRequest(url: URL(string: "\(baseApiUrl)/torrents/info/\(debridID)")!)
 
         let data = try await performRequest(request: &request, requestName: #function)
         let rawResponse = try jsonDecoder.decode(TorrentInfoResponse.self, from: data)
-        let filteredFiles = rawResponse.files.filter { $0.selected == 1 }
-        let linkIndex = filteredFiles.firstIndex(where: { $0.id == selectedFileId })
 
         // Let the user know if a magnet is downloading
-        if let cloudMagnetLink = rawResponse.links[safe: linkIndex ?? -1], rawResponse.status == "downloaded" {
-            return DebridIAFile(
-                id: 0,
-                name: rawResponse.filename,
-                streamUrlString: cloudMagnetLink
-            )
-        } else if rawResponse.status == "downloading" || rawResponse.status == "queued" {
+        switch rawResponse.status {
+        case "downloaded":
+            return rawResponse
+        case "downloading", "queued":
             throw DebridError.IsCaching
-        } else {
+        default:
             throw DebridError.EmptyUserMagnets
         }
+        /*
+         if rawResponse.status == "downloaded" {
+             //let cloudMagnetLink = rawResponse.links[safe: linkIndex ?? -1],
+             /*
+             return DebridIAFile(
+                 id: 0,
+                 name: rawResponse.filename,
+                 streamUrlString: cloudMagnetLink
+             )
+              */
+         } else if rawResponse.status == "downloading" || rawResponse.status == "queued" {
+             throw DebridError.IsCaching
+         } else {
+             throw DebridError.EmptyUserMagnets
+         }
+          */
     }
 
     // Downloads link from selectFiles for playback
@@ -448,7 +484,7 @@ class RealDebrid: PollingDebridSource, ObservableObject {
                 fileName: response.filename,
                 status: response.status,
                 hash: response.hash,
-                links: response.links
+                links: [response.id]
             )
         }
     }

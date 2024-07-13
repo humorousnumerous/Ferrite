@@ -143,6 +143,8 @@ struct ActionChoiceView: View {
             }
             .onDisappear {
                 debridManager.downloadUrl = ""
+                debridManager.clearSelectedDebridItems()
+                debridManager.requiresUnrestrict = false
                 navModel.selectedTitle = ""
                 navModel.selectedBatchTitle = ""
                 navModel.resultFromCloud = false
@@ -153,8 +155,11 @@ struct ActionChoiceView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         debridManager.downloadUrl = ""
+                        debridManager.clearSelectedDebridItems()
+                        debridManager.requiresUnrestrict = false
                         navModel.selectedTitle = ""
                         navModel.selectedBatchTitle = ""
+                        navModel.resultFromCloud = false
 
                         dismiss()
                     }
