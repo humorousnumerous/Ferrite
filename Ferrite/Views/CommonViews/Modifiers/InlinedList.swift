@@ -8,23 +8,16 @@
 //  If a list is sectioned, see InlineHeader
 //
 
-import Introspect
 import SwiftUI
+import SwiftUIIntrospect
 
 struct InlinedListModifier: ViewModifier {
     let inset: CGFloat
 
     func body(content: Content) -> some View {
-        if #available(iOS 16, *) {
-            content
-                .introspectCollectionView { collectionView in
-                    collectionView.contentInset.top = inset
-                }
-        } else {
-            content
-                .introspectTableView { tableView in
-                    tableView.contentInset.top = inset
-                }
-        }
+        content
+            .introspect(.list, on: .iOS(.v16, .v17, .v18)) { collectionView in
+                collectionView.contentInset.top = inset
+            }
     }
 }

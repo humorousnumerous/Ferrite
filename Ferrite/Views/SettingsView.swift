@@ -6,7 +6,6 @@
 //
 
 import BetterSafariView
-import Introspect
 import SwiftUI
 import WebKit
 
