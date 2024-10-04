@@ -13,7 +13,7 @@ struct SourceSettingsBaseUrlView: View {
     @State private var tempSite: String = ""
     var body: some View {
         Section(
-            header: InlineHeader("Base URL"),
+            header: Text("Base URL"),
             footer: Text("Enter the base URL of your server.")
         ) {
             TextField("https://...", text: $tempSite, onEditingChanged: { isFocused in

@@ -19,7 +19,7 @@ struct SourceSettingsApiView: View {
 
     var body: some View {
         Section(
-            header: InlineHeader("API credentials"),
+            header: Text("API credentials"),
             footer: Text("Grab the required API credentials from the website. A client secret can be an API token.")
         ) {
             if let clientId = selectedSourceApi.clientId, clientId.dynamic {

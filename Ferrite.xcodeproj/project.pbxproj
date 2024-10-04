@@ -135,7 +135,6 @@
 		0CB0115B29D36D9E009AFEDE /* SearchResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB0115A29D36D9E009AFEDE /* SearchResultsView.swift */; };
 		0CB0AB5F29BD2A200015422C /* KodiServerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB0AB5E29BD2A200015422C /* KodiServerView.swift */; };
 		0CB6516528C5A5D700DCA721 /* InlinedList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB6516428C5A5D700DCA721 /* InlinedList.swift */; };
-		0CB6516A28C5B4A600DCA721 /* InlineHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB6516928C5B4A600DCA721 /* InlineHeader.swift */; };
 		0CB725322C123E6F0047FC0B /* CloudDownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB725312C123E6F0047FC0B /* CloudDownloadView.swift */; };
 		0CB725342C123E760047FC0B /* CloudMagnetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB725332C123E760047FC0B /* CloudMagnetView.swift */; };
 		0CBAB83628D12ED500AC903E /* DisableInteraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CBAB83528D12ED500AC903E /* DisableInteraction.swift */; };
@@ -288,7 +287,6 @@
 		0CB0115A29D36D9E009AFEDE /* SearchResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultsView.swift; sourceTree = "<group>"; };
 		0CB0AB5E29BD2A200015422C /* KodiServerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KodiServerView.swift; sourceTree = "<group>"; };
 		0CB6516428C5A5D700DCA721 /* InlinedList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlinedList.swift; sourceTree = "<group>"; };
-		0CB6516928C5B4A600DCA721 /* InlineHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineHeader.swift; sourceTree = "<group>"; };
 		0CB725312C123E6F0047FC0B /* CloudDownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudDownloadView.swift; sourceTree = "<group>"; };
 		0CB725332C123E760047FC0B /* CloudMagnetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudMagnetView.swift; sourceTree = "<group>"; };
 		0CBAB83528D12ED500AC903E /* DisableInteraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisableInteraction.swift; sourceTree = "<group>"; };
@@ -580,7 +578,6 @@
 				0C44E2A928D4DFC4007711AE /* Modifiers */,
 				0CDCB91728C662640098B513 /* EmptyInstructionView.swift */,
 				0CA3FB1F28B91D9500FA10A8 /* IndeterminateProgressView.swift */,
-				0CB6516928C5B4A600DCA721 /* InlineHeader.swift */,
 				0C32FB562890D1F2002BD219 /* ListRowViews.swift */,
 				0C2D9652299316CC00A504B6 /* Tag.swift */,
 				0C6771FB29B3E0DB005D38D2 /* HybridSecureField.swift */,
@@ -904,7 +901,6 @@
 				0CA148DD288903F000DE2211 /* ScrapingViewModel.swift in Sources */,
 				0C445C62293F9A0B0060744D /* Bundle.swift in Sources */,
 				0C0755C6293424A200ECA142 /* DebridLabelView.swift in Sources */,
-				0CB6516A28C5B4A600DCA721 /* InlineHeader.swift in Sources */,
 				0CA148D8288903F000DE2211 /* ActionChoiceView.swift in Sources */,
 				0C41BC6528C2AEB900B47DD6 /* SearchModels.swift in Sources */,
 				0C68135028BC1A2D00FAD890 /* GithubWrapper.swift in Sources */,

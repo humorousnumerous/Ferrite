@@ -31,7 +31,7 @@ struct ActionChoiceView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: InlineHeader("Now Playing")) {
+                Section("Now Playing") {
                     VStack(alignment: .leading, spacing: 5) {
                         Text(navModel.selectedTitle)
                             .font(.callout)
@@ -46,7 +46,7 @@ struct ActionChoiceView: View {
                 }
 
                 if !debridManager.downloadUrl.isEmpty {
-                    Section(header: InlineHeader("Debrid options")) {
+                    Section("Debrid options") {
                         ForEach(actions, id: \.id) { action in
                             if action.requires.contains(ActionRequirement.debrid.rawValue) {
                                 ListRowButtonView(action.name, systemImage: "arrow.up.forward.app.fill") {
@@ -91,7 +91,7 @@ struct ActionChoiceView: View {
                 }
 
                 if !navModel.resultFromCloud {
-                    Section(header: InlineHeader("Magnet options")) {
+                    Section("Magnet options") {
                         ForEach(actions, id: \.id) { action in
                             if action.requires.contains(ActionRequirement.magnet.rawValue) {
                                 ListRowButtonView(action.name, systemImage: "arrow.up.forward.app.fill") {

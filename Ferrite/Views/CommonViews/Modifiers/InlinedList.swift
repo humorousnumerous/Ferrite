@@ -5,7 +5,6 @@
 //  Created by Brian Dashore on 9/4/22.
 //
 //  Removes the top padding on unsectioned lists
-//  If a list is sectioned, see InlineHeader
 //
 
 import SwiftUI

@@ -44,7 +44,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: InlineHeader("Debrid services")) {
+                Section("Debrid services") {
                     ForEach(debridManager.debridSources, id: \.id) { (debridSource: DebridSource) in
                         NavigationLink {
                             SettingsDebridInfoView(debridSource: debridSource)
@@ -59,7 +59,7 @@ struct SettingsView: View {
                     }
                 }
 
-                Section(header: InlineHeader("Playback services")) {
+                Section("Playback services") {
                     NavigationLink {
                         SettingsKodiView(kodiServers: kodiServers)
                     } label: {
@@ -73,7 +73,7 @@ struct SettingsView: View {
                 }
 
                 Section(
-                    header: InlineHeader("Behavior"),
+                    header: Text("Behavior"),
                     footer: VStack(alignment: .leading, spacing: 8) {
                         Text("Temporarily disable ephemeral auth if you cannot log into a service")
                         Text("Only disable search timeout if results are slow to fetch")
@@ -120,13 +120,13 @@ struct SettingsView: View {
                     }
                 }
 
-                Section(header: InlineHeader("Plugin management")) {
+                Section("Plugin management") {
                     NavigationLink("Plugin lists") {
                         SettingsPluginListView()
                     }
                 }
 
-                Section(header: InlineHeader("Default actions")) {
+                Section("Default actions") {
                     if !debridManager.enabledDebrids.isEmpty {
                         NavigationLink {
                             DefaultActionPickerView(
@@ -184,13 +184,13 @@ struct SettingsView: View {
                     }
                 }
 
-                Section(header: InlineHeader("Backups")) {
+                Section("Backups") {
                     NavigationLink("Backups") {
                         BackupsView()
                     }
                 }
 
-                Section(header: InlineHeader("Updates")) {
+                Section("Updates") {
                     Toggle(isOn: $autoUpdateNotifs) {
                         Text("Show update alerts")
                     }
@@ -200,7 +200,7 @@ struct SettingsView: View {
                     }
                 }
 
-                Section(header: InlineHeader("Information")) {
+                Section("Information") {
                     ListRowLinkView(text: "Donate", link: "https://ko-fi.com/kingbri")
                     ListRowLinkView(text: "Report issues", link: "https://github.com/bdashore3/Ferrite/issues")
 
@@ -209,7 +209,7 @@ struct SettingsView: View {
                     }
                 }
 
-                Section(header: InlineHeader("Debug")) {
+                Section("Debug") {
                     NavigationLink("Logs") {
                         SettingsLogView()
                     }

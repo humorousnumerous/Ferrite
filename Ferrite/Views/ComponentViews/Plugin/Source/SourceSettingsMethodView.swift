@@ -11,7 +11,7 @@ struct SourceSettingsMethodView: View {
     @ObservedObject var selectedSource: Source
 
     var body: some View {
-        Section(header: InlineHeader("Fetch method")) {
+        Section("Fetch method") {
             Picker("", selection: $selectedSource.preferredParser) {
                 if selectedSource.jsonParser != nil {
                     Text("Website API").tag(SourcePreferredParser.siteApi.rawValue)

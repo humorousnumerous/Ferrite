@@ -11,7 +11,7 @@ struct PluginInfoAboutView<P: Plugin>: View {
     @ObservedObject var selectedPlugin: P
 
     var body: some View {
-        Section(header: InlineHeader("Description")) {
+        Section("Description") {
             VStack(alignment: .leading, spacing: 10) {
                 if let pluginAbout = selectedPlugin.about {
                     if pluginAbout.last == "\n" {

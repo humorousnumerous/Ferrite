@@ -16,7 +16,7 @@ struct SettingsDebridInfoView: View {
 
     var body: some View {
         List {
-            Section(header: InlineHeader("Description")) {
+            Section("Description") {
                 VStack(alignment: .leading, spacing: 10) {
                     Text(debridSource.description ??
                         "\(debridSource.id) is a debrid service that is used for downloads and media playback. You must pay to access the service."
@@ -27,7 +27,7 @@ struct SettingsDebridInfoView: View {
             }
 
             Section(
-                header: InlineHeader("Login status"),
+                header: Text("Login status"),
                 footer: Text("A WebView will show up to prompt you for credentials")
             ) {
                 Button {
@@ -58,7 +58,7 @@ struct SettingsDebridInfoView: View {
             }
 
             Section(
-                header: InlineHeader("API key"),
+                header: Text("API key"),
                 footer: Text("Add a permanent API key here. Only use this if web authentication does not work!")
             ) {
                 HybridSecureField(

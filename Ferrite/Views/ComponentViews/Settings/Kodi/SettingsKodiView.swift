@@ -18,7 +18,7 @@ struct SettingsKodiView: View {
 
     var body: some View {
         List {
-            Section(header: InlineHeader("Description")) {
+            Section("Description") {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Kodi is an external application that is used to manage a local media library and playback.")
 
@@ -27,7 +27,7 @@ struct SettingsKodiView: View {
             }
 
             Section(
-                header: InlineHeader("Servers"),
+                header: Text("Servers"),
                 footer: Text("Edit a server by holding it and accessing the context menu")
             ) {
                 if kodiServers.isEmpty {

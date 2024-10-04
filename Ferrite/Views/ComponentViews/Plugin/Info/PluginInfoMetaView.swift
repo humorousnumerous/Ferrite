@@ -16,7 +16,7 @@ struct PluginInfoMetaView<P: Plugin>: View {
     ) var pluginLists: FetchedResults<PluginList>
 
     var body: some View {
-        Section(header: InlineHeader("Metadata")) {
+        Section("Metadata") {
             VStack(alignment: .leading) {
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 5) {

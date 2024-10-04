@@ -39,7 +39,7 @@ struct PluginAggregateView<P: Plugin, PJ: PluginJson>: View {
                 searchText: searchText
             )
             if !filteredUpdatedPlugins.isEmpty {
-                Section(header: InlineHeader("Updates")) {
+                Section("Updates") {
                     ForEach(filteredUpdatedPlugins, id: \.self) { (updatedPlugin: PJ) in
                         PluginCatalogButtonView(availablePlugin: updatedPlugin, needsUpdate: true)
                     }
@@ -47,7 +47,7 @@ struct PluginAggregateView<P: Plugin, PJ: PluginJson>: View {
             }
 
             if !installedPlugins.isEmpty {
-                Section(header: InlineHeader("Installed")) {
+                Section("Installed") {
                     ForEach(installedPlugins, id: \.self) { installedPlugin in
                         InstalledPluginButtonView(
                             installedPlugin: installedPlugin,
@@ -64,7 +64,7 @@ struct PluginAggregateView<P: Plugin, PJ: PluginJson>: View {
                 searchText: searchText
             )
             if !filteredAvailablePlugins.isEmpty {
-                Section(header: InlineHeader("Catalog")) {
+                Section("Catalog") {
                     ForEach(filteredAvailablePlugins, id: \.self) { availablePlugin in
                         PluginCatalogButtonView(availablePlugin: availablePlugin, needsUpdate: false)
                     }

@@ -29,7 +29,7 @@ struct KodiEditorView: View {
             Form {
                 Group {
                     Section(
-                        header: InlineHeader("URL"),
+                        header: Text("URL"),
                         footer: Text("Must follow the format http(s)://<ip>:<port>")
                     ) {
                         TextField("Enter URL", text: $serverUrl)
@@ -37,14 +37,14 @@ struct KodiEditorView: View {
                     }
 
                     Section(
-                        header: InlineHeader("Friendly name"),
+                        header: Text("Friendly name"),
                         footer: Text("Defaults to the URL if not provided")
                     ) {
                         TextField("Friendly name", text: $friendlyName)
                     }
 
                     Section(
-                        header: InlineHeader("Credentials"),
+                        header: Text("Credentials"),
                         footer: Text("Only use for clients with authentication")
                     ) {
                         TextField("Username", text: $username)
