@@ -14,16 +14,8 @@ struct NavView<Content: View>: View {
     @ViewBuilder var content: Content
 
     var body: some View {
-        // NavigationStack issues are fixed on iOS 17
-        if #available(iOS 17, *) {
-            NavigationStack {
-                content
-            }
-        } else {
-            NavigationView {
-                content
-            }
-            .navigationViewStyle(.stack)
+        NavigationStack {
+            content
         }
     }
 }

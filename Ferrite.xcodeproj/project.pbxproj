@@ -135,7 +135,6 @@
 		0CAF1C7B286F5C8600296F86 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 0CAF1C7A286F5C8600296F86 /* SwiftSoup */; };
 		0CB0115B29D36D9E009AFEDE /* SearchResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB0115A29D36D9E009AFEDE /* SearchResultsView.swift */; };
 		0CB0AB5F29BD2A200015422C /* KodiServerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB0AB5E29BD2A200015422C /* KodiServerView.swift */; };
-		0CB6516328C5A57300DCA721 /* ConditionalId.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB6516228C5A57300DCA721 /* ConditionalId.swift */; };
 		0CB6516528C5A5D700DCA721 /* InlinedList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB6516428C5A5D700DCA721 /* InlinedList.swift */; };
 		0CB6516A28C5B4A600DCA721 /* InlineHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB6516928C5B4A600DCA721 /* InlineHeader.swift */; };
 		0CB725322C123E6F0047FC0B /* CloudDownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB725312C123E6F0047FC0B /* CloudDownloadView.swift */; };
@@ -290,7 +289,6 @@
 		0CAF1C68286F5C0E00296F86 /* Ferrite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ferrite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0CB0115A29D36D9E009AFEDE /* SearchResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultsView.swift; sourceTree = "<group>"; };
 		0CB0AB5E29BD2A200015422C /* KodiServerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KodiServerView.swift; sourceTree = "<group>"; };
-		0CB6516228C5A57300DCA721 /* ConditionalId.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionalId.swift; sourceTree = "<group>"; };
 		0CB6516428C5A5D700DCA721 /* InlinedList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlinedList.swift; sourceTree = "<group>"; };
 		0CB6516928C5B4A600DCA721 /* InlineHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineHeader.swift; sourceTree = "<group>"; };
 		0CB725312C123E6F0047FC0B /* CloudDownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudDownloadView.swift; sourceTree = "<group>"; };
@@ -484,7 +482,6 @@
 			isa = PBXGroup;
 			children = (
 				0C70E40128C3CE9C00A5C72D /* ConditionalContextMenu.swift */,
-				0CB6516228C5A57300DCA721 /* ConditionalId.swift */,
 				0CD5E78828CD932B001BF684 /* DisabledAppearance.swift */,
 				0CBAB83528D12ED500AC903E /* DisableInteraction.swift */,
 				0CB6516428C5A5D700DCA721 /* InlinedList.swift */,
@@ -852,7 +849,6 @@
 				0CB6516528C5A5D700DCA721 /* InlinedList.swift in Sources */,
 				0C8DC35429CE2AB5008A83AD /* SourceSettingsBaseUrlView.swift in Sources */,
 				0C32FB532890D19D002BD219 /* AboutView.swift in Sources */,
-				0CB6516328C5A57300DCA721 /* ConditionalId.swift in Sources */,
 				0C70E40628C40C4E00A5C72D /* NotificationCenter.swift in Sources */,
 				0C84F4832895BFED0074B7C9 /* Source+CoreDataProperties.swift in Sources */,
 				0C2D9653299316CC00A504B6 /* Tag.swift in Sources */,

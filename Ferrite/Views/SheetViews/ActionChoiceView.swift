@@ -123,13 +123,8 @@ struct ActionChoiceView: View {
             }
             .tint(.primary)
             .sheet(isPresented: $navModel.showLocalActivitySheet) {
-                // TODO: Fix share sheet
-                if #available(iOS 16, *) {
-                    ShareSheet(activityItems: navModel.activityItems)
-                        .presentationDetents([.medium, .large])
-                } else {
-                    ShareSheet(activityItems: navModel.activityItems)
-                }
+                ShareSheet(activityItems: navModel.activityItems)
+                    .presentationDetents([.medium, .large])
             }
             .alert("Action successful", isPresented: $pluginManager.showActionSuccessAlert) {
                 Button("OK", role: .cancel) {}

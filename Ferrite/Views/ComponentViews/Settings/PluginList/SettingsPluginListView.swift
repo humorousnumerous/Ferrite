@@ -69,12 +69,8 @@ struct SettingsPluginListView: View {
             }
         }
         .sheet(isPresented: $presentEditSheet) {
-            if #available(iOS 16, *) {
-                PluginListEditorView()
-                    .presentationDetents([.medium])
-            } else {
-                PluginListEditorView()
-            }
+            PluginListEditorView()
+                .presentationDetents([.medium])
         }
         .navigationTitle("Plugin Lists")
         .navigationBarTitleDisplayMode(.inline)

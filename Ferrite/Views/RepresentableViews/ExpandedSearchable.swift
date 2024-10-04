@@ -212,10 +212,7 @@ struct SearchBar<ScopeContent: View>: UIViewControllerRepresentable {
         private func setup() {
             parent?.navigationItem.searchController = searchController
             parent?.navigationItem.hidesSearchBarWhenScrolling = false
-
-            if #available(iOS 16, *) {
-                parent?.navigationItem.preferredSearchBarPlacement = .stacked
-            }
+            parent?.navigationItem.preferredSearchBarPlacement = .stacked
 
             // Makes search bar appear when application starts
             parent?.navigationController?.navigationBar.sizeToFit()

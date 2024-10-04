@@ -25,10 +25,6 @@ extension View {
         modifier(ConditionalContextMenuModifier(internalContent, id: id))
     }
 
-    func conditionalId(_ id: some Hashable) -> some View {
-        modifier(ConditionalIdModifier(id: id))
-    }
-
     func disabledAppearance(_ disabled: Bool, dimmedOpacity: Double? = nil, animation: Animation? = nil) -> some View {
         modifier(DisabledAppearanceModifier(disabled: disabled, dimmedOpacity: dimmedOpacity, animation: animation))
     }

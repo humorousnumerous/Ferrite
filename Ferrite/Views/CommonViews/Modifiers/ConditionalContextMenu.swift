@@ -20,20 +20,9 @@ struct ConditionalContextMenuModifier<InternalContent: View, ID: Hashable>: View
     }
 
     func body(content: Content) -> some View {
-        if #available(iOS 16, *) {
-            content
-                .contextMenu {
-                    internalContent()
-                }
-        } else {
-            content
-                .background {
-                    Color.clear
-                        .contextMenu {
-                            internalContent()
-                        }
-                        .id(id)
-                }
-        }
+        content
+            .contextMenu {
+                internalContent()
+            }
     }
 }

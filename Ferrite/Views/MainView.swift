@@ -54,12 +54,8 @@ struct MainView: View {
             case .batch:
                 BatchChoiceView()
             case .activity:
-                if #available(iOS 16, *) {
-                    ShareSheet(activityItems: navModel.activityItems)
-                        .presentationDetents([.medium, .large])
-                } else {
-                    ShareSheet(activityItems: navModel.activityItems)
-                }
+                ShareSheet(activityItems: navModel.activityItems)
+                    .presentationDetents([.medium, .large])
             }
         }
         .onAppear {
