@@ -19,12 +19,6 @@ extension View {
 
     // MARK: Modifiers
 
-    func conditionalContextMenu(id: some Hashable,
-                                @ViewBuilder _ internalContent: @escaping () -> some View) -> some View
-    {
-        modifier(ConditionalContextMenuModifier(internalContent, id: id))
-    }
-
     func disabledAppearance(_ disabled: Bool, dimmedOpacity: Double? = nil, animation: Animation? = nil) -> some View {
         modifier(DisabledAppearanceModifier(disabled: disabled, dimmedOpacity: dimmedOpacity, animation: animation))
     }

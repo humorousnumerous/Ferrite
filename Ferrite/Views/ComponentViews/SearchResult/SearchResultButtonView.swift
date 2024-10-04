@@ -90,7 +90,7 @@ struct SearchResultButtonView: View {
         }
         .disableInteraction(navModel.currentChoiceSheet != nil)
         .tint(.primary)
-        .conditionalContextMenu(id: existingBookmark) {
+        .contextMenu {
             ZStack {
                 if let bookmark = existingBookmark {
                     Button {
