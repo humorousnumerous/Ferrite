@@ -12,7 +12,7 @@ struct LoginWebView: View {
     var url: URL
 
     var body: some View {
-        NavView {
+        NavigationStack {
             WebView(url: url)
                 .navigationTitle("Sign in")
                 .navigationBarTitleDisplayMode(.inline)

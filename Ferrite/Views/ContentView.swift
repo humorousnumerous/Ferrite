@@ -27,7 +27,7 @@ struct ContentView: View {
     @State private var dismissAction: () -> Void = {}
 
     var body: some View {
-        NavView {
+        NavigationStack {
             List {
                 SearchResultsView(searchText: $searchText)
             }

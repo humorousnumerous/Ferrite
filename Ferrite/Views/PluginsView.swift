@@ -30,7 +30,7 @@ struct PluginsView: View {
     @State private var searchText: String = ""
 
     var body: some View {
-        NavView {
+        NavigationStack {
             ZStack {
                 if checkedForPlugins {
                     switch navModel.pluginPickerSelection {

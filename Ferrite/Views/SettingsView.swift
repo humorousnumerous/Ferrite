@@ -42,7 +42,7 @@ struct SettingsView: View {
     @FocusState private var focusedField: Field?
 
     var body: some View {
-        NavView {
+        NavigationStack {
             Form {
                 Section(header: InlineHeader("Debrid services")) {
                     ForEach(debridManager.debridSources, id: \.id) { (debridSource: DebridSource) in

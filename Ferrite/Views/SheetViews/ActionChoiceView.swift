@@ -29,7 +29,7 @@ struct ActionChoiceView: View {
     @State private var showMagnetCopyAlert = false
 
     var body: some View {
-        NavView {
+        NavigationStack {
             Form {
                 Section(header: InlineHeader("Now Playing")) {
                     VStack(alignment: .leading, spacing: 5) {

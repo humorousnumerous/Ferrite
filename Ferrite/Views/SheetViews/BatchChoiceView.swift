@@ -19,9 +19,8 @@ struct BatchChoiceView: View {
 
     @State private var searchText: String = ""
 
-    // TODO: Make this generic for an IA protocol
     var body: some View {
-        NavView {
+        NavigationStack {
             List {
                 ForEach(debridManager.selectedDebridItem?.files ?? [], id: \.self) { file in
                     if file.name.lowercased().contains(searchText.lowercased()) || searchText.isEmpty {

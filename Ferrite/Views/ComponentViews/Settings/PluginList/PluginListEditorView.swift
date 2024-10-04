@@ -25,7 +25,7 @@ struct PluginListEditorView: View {
     @State private var loadedSelectedList = false
 
     var body: some View {
-        NavView {
+        NavigationStack {
             Form {
                 TextField("Enter URL", text: $pluginListUrl)
                     .disableAutocorrection(true)

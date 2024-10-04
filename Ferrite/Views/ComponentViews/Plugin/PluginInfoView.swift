@@ -13,7 +13,7 @@ struct PluginInfoView<P: Plugin>: View {
     @Binding var selectedPlugin: P?
 
     var body: some View {
-        NavView {
+        NavigationStack {
             List {
                 if let selectedPlugin {
                     PluginInfoMetaView(selectedPlugin: selectedPlugin)

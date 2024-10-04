@@ -25,7 +25,7 @@ struct KodiEditorView: View {
     @State private var errorAlertText: String = ""
 
     var body: some View {
-        NavView {
+        NavigationStack {
             Form {
                 Group {
                     Section(

@@ -30,7 +30,7 @@ struct LibraryView: View {
     @State private var searchText: String = ""
 
     var body: some View {
-        NavView {
+        NavigationStack {
             ZStack {
                 switch navModel.libraryPickerSelection {
                 case .bookmarks:
